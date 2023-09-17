@@ -318,3 +318,4 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/dotnetcore,c++,cmake,python,ninja,rider
 
 !/build
+!/lib

@@ -5,8 +5,61 @@ jobs:
   windows:
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
-        target: [WindowsX64, WindowsX86, WindowsArm64]
+        # architecture: [x64, x86, arm64]
+        # variant: ['shared', 'static']
+        architecture: [x64]
+        variant: ['shared', 'static']
+        
     steps:
       - uses: actions/checkout@v3
-      - run: nuke ${{ matrix.target }}
+        with:
+          submodules: true
+      - run: ./build.cmd Windows --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: alphaskia-${{ matrix.architecture }}-${{ matrix.variant }}
+          path: dist
+
+  # linux:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       architecture: [x64, x86]
+  #       variant: ['shared', 'static']
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         submodules: true
+  #     - run: ./externals/skia/tools/install_dependencies.sh
+  #     # - run: sudo apt-get install # lbzip2 clang build-essential libc++-dev libstdc++ libstdc++-12-dev libstdc++-12-dev-i386-cross 
+  #     # - run: sudo apt-get install libstdc++-12-dev-i386-cross 
+  #     - run: ./build.sh Linux --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+  #     - uses: actions/upload-artifact@v3
+  #       with:
+  #         name: alphaskia-${{ matrix.architecture }}-${{ matrix.variant }}
+  #         path: dist
+
+  # linux_arm:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       architecture: [arm64]
+  #       variant: ['shared', 'static']
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         submodules: true
+  #     - run: sudo dpkg --add-architecture arm64
+  #     - run: sudo apt-get update
+  #     - run: ./externals/skia/tools/install_dependencies.sh
+  #     - run: sudo apt-get install gcc-aarch64-linux-gnu libstdc++-12-dev-arm64-cross
+  #     - run: ./build.sh Linux --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+  #     - uses: actions/upload-artifact@v3
+  #       with:
+  #         name: alphaskia-${{ matrix.architecture }}-${{ matrix.variant }}
+  #         path: dist
+

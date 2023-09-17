@@ -5,3 +5,4 @@
 [submodule "externals/skia"]
 	path = externals/skia
 	url = https://skia.googlesource.com/skia.git
+	branch = chrome/m117
