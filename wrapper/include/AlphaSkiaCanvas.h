@@ -35,10 +35,9 @@ public:
     void fill();
     void stroke();
     void draw_image(sk_sp<SkImage> image, float x, float y);
-
-    void fill_text(wchar_t *text, sk_sp<SkTypeface> type_face, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
-
-    float measure_text(wchar_t *text, sk_sp<SkTypeface> type_face, float font_size);
+   
+    void fill_text(const char *utf8, sk_sp<SkTypeface> typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
+    float measure_text(const char *utf8, sk_sp<SkTypeface> typeface, float font_size);
     void begin_rotate(float center_x, float center_y, float angle);
     void end_rotate();
 
@@ -55,8 +54,8 @@ private:
     // Chromium adopted text shaping and blob creation
     static const uint32_t layoutUnitFractionalBits_;
     static const int32_t fixedPointDenominator_;
-    void text_run(wchar_t *text,
-                  SkFont& font,
+    void text_run(const char* utf8,
+                  SkFont &font,
                   sk_sp<SkTextBlob> &realBlob,
                   float &width);
 

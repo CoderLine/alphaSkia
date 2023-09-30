@@ -142,13 +142,13 @@ void AlphaSkiaCanvas::stroke()
     surface_->getCanvas()->drawPath(path_, paint);
 }
 
-void AlphaSkiaCanvas::fill_text(wchar_t *text, sk_sp<SkTypeface> type_face, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+void AlphaSkiaCanvas::fill_text(const char *utf8, sk_sp<SkTypeface> type_face, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
     sk_sp<SkTextBlob> realBlob;
     SkFont font(type_face, font_size);
 
     float width(0);
-    text_run(text, font, realBlob, width);
+    text_run(utf8, font, realBlob, width);
 
     switch (text_align)
     {
@@ -174,12 +174,12 @@ void AlphaSkiaCanvas::fill_text(wchar_t *text, sk_sp<SkTypeface> type_face, floa
     }
 }
 
-float AlphaSkiaCanvas::measure_text(wchar_t *text, sk_sp<SkTypeface> type_face, float font_size)
+float AlphaSkiaCanvas::measure_text(const char *utf8, sk_sp<SkTypeface> type_face, float font_size)
 {
     sk_sp<SkTextBlob> realBlob;
     SkFont font(type_face, font_size);
     float width(0);
-    text_run(text, font, realBlob, width);
+    text_run(utf8, font, realBlob, width);
     return width;
 }
 
@@ -243,7 +243,7 @@ HBFont make_harfbuzz_font(const SkFont& font)
     return hbFont;
 }
 
-void AlphaSkiaCanvas::text_run(wchar_t *text,
+void AlphaSkiaCanvas::text_run(const char* utf8,
                                SkFont &font,
                                sk_sp<SkTextBlob> &realBlob,
                                float &width)
@@ -252,14 +252,11 @@ void AlphaSkiaCanvas::text_run(wchar_t *text,
     font.setSubpixel(true);
     font.setHinting(SkFontHinting::kNormal);
 
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc;l=2718;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1
-    std::string utf8 = convert_to_utf8(text);
-
     HBFont harfBuzzFont(make_harfbuzz_font(font));
     HBBuffer buffer(hb_buffer_create());
     hb_buffer_set_direction(buffer.get(), HB_DIRECTION_LTR);
     hb_buffer_set_language(buffer.get(), hb_language_get_default());
-    hb_buffer_add_utf8(buffer.get(), utf8.c_str(), -1, 0, -1);
+    hb_buffer_add_utf8(buffer.get(), utf8, -1, 0, -1);
 
     hb_shape(harfBuzzFont.get(), buffer.get(), nullptr, 0);
 

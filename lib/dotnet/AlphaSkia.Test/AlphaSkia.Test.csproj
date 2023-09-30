@@ -24,8 +24,7 @@
     </ItemGroup>
     
     <ItemGroup>
-        <None Remove="font/**/*.*" />
-        <EmbeddedResource Include="font/**/*.ttf" />
+        <EmbeddedResource Include="../../test/font/**/*.ttf" />
     </ItemGroup>
 
     <ItemGroup>

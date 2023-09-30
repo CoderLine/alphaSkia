@@ -1,7 +1,7 @@
 ﻿namespace AlphaSkia;
 
 /// <summary>
-/// Lists all vertical text baseline alignments which can be used to draw text.
+/// 
 /// </summary>
 public enum AlphaSkiaTextBaseline
 {

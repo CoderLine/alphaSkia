@@ -7,59 +7,100 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # architecture: [x64, x86, arm64]
-        # variant: ['shared', 'static']
-        architecture: [x64]
+        architecture: [x64, x86, arm64]
         variant: ['shared', 'static']
         
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - run: ./build.cmd Windows --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - run: ./build.cmd WindowsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
       - uses: actions/upload-artifact@v3
         with:
-          name: alphaskia-${{ matrix.architecture }}-${{ matrix.variant }}
+          name: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
           path: dist
 
-  # linux:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       architecture: [x64, x86]
-  #       variant: ['shared', 'static']
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         submodules: true
-  #     - run: ./externals/skia/tools/install_dependencies.sh
-  #     # - run: sudo apt-get install # lbzip2 clang build-essential libc++-dev libstdc++ libstdc++-12-dev libstdc++-12-dev-i386-cross 
-  #     # - run: sudo apt-get install libstdc++-12-dev-i386-cross 
-  #     - run: ./build.sh Linux --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         name: alphaskia-${{ matrix.architecture }}-${{ matrix.variant }}
-  #         path: dist
+  windows-jni:
+    runs-on: windows-latest
+    needs: [windows]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm64]
+        
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: ./build.cmd WindowsJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: alphaskia-windows-jni-${{ matrix.architecture }}-${{ matrix.variant }}
+          path: dist
 
-  # linux_arm:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       architecture: [arm64]
-  #       variant: ['shared', 'static']
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         submodules: true
-  #     - run: sudo dpkg --add-architecture arm64
-  #     - run: sudo apt-get update
-  #     - run: ./externals/skia/tools/install_dependencies.sh
-  #     - run: sudo apt-get install gcc-aarch64-linux-gnu libstdc++-12-dev-arm64-cross
-  #     - run: ./build.sh Linux --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         name: alphaskia-${{ matrix.architecture }}-${{ matrix.variant }}
-  #         path: dist
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm64]
+        variant: ['shared', 'static']
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: ./externals/skia/tools/install_dependencies.sh
+      - run: ./build.sh Linux --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
+          path: dist
 
+  linux-jni:
+    runs-on: ubuntu-latest
+    needs: [ubuntu]
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO architecture: [x64, x86, arm64]
+        architecture: [x64]
+        
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: ./build.cmd LinuxsJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: alphaskia-linux-jni-${{ matrix.architecture }}-${{ matrix.variant }}
+          path: dist
+
+  dotnet:
+    runs-on: windows-latest
+    needs: [windows, linux]
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist
+    - run: ./build.cmd DotNet
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Nupkgs
+        path: |
+          lib/dotnet/*/bin/Release/*.nukpg
+
+  java:
+    runs-on: ubuntu-latest
+    needs: [windows-jni, linux-jni]
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist
+    - run: ./build.cmd Java
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Jars
+        path: |
+          lib/java/main/build/libs/*.jar
+          lib/java/linux/build/libs/*.jar
+          lib/java/windows/build/libs/*.jar

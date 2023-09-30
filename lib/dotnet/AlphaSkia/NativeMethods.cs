@@ -150,13 +150,13 @@ internal static partial class NativeMethods
     public static partial void alphaskia_canvas_stroke(alphaskia_canvas_t canvas);
 
 
-    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf16)]
+    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf8)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, string text,
         alphaskia_typeface_t type_face, float font_size, float x, float y, AlphaSkiaTextAlign text_align,
         AlphaSkiaTextBaseline baseline);
 
-    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf16)]
+    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf8)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, string text,
         alphaskia_typeface_t type_face, float font_size);

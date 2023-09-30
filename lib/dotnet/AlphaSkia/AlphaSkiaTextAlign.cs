@@ -10,11 +10,11 @@ public enum AlphaSkiaTextAlign
     /// </summary>
     Left = 0,
     /// <summary>
-    /// The text is dawn centered to the provided position.
+    /// The text is drawn centered to the provided position.
     /// </summary>
     Center = 1,
     /// <summary>
-    /// The text is drwa right aligned to the provided position.
+    /// The text is drawn right aligned to the provided position.
     /// </summary>
     Right = 2
 }

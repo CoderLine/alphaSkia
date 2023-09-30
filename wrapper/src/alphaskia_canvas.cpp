@@ -118,16 +118,16 @@ extern "C"
         reinterpret_cast<AlphaSkiaCanvas *>(canvas)->stroke();
     }
 
-    AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, wchar_t *text, alphaskia_typeface_t type_face, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+    AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, const char *utf8, alphaskia_typeface_t typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
     {
-        sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(type_face);
-        reinterpret_cast<AlphaSkiaCanvas *>(canvas)->fill_text(text, *skTypeface, font_size, x, y, text_align, baseline);
+        sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
+        reinterpret_cast<AlphaSkiaCanvas *>(canvas)->fill_text(utf8, *skTypeface, font_size, x, y, text_align, baseline);
     }
 
-    AS_API float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, wchar_t *text, alphaskia_typeface_t type_face, float font_size)
+    AS_API float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char *utf8, alphaskia_typeface_t typeface, float font_size)
     {
-        sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(type_face);
-        return reinterpret_cast<AlphaSkiaCanvas *>(canvas)->measure_text(text, *skTypeface, font_size);
+        sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
+        return reinterpret_cast<AlphaSkiaCanvas *>(canvas)->measure_text(utf8, *skTypeface, font_size);
     }
 
     AS_API void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y, float angle)

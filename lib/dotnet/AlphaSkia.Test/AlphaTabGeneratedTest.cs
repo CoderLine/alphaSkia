@@ -22,40 +22,40 @@ public class AlphaTabGeneratedRenderTest : MusicSheetRenderTest
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
         TextAlign = AlphaSkiaTextAlign.Center;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", false, false);
+        Typeface = GetTypeface("PT Serif", false, false);
         FontSize = (float)32;
         TextAlign = AlphaSkiaTextAlign.Center;
-        canvas.FillText("Title", TypeFace, FontSize, (float)650, (float)40, TextAlign, TextBaseline);
+        canvas.FillText("Title", Typeface, FontSize, (float)650, (float)40, TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Center;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", false, false);
+        Typeface = GetTypeface("PT Serif", false, false);
         FontSize = (float)20;
         TextAlign = AlphaSkiaTextAlign.Center;
-        canvas.FillText("Subtitle", TypeFace, FontSize, (float)650, (float)72, TextAlign, TextBaseline);
+        canvas.FillText("Subtitle", Typeface, FontSize, (float)650, (float)72, TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Center;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", false, false);
+        Typeface = GetTypeface("PT Serif", false, false);
         FontSize = (float)20;
         TextAlign = AlphaSkiaTextAlign.Center;
-        canvas.FillText("Artist", TypeFace, FontSize, (float)650, (float)92, TextAlign, TextBaseline);
+        canvas.FillText("Artist", Typeface, FontSize, (float)650, (float)92, TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Center;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", false, false);
+        Typeface = GetTypeface("PT Serif", false, false);
         FontSize = (float)20;
         TextAlign = AlphaSkiaTextAlign.Center;
-        canvas.FillText("Album", TypeFace, FontSize, (float)650, (float)112, TextAlign, TextBaseline);
+        canvas.FillText("Album", Typeface, FontSize, (float)650, (float)112, TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Center;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", false, false);
+        Typeface = GetTypeface("PT Serif", false, false);
         FontSize = (float)15;
         TextAlign = AlphaSkiaTextAlign.Right;
-        canvas.FillText("Music by Music Writer", TypeFace, FontSize, (float)1260, (float)132, TextAlign, TextBaseline);
+        canvas.FillText("Music by Music Writer", Typeface, FontSize, (float)1260, (float)132, TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Center;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", false, false);
+        Typeface = GetTypeface("PT Serif", false, false);
         FontSize = (float)15;
         TextAlign = AlphaSkiaTextAlign.Left;
-        canvas.FillText("Words by Words Writer", TypeFace, FontSize, (float)40, (float)132, TextAlign, TextBaseline);
+        canvas.FillText("Words by Words Writer", Typeface, FontSize, (float)40, (float)132, TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Center;
             return canvas.EndRender()!;
     }
@@ -66,10 +66,10 @@ public class AlphaTabGeneratedRenderTest : MusicSheetRenderTest
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
         TextAlign = AlphaSkiaTextAlign.Center;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", false, true);
+        Typeface = GetTypeface("PT Serif", false, true);
         FontSize = (float)12;
         TextAlign = AlphaSkiaTextAlign.Left;
-        canvas.FillText("Guitar Standard Tuning", TypeFace, FontSize, (float)40, (float)3, TextAlign, TextBaseline);
+        canvas.FillText("Guitar Standard Tuning", Typeface, FontSize, (float)40, (float)3, TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Center;
             return canvas.EndRender()!;
     }
@@ -88,10 +88,10 @@ public class AlphaTabGeneratedRenderTest : MusicSheetRenderTest
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
         TextAlign = AlphaSkiaTextAlign.Left;
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("PT Serif", true, false);
+        Typeface = GetTypeface("PT Serif", true, false);
         FontSize = (float)14;
         canvas.FillText("\xe1d5", MusicTypeface, (float)(MusicFontSize * 0.75), (float)167, (float)40, AlphaSkiaTextAlign.Left, AlphaSkiaTextBaseline.Alphabetic);
-        canvas.FillText("= 120", TypeFace, FontSize, (float)179.5, (float)27, TextAlign, TextBaseline);
+        canvas.FillText("= 120", Typeface, FontSize, (float)179.5, (float)27, TextAlign, TextBaseline);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
@@ -118,9 +118,9 @@ public class AlphaTabGeneratedRenderTest : MusicSheetRenderTest
         canvas.FillText("\xe084", MusicTypeface, (float)(MusicFontSize * 1), (float)137, (float)88, AlphaSkiaTextAlign.Left, AlphaSkiaTextBaseline.Alphabetic);
         canvas.FillText("\xe084", MusicTypeface, (float)(MusicFontSize * 1), (float)137, (float)106, AlphaSkiaTextAlign.Left, AlphaSkiaTextBaseline.Alphabetic);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)200, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("Roboto", false, false);
+        Typeface = GetTypeface("Roboto", false, false);
         FontSize = (float)11;
-        canvas.FillText("1", TypeFace, FontSize, (float)151, (float)67.75, TextAlign, TextBaseline);
+        canvas.FillText("1", Typeface, FontSize, (float)151, (float)67.75, TextAlign, TextBaseline);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
@@ -151,9 +151,9 @@ public class AlphaTabGeneratedRenderTest : MusicSheetRenderTest
         canvas.MoveTo((float)102, (float)79.1);
         canvas.LineTo((float)102, (float)213.3);
         canvas.Stroke();
-        TypeFace = GetTypeFace("PT Serif", false, true);
+        Typeface = GetTypeface("PT Serif", false, true);
         FontSize = (float)12;
-        canvas.FillText("Track 1", TypeFace, FontSize, (float)50, (float)79.1, TextAlign, TextBaseline);
+        canvas.FillText("Track 1", Typeface, FontSize, (float)50, (float)79.1, TextAlign, TextBaseline);
         canvas.FillRect((float)96, (float)67.1, (float)3, (float)158.20000000000002);
         canvas.BeginPath();
         canvas.MoveTo((float)96, (float)67.1);
@@ -174,10 +174,10 @@ public class AlphaTabGeneratedRenderTest : MusicSheetRenderTest
     {
         canvas.BeginRender((int)124, (int)24);
         canvas.Color = AlphaSkiaCanvas.RgbaToColor((byte)0, (byte)0, (byte)0, (byte)255);
-        TypeFace = GetTypeFace("Roboto", true, false);
+        Typeface = GetTypeface("Roboto", true, false);
         FontSize = (float)12;
         TextAlign = AlphaSkiaTextAlign.Left;
-        canvas.FillText("rendered by alphaTab", TypeFace, FontSize, (float)0, (float)12, TextAlign, TextBaseline);
+        canvas.FillText("rendered by alphaTab", Typeface, FontSize, (float)0, (float)12, TextAlign, TextBaseline);
             return canvas.EndRender()!;
     }
 }

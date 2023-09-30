@@ -24,6 +24,9 @@
         "GnExe": {
           "type": "string"
         },
+        "GradlewExe": {
+          "type": "string"
+        },
         "Help": {
           "type": "boolean",
           "description": "Shows the help text for this build assembly"
@@ -48,6 +51,9 @@
             "VisualStudio",
             "VSCode"
           ]
+        },
+        "JavaHome": {
+          "type": "string"
         },
         "LlvmHome": {
           "type": "string"
@@ -90,12 +96,15 @@
           "items": {
             "type": "string",
             "enum": [
+              "DotNet",
               "GitSyncDeps",
-              "Linux",
+              "Java",
+              "LinuxJni",
+              "LinuxSkia",
               "PatchSkiaBuildFiles",
-              "PrepareBuild",
               "SetupDepotTools",
-              "Windows"
+              "WindowsJni",
+              "WindowsSkia"
             ]
           }
         },
@@ -105,12 +114,15 @@
           "items": {
             "type": "string",
             "enum": [
+              "DotNet",
               "GitSyncDeps",
-              "Linux",
+              "Java",
+              "LinuxJni",
+              "LinuxSkia",
               "PatchSkiaBuildFiles",
-              "PrepareBuild",
               "SetupDepotTools",
-              "Windows"
+              "WindowsJni",
+              "WindowsSkia"
             ]
           }
         },

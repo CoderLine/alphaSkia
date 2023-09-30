@@ -28,7 +28,7 @@ extern "C"
         delete skTypeFace;
     }
 
-    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char name[], uint8_t bold, uint8_t italic)
+    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *name, uint8_t bold, uint8_t italic)
     {
         SkFontStyle style(bold ? SkFontStyle::kBold_Weight : SkFontStyle::kNormal_Weight,
                           SkFontStyle::kNormal_Width,

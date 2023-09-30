@@ -4,49 +4,29 @@ using Nuke.Common;
 
 partial class Build
 {
-    public Target Linux => _ => _
-        .DependsOn(PrepareBuild)
+    public Target LinuxSkia => _ => _
+        .DependsOn(SetupDepotTools, GitSyncDeps, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .OnlyWhenStatic(OperatingSystem.IsLinux)
         .Executes(() =>
         {
-            BuildSkiaLinux(Architecture, Variant);
+            BuildSkiaLinuxMain(Architecture, Variant);
         });
-    
-    void BuildSkiaLinux(Architecture arch, Variant variant)
+
+    public Target LinuxJni => _ => _
+        .DependsOn(SetupDepotTools, PatchSkiaBuildFiles)
+        .Requires(() => Architecture)
+        .Requires(() => Variant == Variant.Shared)
+        .OnlyWhenStatic(OperatingSystem.IsLinux)
+        .Executes(() =>
+        {
+            BuildSkiaLinuxJni(Architecture, Variant);
+        });
+
+    void BuildSkiaLinuxMain(Architecture arch, Variant variant)
     {
         var gnArgs = new Dictionary<string, string>();
-
-        gnArgs["skia_enable_ganesh"] = "true";
-        gnArgs["extra_cflags"] = "[ '-DALPHASKIA_DLL', '-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM' ]";
-        gnArgs["extra_asmflags"] = "[]";
-
-        string archString = arch;
-        if (arch == Architecture.X64)
-        {
-            gnArgs["cc"] = "clang";
-            gnArgs["cxx"] = "'clang++'";
-            gnArgs["extra_ldflags"] = "[ '-static-libstdc++', '-static-libgcc' ]";
-        }
-        else if (arch == Architecture.X86)
-        {
-            // TODO
-            gnArgs["cc"] = "clang";
-            gnArgs["cxx"] = "'clang++'";
-            gnArgs["extra_ldflags"] = "[ '-static-libstdc++', '-static-libgcc' ]";
-        }
-        else if (arch == Architecture.Arm64) // aka AArch64
-        {
-            // TODO
-            gnArgs["cc"] = "clang";
-            gnArgs["cxx"] = "'clang++'";
-            gnArgs["extra_ldflags"] = "[ ]";
-        }
-        
-        // gnArgs["ar"] = "llvm-ar";
-        gnArgs["skia_use_system_freetype2"] = "false";
-
         string[] filesToCopy;
         var isShared = variant == Variant.Shared;
         if (isShared)
@@ -60,10 +40,55 @@ partial class Build
         {
             filesToCopy = new[]
             {
-                "libAlphaSkia.a"
+                "libAlphaSkia.a",
+                "skia.a"
             };
         }
+
+        BuildSkiaLinux("libAlphaSkia", arch, variant, gnArgs, filesToCopy);
+    }
+
+    void BuildSkiaLinuxJni(Architecture arch, Variant variant)
+    {
+        var gnArgs = new Dictionary<string, string>();
+
+        var filesToCopy = new[] { "libAlphaSkiaJni.so" };
+
+        BuildSkiaLinux("libAlphaSkiaJni", arch, variant, gnArgs, filesToCopy);
+    }
+
+    void BuildSkiaLinux(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
+        string[] filesToCopy)
+    {
+        gnArgs["skia_enable_ganesh"] = "true";
         
-        BuildSkia("linux", arch, variant, gnArgs, filesToCopy);
+        AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'");
+
+        if (arch == Architecture.X64)
+        {
+            gnArgs["cc"] = "clang";
+            gnArgs["cxx"] = "'clang++'";
+            AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
+        }
+        else if (arch == Architecture.X86)
+        {
+            // TODO
+            gnArgs["cc"] = "clang";
+            gnArgs["cxx"] = "'clang++'";
+            AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
+        }
+        else if (arch == Architecture.Arm64) // aka AArch64
+        {
+            // TODO
+            gnArgs["cc"] = "clang";
+            gnArgs["cxx"] = "'clang++'";
+            AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
+        }
+
+        // gnArgs["ar"] = "llvm-ar";
+        gnArgs["skia_use_system_freetype2"] = "false";
+
+
+        BuildSkia(buildTarget, "linux", arch, variant, gnArgs, filesToCopy);
     }
 }

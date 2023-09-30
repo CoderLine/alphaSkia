@@ -2,14 +2,14 @@ namespace AlphaSkia.Test;
 
 public abstract class MusicSheetRenderTest
 {
-    protected static AlphaSkiaTypeFace MusicTypeface { get; private set; } = null!;
+    protected static AlphaSkiaTypeface MusicTypeface { get; private set; } = null!;
     protected static int MusicFontSize { get; private set; } = 34;
 
-    private static readonly IDictionary<string, AlphaSkiaTypeFace> CustomTypeFaces =
-        new Dictionary<string, AlphaSkiaTypeFace>(StringComparer.OrdinalIgnoreCase);
+    private static readonly IDictionary<string, AlphaSkiaTypeface> CustomTypefaces =
+        new Dictionary<string, AlphaSkiaTypeface>(StringComparer.OrdinalIgnoreCase);
 
 
-    private static string CustomTypeFaceKey(string fontFamily, bool isBold, bool isItalic)
+    private static string CustomTypefaceKey(string fontFamily, bool isBold, bool isItalic)
     {
         return fontFamily.ToLowerInvariant() + "_" + isBold + "_" + isItalic;
     }
@@ -21,39 +21,39 @@ public abstract class MusicSheetRenderTest
 
         var bravura = ReadFont("font/bravura/Bravura.ttf");
 
-        MusicTypeface = AlphaSkiaTypeFace.Register(bravura) ??
+        MusicTypeface = AlphaSkiaTypeface.Register(bravura) ??
                         throw new InvalidOperationException("Could not load bravura font");
 
-        CustomTypeFaces[CustomTypeFaceKey("Roboto", false, false)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/roboto/Roboto-Regular.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("Roboto", false, false)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/roboto/Roboto-Regular.ttf")) ??
             throw new InvalidOperationException("Could not load font");
-        CustomTypeFaces[CustomTypeFaceKey("Roboto", true, false)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/roboto/Roboto-Bold.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("Roboto", true, false)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/roboto/Roboto-Bold.ttf")) ??
             throw new InvalidOperationException("Could not load font");
-        CustomTypeFaces[CustomTypeFaceKey("Roboto", false, true)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/roboto/Roboto-Italic.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("Roboto", false, true)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/roboto/Roboto-Italic.ttf")) ??
             throw new InvalidOperationException("Could not load font");
-        CustomTypeFaces[CustomTypeFaceKey("Roboto", true, true)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/roboto/Roboto-BoldItalic.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("Roboto", true, true)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/roboto/Roboto-BoldItalic.ttf")) ??
             throw new InvalidOperationException("Could not load font");
 
-        CustomTypeFaces[CustomTypeFaceKey("PT Serif", false, false)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/ptserif/PTSerif-Regular.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("PT Serif", false, false)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/ptserif/PTSerif-Regular.ttf")) ??
             throw new InvalidOperationException("Could not load font");
-        CustomTypeFaces[CustomTypeFaceKey("PT Serif", true, false)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/ptserif/PTSerif-Bold.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("PT Serif", true, false)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/ptserif/PTSerif-Bold.ttf")) ??
             throw new InvalidOperationException("Could not load font");
-        CustomTypeFaces[CustomTypeFaceKey("PT Serif", false, true)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/ptserif/PTSerif-Italic.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("PT Serif", false, true)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/ptserif/PTSerif-Italic.ttf")) ??
             throw new InvalidOperationException("Could not load font");
-        CustomTypeFaces[CustomTypeFaceKey("PT Serif", true, true)] =
-            AlphaSkiaTypeFace.Register(ReadFont("font/ptserif/PTSerif-BoldItalic.ttf")) ??
+        CustomTypefaces[CustomTypefaceKey("PT Serif", true, true)] =
+            AlphaSkiaTypeface.Register(ReadFont("font/ptserif/PTSerif-BoldItalic.ttf")) ??
             throw new InvalidOperationException("Could not load font");
     }
 
-    protected static AlphaSkiaTypeFace GetTypeFace(string name, bool isBold, bool isItalic)
+    protected static AlphaSkiaTypeface GetTypeface(string name, bool isBold, bool isItalic)
     {
-        if (!CustomTypeFaces.TryGetValue(CustomTypeFaceKey(name, isBold, isItalic), out var face))
+        if (!CustomTypefaces.TryGetValue(CustomTypefaceKey(name, isBold, isItalic), out var face))
         {
             throw new InvalidOperationException("Unknown font requested: " + name);
         }
@@ -64,7 +64,7 @@ public abstract class MusicSheetRenderTest
 
     protected AlphaSkiaTextAlign TextAlign { get; set; } = AlphaSkiaTextAlign.Center;
     protected AlphaSkiaTextBaseline TextBaseline { get; set; } = AlphaSkiaTextBaseline.Top;
-    protected AlphaSkiaTypeFace TypeFace { get; set; } = null!;
+    protected AlphaSkiaTypeface Typeface { get; set; } = null!;
     protected float FontSize { get; set; }
 
     private static byte[] ReadFont(string relativePath)

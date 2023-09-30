@@ -8,20 +8,30 @@ using Nuke.Common.Tooling;
 
 partial class Build
 {
-    public Target Windows => _ => _
-        .DependsOn(PrepareBuild)
+    public Target WindowsSkia => _ => _
+        .DependsOn(SetupDepotTools, GitSyncDeps, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .OnlyWhenStatic(OperatingSystem.IsWindows)
         .Executes(() =>
         {
-            BuildSkiaWindows(Architecture, Variant);
+            BuildSkiaWindowsMain(Architecture, Variant);
+        });
+
+    public Target WindowsJni => _ => _
+        .DependsOn(SetupDepotTools, PatchSkiaBuildFiles)
+        .Requires(() => Architecture)
+        .Requires(() => Variant == Variant.Shared)
+        .OnlyWhenStatic(OperatingSystem.IsWindows)
+        .Executes(() =>
+        {
+            BuildSkiaWindowsJni(Architecture, Variant);
         });
 
     Tool VsWhere => ToolResolver.GetPathTool(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio", "Installer",
         "vswhere.exe"));
-    
+
     string VsInstall
     {
         get
@@ -42,39 +52,10 @@ partial class Build
             }
         }
     }
-    
-    void BuildSkiaWindows(Architecture arch, Variant variant)
+
+    void BuildSkiaWindowsMain(Architecture arch, Variant variant)
     {
         var gnArgs = new Dictionary<string, string>();
-
-        if (!string.IsNullOrEmpty(LlvmHome))
-        {
-            gnArgs["clang_win"] = LlvmHome;
-            
-            // there is a problem in the BUILDCONFIG.gn of Skia looking for a version number like 16.0.0
-            // but with the installation on windows it is simply 16. 
-            var version = ((AbsolutePath)LlvmHome) / "lib" / "clang";
-            var newestVersion = version.GetDirectories().MaxBy(d => d.Name);
-            if (!string.IsNullOrEmpty(newestVersion))
-            {
-                gnArgs["clang_win_version"] = newestVersion.Name;
-            }
-        }
-
-        gnArgs["skia_enable_fontmgr_win_gdi"] = "false";
-        gnArgs["skia_use_dng_sdk"] = "true";
-        gnArgs["extra_cflags"] = "[ '-DALPHASKIA_DLL', '/MT', '/EHsc', '/Z7', '-D_HAS_AUTO_PTR_ETC=1' ]";
-        gnArgs["extra_ldflags"] = "[ '/DEBUG:FULL' ]";
-        
-        // override win_vc with the command line args
-        var vsInstall = VsInstall;
-        if (!string.IsNullOrEmpty(vsInstall))
-        {
-            AbsolutePath winVc = vsInstall;
-            winVc /= "VC";
-            gnArgs["win_vc"] = winVc;
-        }
-
         string[] filesToCopy;
         var isShared = variant == Variant.Shared;
         if (isShared)
@@ -90,10 +71,67 @@ partial class Build
         {
             filesToCopy = new[]
             {
-                "libAlphaSkia.lib"
+                "libAlphaSkia.lib",
+                "skia.lib"
             };
         }
         
-        BuildSkia("win", arch, variant, gnArgs, filesToCopy);
+        BuildSkiaWindows("libAlphaSkia", arch, variant, gnArgs, filesToCopy);
+    }
+
+    void BuildSkiaWindowsJni(Architecture arch, Variant variant)
+    {
+        var gnArgs = new Dictionary<string, string>();
+        var alphaSkiaInclude = RootDirectory / "dist" / "include";
+        var jniInclude = JavaHome / "include";
+        var jniWinInclude = JavaHome / "include" / "win32";
+        gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
+
+        // Add Libs and lib search paths
+        var staticLibPath = RootDirectory / "dist" / $"libAlphaSkia-win-{arch}-static";
+        gnArgs["extra_ldflags"] =
+            $"[ '/LIBPATH:{staticLibPath}', 'libAlphaSkia.lib', 'skia.lib', 'user32.lib', 'OpenGL32.lib' ]";
+
+        BuildSkiaWindows("libAlphaSkiaJni", arch, variant, gnArgs, new[]
+        {
+            "libAlphaSkiaJni.dll",
+            "libAlphaSkiaJni.dll.lib",
+            "libAlphaSkiaJni.dll.pdb"
+        });
+    }
+
+    void BuildSkiaWindows(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
+        string[] filesToCopy)
+    {
+        if (!string.IsNullOrEmpty(LlvmHome))
+        {
+            gnArgs["clang_win"] = LlvmHome;
+
+            // there is a problem in the BUILDCONFIG.gn of Skia looking for a version number like 16.0.0
+            // but with the installation on windows it is simply 16. 
+            var version = ((AbsolutePath)LlvmHome) / "lib" / "clang";
+            var newestVersion = version.GetDirectories().MaxBy(d => d.Name);
+            if (!string.IsNullOrEmpty(newestVersion))
+            {
+                gnArgs["clang_win_version"] = newestVersion.Name;
+            }
+        }
+
+        gnArgs["skia_enable_fontmgr_win_gdi"] = "false";
+        gnArgs["skia_use_dng_sdk"] = "true";
+
+        AppendToFlagList(gnArgs, "extra_cflags", "'/MT', '/EHsc', '/Z7', '-D_HAS_AUTO_PTR_ETC=1'");
+        AppendToFlagList(gnArgs, "extra_ldflags", "'/DEBUG:FULL'");
+
+        // override win_vc with the command line args
+        var vsInstall = VsInstall;
+        if (!string.IsNullOrEmpty(vsInstall))
+        {
+            AbsolutePath winVc = vsInstall;
+            winVc /= "VC";
+            gnArgs["win_vc"] = winVc;
+        }
+
+        BuildSkia(buildTarget, "win", arch, variant, gnArgs, filesToCopy);
     }
 }
