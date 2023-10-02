@@ -21,6 +21,9 @@
         "DepotPath": {
           "type": "string"
         },
+        "GitExe": {
+          "type": "string"
+        },
         "GnExe": {
           "type": "string"
         },
@@ -65,6 +68,9 @@
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"
         },
+        "ParallelGitClone": {
+          "type": "boolean"
+        },
         "Partition": {
           "type": "string",
           "description": "Partition to use on CI"
@@ -97,11 +103,16 @@
             "type": "string",
             "enum": [
               "DotNet",
-              "GitSyncDeps",
+              "DotNetBuild",
+              "DotNetPack",
+              "DotNetTest",
+              "GitSyncDepsJni",
+              "GitSyncDepsSkia",
               "Java",
               "LinuxJni",
               "LinuxSkia",
               "PatchSkiaBuildFiles",
+              "PrepareGitHubArtifacts",
               "SetupDepotTools",
               "WindowsJni",
               "WindowsSkia"
@@ -115,11 +126,16 @@
             "type": "string",
             "enum": [
               "DotNet",
-              "GitSyncDeps",
+              "DotNetBuild",
+              "DotNetPack",
+              "DotNetTest",
+              "GitSyncDepsJni",
+              "GitSyncDepsSkia",
               "Java",
               "LinuxJni",
               "LinuxSkia",
               "PatchSkiaBuildFiles",
+              "PrepareGitHubArtifacts",
               "SetupDepotTools",
               "WindowsJni",
               "WindowsSkia"

@@ -5,7 +5,7 @@ using Nuke.Common;
 partial class Build
 {
     public Target LinuxSkia => _ => _
-        .DependsOn(SetupDepotTools, GitSyncDeps, PatchSkiaBuildFiles)
+        .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .OnlyWhenStatic(OperatingSystem.IsLinux)
@@ -15,7 +15,7 @@ partial class Build
         });
 
     public Target LinuxJni => _ => _
-        .DependsOn(SetupDepotTools, PatchSkiaBuildFiles)
+        .DependsOn(PrepareGitHubArtifacts, GitSyncDepsJni, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant == Variant.Shared)
         .OnlyWhenStatic(OperatingSystem.IsLinux)
@@ -41,7 +41,7 @@ partial class Build
             filesToCopy = new[]
             {
                 "libAlphaSkia.a",
-                "skia.a"
+                "libskia.a"
             };
         }
 
@@ -51,17 +51,24 @@ partial class Build
     void BuildSkiaLinuxJni(Architecture arch, Variant variant)
     {
         var gnArgs = new Dictionary<string, string>();
+        var alphaSkiaInclude = RootDirectory / "dist" / "include";
+        var jniInclude = JavaHome / "include";
+        var jniWinInclude = JavaHome / "include" / "linux";
+        gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
-        var filesToCopy = new[] { "libAlphaSkiaJni.so" };
+        // Add Libs and lib search paths
+        var staticLibPath = RootDirectory / "dist" / $"libAlphaSkia-win-{arch}-static";
+        gnArgs["extra_ldflags"] =
+            $"[ '-L:{staticLibPath}', '-llibAlphaSkia.lib', '-llibskia.lib' ]";
 
-        BuildSkiaLinux("libAlphaSkiaJni", arch, variant, gnArgs, filesToCopy);
+        BuildSkiaLinux("libAlphaSkiaJni", arch, variant, gnArgs, new[] { "libAlphaSkiaJni.so" });
     }
 
     void BuildSkiaLinux(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
         string[] filesToCopy)
     {
         gnArgs["skia_enable_ganesh"] = "true";
-        
+
         AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'");
 
         if (arch == Architecture.X64)

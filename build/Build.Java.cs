@@ -17,6 +17,7 @@ partial class Build
     Tool GradlewTool => ToolResolver.GetTool(GradlewExe);
 
     public Target Java => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             GradlewTool("assemble",

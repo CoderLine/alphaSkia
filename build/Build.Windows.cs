@@ -9,7 +9,7 @@ using Nuke.Common.Tooling;
 partial class Build
 {
     public Target WindowsSkia => _ => _
-        .DependsOn(SetupDepotTools, GitSyncDeps, PatchSkiaBuildFiles)
+        .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .OnlyWhenStatic(OperatingSystem.IsWindows)
@@ -19,7 +19,7 @@ partial class Build
         });
 
     public Target WindowsJni => _ => _
-        .DependsOn(SetupDepotTools, PatchSkiaBuildFiles)
+        .DependsOn(PrepareGitHubArtifacts, GitSyncDepsJni, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant == Variant.Shared)
         .OnlyWhenStatic(OperatingSystem.IsWindows)
@@ -75,7 +75,7 @@ partial class Build
                 "skia.lib"
             };
         }
-        
+
         BuildSkiaWindows("libAlphaSkia", arch, variant, gnArgs, filesToCopy);
     }
 
@@ -117,8 +117,10 @@ partial class Build
             }
         }
 
+        gnArgs["cc"] = "clang";
+        gnArgs["cxx"] = "'clang++'";
+
         gnArgs["skia_enable_fontmgr_win_gdi"] = "false";
-        gnArgs["skia_use_dng_sdk"] = "true";
 
         AppendToFlagList(gnArgs, "extra_cflags", "'/MT', '/EHsc', '/Z7', '-D_HAS_AUTO_PTR_ETC=1'");
         AppendToFlagList(gnArgs, "extra_ldflags", "'/DEBUG:FULL'");

@@ -4,16 +4,18 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 
 
 [TypeConverter(typeof(TypeConverter<Architecture>))]
 public class Architecture : Enumeration
 {
-    public static Architecture X64 = new() { Value = "x64"};
+    public static Architecture X64 = new() { Value = "x64" };
     public static Architecture X86 = new() { Value = "x86" };
     public static Architecture Arm64 = new() { Value = "arm64" };
 }
@@ -25,9 +27,8 @@ public class Variant : Enumeration
     public static Variant Shared = new() { Value = "shared" };
 }
 
-partial class Build 
+partial class Build
 {
-
     [Parameter] static AbsolutePath SkiaPath = RootDirectory / "externals" / "skia";
     [Parameter] static AbsolutePath DepotPath = RootDirectory / "externals" / "depot_tools";
 
@@ -35,7 +36,7 @@ partial class Build
     // Compiler Option
     [Parameter]
     readonly string LlvmHome = GetVariable<string>("LLVM_HOME") ??
-                               (OperatingSystem.IsAndroid() ? "C:/Program Files/LLVM" : "");
+                               (OperatingSystem.IsWindows() ? "C:\\Program Files\\LLVM" : "");
 
     // Tools
     [Parameter] readonly AbsolutePath GnExe = GetVariable<string>("GN_EXE") ?? SkiaPath / "bin" / $"gn{ExeExtension}";
@@ -49,20 +50,181 @@ partial class Build
     [Parameter] readonly string PythonExe = GetVariable<string>("PYTHON_EXE") ?? "python3";
     Tool PythonTool => File.Exists(PythonExe) ? ToolResolver.GetTool(PythonExe) : ToolResolver.GetPathTool("python3");
 
+    [Parameter] readonly bool ParallelGitClone = GetVariable<bool?>("GIT_CLONE_PARALLEL") ?? true;
+    
+    [Parameter] readonly string GitExe = GetVariable<string>("GIT_EXE") ?? "git";
+    Tool GitTool => File.Exists(GitExe) ? ToolResolver.GetTool(GitExe) : ToolResolver.GetPathTool("git");
+
     // Output Options
     [Parameter] readonly Architecture Architecture;
 
     [Parameter] readonly Variant Variant;
 
-
-    public Target GitSyncDeps => _ => _
+    public Target GitSyncDepsSkia => _ => _
+        .DependsOn(SetupDepotTools)
         .Executes(() =>
         {
-            // PythonTool(
-            //     arguments: (SkiaPath / "tools" / "git-sync-deps").ToString(),
-            //     workingDirectory: SkiaPath
-            // );
+            // syncing all dependencies requires a lot of disk space
+            // exceeding also the availabel space on GHA runners
+            // here we try to only sync dependencies we know are needed
+            // This list is created based on the compile logs indicating
+            // which third party modules are needed
+            var requiredDependencies = new[]
+            {
+                "buildtools",
+                "third_party/externals/harfbuzz",
+                "third_party/externals/freetype",
+                "third_party/externals/libpng",
+                "third_party/externals/zlib",
+                "third_party/externals/wuffs",
+                "third_party/externals/vulkanmemoryallocator"
+            };
+
+            return GitSyncDepsCustom(requiredDependencies);
         });
+    
+    public Target GitSyncDepsJni => _ => _
+        .DependsOn(SetupDepotTools)
+        .Executes(() =>
+        {
+            var requiredDependencies = new[]
+            {
+                "buildtools"
+            };
+
+            return GitSyncDepsCustom(requiredDependencies);
+        });
+
+    Task GitSyncDepsCustom(string[] requiredDependencies)
+    {
+        var depsFile = SkiaPath / "DEPS";
+        var depsData = ReadDeps(depsFile);
+
+        if (ParallelGitClone)
+        {
+            var all = requiredDependencies.Select(d => Task.Run(() =>
+            {
+                if (!depsData.TryGetValue(d, out var url))
+                {
+                    throw new InvalidOperationException($"Could not find dependency {d} in DEPS file");
+                }
+
+                GitSyncDepsCustom(d, url);
+            }));
+            
+            return Task.WhenAll(all.ToArray());
+        }
+        else
+        {
+            foreach (var d in requiredDependencies)
+            {
+                if (!depsData.TryGetValue(d, out var url))
+                {
+                    throw new InvalidOperationException($"Could not find dependency {d} in DEPS file");
+                }
+
+                GitSyncDepsCustom(d, url);
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    void GitSyncDepsCustom(string dependencyName, string dependencyUrl)
+    {
+        var parts = dependencyUrl.Split('@', 2, StringSplitOptions.TrimEntries);
+        var repo = parts[0];
+        var commitHash = parts[1];
+
+        var directory = SkiaPath / dependencyName;
+        GitCheckoutToDirectory(repo, commitHash, directory);
+    }
+
+    void GitCheckoutToDirectory(string repo, string commitHash, AbsolutePath directory)
+    {
+        Log.Debug("Handling dependency {repo}@{commitHash}", repo, commitHash);
+        if (!(directory / ".git").DirectoryExists())
+        {
+            directory.CreateDirectory();
+            GitTool("init",
+                workingDirectory: directory);
+            GitTool($"remote add origin {repo}",
+                workingDirectory: directory);
+        }
+
+        if (!commitHash.Equals(GetGitHash(directory), StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Information("Fetching {repo}@{commitHash}", repo, commitHash);
+            GitTool($"fetch origin {commitHash}",
+                workingDirectory: directory);
+            GitTool($"reset --hard {commitHash}",
+                workingDirectory: directory);
+        }
+        else
+        {
+            Log.Debug("Dependency {repo}@{commitHash} is up to date", repo, commitHash);
+        }
+    }
+
+    string GetGitHash(AbsolutePath directory)
+    {
+        var output = GitTool("rev-parse HEAD", workingDirectory: directory, exitHandler: process =>
+        {
+        });
+
+        // error
+        if (output.Count == 0 || output.Any(o => o.Text == "fatal: "))
+        {
+            return "";
+        }
+
+        return output.First(o => o.Type == OutputType.Std && o.Text.Length > 0).Text;
+    }
+
+    Dictionary<string, string> ReadDeps(AbsolutePath depsFile)
+    {
+        using var reader = new StreamReader(depsFile);
+        while (reader.ReadLine()?.Trim() is { } line)
+        {
+            if (line.StartsWith("#"))
+            {
+                continue;
+            }
+
+            if (line.StartsWith("deps = {"))
+            {
+                return ReadDepsData(reader);
+            }
+        }
+
+        return null;
+    }
+
+    Dictionary<string, string> ReadDepsData(TextReader reader)
+    {
+        var deps = new Dictionary<string, string>();
+        while (reader.ReadLine()?.Trim() is { } line)
+        {
+            if (line.StartsWith("#"))
+            {
+                continue;
+            }
+
+            var keySeparator = line.IndexOf(':');
+
+            if (keySeparator > 0)
+            {
+                var key = line[..keySeparator].Trim(' ', '"', '\'', ',');
+                var value = line[(keySeparator + 1)..].Trim(' ', '"', '\'', ',');
+                if (value.StartsWith("http"))
+                {
+                    deps[key] = value;
+                }
+            }
+        }
+
+        return deps;
+    }
 
     public Target SetupDepotTools => _ => _
         .Executes(() =>
@@ -75,6 +237,11 @@ partial class Build
                 arguments: (SkiaPath / "bin" / "fetch-ninja").ToString(),
                 workingDirectory: SkiaPath
             );
+            
+            PythonTool(
+                arguments: (SkiaPath / "bin" / "fetch-gn").ToString(),
+                workingDirectory: SkiaPath
+            );    
         });
 
     public Target PatchSkiaBuildFiles => _ => _
@@ -148,9 +315,9 @@ partial class Build
             buildNew.AppendLine();
             buildNew.AppendLine("}");
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew.ToString());
-            
+
             // Bug in skia toolchain, setenv.cmd is not existing in this path. 
-            var toolChainBuildFile = SkiaPath /"gn" / "toolchain" / "BUILD.gn";
+            var toolChainBuildFile = SkiaPath / "gn" / "toolchain" / "BUILD.gn";
             var oldToolChainSource = toolChainBuildFile.ReadAllText();
             toolChainBuildFile.WriteAllText(oldToolChainSource.Replace(
                 "env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86",
@@ -209,7 +376,7 @@ partial class Build
             {
                 return value.Replace("'", innerQuote);
             }
-            
+
             // never quote boolean values GN doesn't like this
             if (value is "true" or "false")
             {
@@ -218,9 +385,9 @@ partial class Build
 
             // any other value beside bools are safe to quote
             return $"{innerQuote}{value}{innerQuote}";
-        }       
-        
-        var allArgs = string.Join(" ", gnArgs.Select(o =>  $"{o.Key}={QuoteValue(o.Value)}"));
+        }
+
+        var allArgs = string.Join(" ", gnArgs.Select(o => $"{o.Key}={QuoteValue(o.Value)}"));
 
         // not inlined to avoid it being treated as FormattedString
         var gnToolArgs =
@@ -242,10 +409,10 @@ partial class Build
     }
 
     void BuildSkia(
-        string buildTarget, 
+        string buildTarget,
         string targetOs,
-        string arch, 
-        Variant variant, 
+        string arch,
+        Variant variant,
         Dictionary<string, string> gnArgs,
         string[] filesToCopy)
     {
@@ -256,7 +423,7 @@ partial class Build
         gnArgs["target_cpu"] = arch;
         gnArgs["is_shared_alphaskia"] = isShared.ToString().ToLowerInvariant();
         gnArgs["skia_use_icu"] = "false";
-        gnArgs["skia_use_piex"] = "true";
+        gnArgs["skia_use_piex"] = "false";
         gnArgs["skia_use_sfntly"] = "false";
         gnArgs["skia_use_system_expat"] = "false";
         gnArgs["skia_use_system_libjpeg_turbo"] = "false";
@@ -269,14 +436,33 @@ partial class Build
         gnArgs["skia_use_vulkan"] = "true";
         gnArgs["skia_use_expat"] = "false";
         gnArgs["skia_enable_pdf"] = "false";
-        
+        gnArgs["skia_use_dng_sdk"] = "false";
+        gnArgs["skia_use_libjpeg_turbo_decode"] = "false";
+        gnArgs["skia_use_libjpeg_turbo_encode"] = "false";
+        gnArgs["skia_use_libwebp_decode"] = "false";
+        gnArgs["skia_use_libwebp_encode"] = "false";
+
+
         GnNinja($"out/{buildTarget}/{targetOs}/{arch}/{variant}", buildTarget, gnArgs, SkiaPath);
-        foreach (var file in filesToCopy)
+
+        var outDir = SkiaPath / "out" / buildTarget / targetOs / arch / variant;
+        try
         {
-            FileSystemTasks.CopyFile(SkiaPath / "out" / buildTarget / targetOs / arch / variant / file,
-                finalPath / file, FileExistsPolicy.Overwrite);
+            foreach (var file in filesToCopy)
+            {
+                FileSystemTasks.CopyFile(outDir / file,
+                    finalPath / file, FileExistsPolicy.Overwrite);
+            }
+
+            FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
+                RootDirectory / "dist" / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
         }
-        FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
-            RootDirectory / "dist" / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
+        catch (Exception e)
+        {
+            var fileList = Directory.EnumerateFileSystemEntries(outDir).Select(d =>
+                File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
+            throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
+        }
+     
     }
 }
