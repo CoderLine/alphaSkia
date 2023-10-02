@@ -1,9 +1,10 @@
-package alphaskia;
+package net.alphatab.alphaskia;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,6 +13,11 @@ import java.util.Map;
 public abstract class MusicSheetRenderTest {
     private static AlphaSkiaTypeface _musicTypeface;
     private static final int _musicFontSize = 34;
+    private static final float _renderScale = 1.0f;
+
+    protected static float getRenderScale() {
+        return _renderScale;
+    }
 
     protected static AlphaSkiaTypeface getMusicTypeface() {
         return _musicTypeface;
@@ -30,6 +36,36 @@ public abstract class MusicSheetRenderTest {
 
     @BeforeAll
     public static void setup() throws IOException {
+        var os = System.getProperty("os.name");
+        String libName;
+        String target;
+        if (os.startsWith("Mac")) {
+            target = "osx";
+            libName = "libAlphaSkiaJni.dylib";
+        } else if (os.startsWith("Win")) {
+            target = "win";
+            libName = "libAlphaSkiaJni.dll";
+        } else if (os.startsWith("Linux")) {
+            target = "linux";
+            libName = "libAlphaSkiaJni.so";
+        } else {
+            target = os.toLowerCase();
+            libName = "libAlphaSkiaJni";
+        }
+
+        var jarch = System.getProperty("os.arch");
+        var arch = switch (jarch) {
+            case "x86", "i368", "i486", "i586", "i686" -> "x86";
+            case "x86_64", "amd64" -> "x64";
+            case "arm" -> "arm";
+            case "aarch64" -> "arm64";
+            default -> jarch;
+        };
+
+        AlphaSkiaPlatform.loadLibrary(new String[]{
+                Path.of(System.getProperty("alphaskia.library.path"), "libAlphaSkiaJni-" + target + "-" + arch + "-shared", libName).toAbsolutePath().toString()
+        });
+
         var bravura = readFont("font/bravura/Bravura.ttf");
 
         _musicTypeface = AlphaSkiaTypeface.register(bravura);
@@ -117,7 +153,7 @@ public abstract class MusicSheetRenderTest {
 
             var partPositions = getPartPositions();
             for (var i = 0; i < images.length; i++) {
-                canvas.drawImage(images[i], partPositions[i][0], partPositions[i][1]);
+                canvas.drawImage(images[i], partPositions[i][0], partPositions[i][1], images[i].getWidth() / getRenderScale(), images[i].getHeight() / getRenderScale());
                 images[i].close();
             }
 
@@ -128,10 +164,13 @@ public abstract class MusicSheetRenderTest {
     @Test
     public void renderTest() throws IOException {
         try (var finalImage = renderFullImage()) {
-            var fileName = this.getClass().getSimpleName();
+            var testOutputPath = Path.of(System.getProperty("testoutput.path"));
+            Files.createDirectories(testOutputPath);
+
+            var file = testOutputPath.resolve(this.getClass().getSimpleName() +".png").toFile();
             byte[] png = finalImage.toPng();
 
-            try (var stream = new FileOutputStream(fileName + ".png")) {
+            try (var stream = new FileOutputStream(file)) {
                 stream.write(png);
             }
         }
@@ -142,7 +181,7 @@ public abstract class MusicSheetRenderTest {
 
     protected abstract int getTotalHeight();
 
-    protected abstract int[][] getPartPositions();
+    protected abstract float[][] getPartPositions();
 
     protected abstract RenderFunction[] getAllParts();
 }

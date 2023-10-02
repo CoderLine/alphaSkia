@@ -1,4 +1,4 @@
-package alphaskia;
+package net.alphatab.alphaskia;
 
 /**
  * Lists all known color type with which AlphaSkia creates images.

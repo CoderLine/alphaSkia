@@ -1,4 +1,4 @@
-package alphaskia;
+package net.alphatab.alphaskia;
 
 /**
  * Lists all vertical text baseline alignments which can be used to draw text.

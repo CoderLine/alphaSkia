@@ -1,6 +1,7 @@
-package alphaskia;
+package net.alphatab.alphaskia;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -13,6 +14,17 @@ public final class AlphaSkiaPlatform {
 
     public static boolean isNativeLibLoaded() {
         return nativeLibLoaded;
+    }
+
+    public static void loadLibrary(String[] nativeLibraryPaths) throws IOException {
+        for(String library : nativeLibraryPaths) {
+            var file = new File(library);
+            if(!file.exists()){
+                throw new FileNotFoundException("Could not find file: " + library);
+            }
+            System.load(library);
+        }
+        nativeLibLoaded = true;
     }
 
     public static void loadLibrary(Class<?> platformInfo) throws IOException {
@@ -32,6 +44,7 @@ public final class AlphaSkiaPlatform {
                 }
                 System.load(tmpLib.getAbsolutePath());
             }
+            nativeLibLoaded = true;
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new IllegalArgumentException("Type " + platformInfo.getName() + " seems not to be a valid AlphaSkia Target", e);
         }

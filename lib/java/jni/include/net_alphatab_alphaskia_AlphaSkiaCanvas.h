@@ -50,18 +50,18 @@ JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_close
 /*
  * Class:     net_alphatab_alphaskia_AlphaSkiaCanvas
  * Method:    beginRender
- * Signature: (II)V
+ * Signature: (IIF)V
  */
 JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_beginRender
-  (JNIEnv *, jobject, jint, jint);
+  (JNIEnv *, jobject, jint, jint, jfloat);
 
 /*
  * Class:     net_alphatab_alphaskia_AlphaSkiaCanvas
  * Method:    drawImage
- * Signature: (Lnet/alphatab/alphaskia/AlphaSkiaImage;FF)V
+ * Signature: (Lnet/alphatab/alphaskia/AlphaSkiaImage;FFFF)V
  */
 JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_drawImage
-  (JNIEnv *, jobject, jobject, jfloat, jfloat);
+  (JNIEnv *, jobject, jobject, jfloat, jfloat, jfloat, jfloat);
 
 /*
  * Class:     net_alphatab_alphaskia_AlphaSkiaCanvas

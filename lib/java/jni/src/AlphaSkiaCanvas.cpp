@@ -35,17 +35,17 @@ extern "C"
         set_handle(env, instance, 0);
     }
 
-    JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_beginRender(JNIEnv *env, jobject instance, jint width, jint height)
+    JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_beginRender(JNIEnv *env, jobject instance, jint width, jint height, jfloat renderScale)
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
-        alphaskia_canvas_begin_render(canvas, width, height);
+        alphaskia_canvas_begin_render(canvas, width, height, static_cast<float>(renderScale));
     }
 
-    JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_drawImage(JNIEnv *env, jobject instance, jobject image, jfloat x, jfloat y)
+    JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_drawImage(JNIEnv *env, jobject instance, jobject image, jfloat x, jfloat y, jfloat w, jfloat h)
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         alphaskia_image_t nativeImage = reinterpret_cast<alphaskia_image_t>(get_handle(env, image));
-        alphaskia_canvas_draw_image(canvas, nativeImage, static_cast<float>(x), static_cast<float>(y));
+        alphaskia_canvas_draw_image(canvas, nativeImage, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
     }
 
     JNIEXPORT jobject JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_endRender(JNIEnv *env, jobject instance)
@@ -122,7 +122,9 @@ extern "C"
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
 
-        const char *nativeStr = env->GetStringUTFChars(str, nullptr);
+
+        const jchar *nativeStr = env->GetStringChars(str, nullptr);
+
         alphaskia_typeface_t nativeTypeface = reinterpret_cast<alphaskia_typeface_t>(get_handle(env, typeface));
 
         jmethodID textAlignGetValue = env->GetMethodID(env->GetObjectClass(text_align), "getValue", "()I");
@@ -131,21 +133,21 @@ extern "C"
         alphaskia_text_align_t nativeTextAlign = static_cast<alphaskia_text_align_t>(env->CallIntMethod(text_align, textAlignGetValue));
         alphaskia_text_baseline_t nativeBaseline = static_cast<alphaskia_text_baseline_t>(env->CallIntMethod(baseline, baselineGetValue));
 
-        alphaskia_canvas_fill_text(canvas, nativeStr, nativeTypeface, static_cast<float>(font_size), static_cast<float>(x), static_cast<float>(y),
+        alphaskia_canvas_fill_text(canvas, reinterpret_cast<const char16_t*>(nativeStr), nativeTypeface, static_cast<float>(font_size), static_cast<float>(x), static_cast<float>(y),
                                    nativeTextAlign, nativeBaseline);
 
-        env->ReleaseStringUTFChars(str, nativeStr);
+        env->ReleaseStringChars(str, nativeStr);
     }
     JNIEXPORT jfloat JNICALL Java_net_alphatab_alphaskia_AlphaSkiaCanvas_measureText(JNIEnv *env, jobject instance, jstring str, jobject typeface, jfloat font_size)
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
 
-        const char *nativeStr = env->GetStringUTFChars(str, nullptr);
+        const jchar *nativeStr = env->GetStringChars(str, nullptr);
         alphaskia_typeface_t nativeTypeface = reinterpret_cast<alphaskia_typeface_t>(get_handle(env, typeface));
 
-        float width = alphaskia_canvas_measure_text(canvas, nativeStr, nativeTypeface, static_cast<float>(font_size));
+        float width = alphaskia_canvas_measure_text(canvas, reinterpret_cast<const char16_t*>(nativeStr), nativeTypeface, static_cast<float>(font_size));
 
-        env->ReleaseStringUTFChars(str, nativeStr);
+        env->ReleaseStringChars(str, nativeStr);
 
         return static_cast<jfloat>(width);
     }

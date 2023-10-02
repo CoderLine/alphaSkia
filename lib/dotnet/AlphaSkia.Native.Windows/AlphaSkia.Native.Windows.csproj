@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../../dist/win-x64-shared/libAlphaSkia.dll" Pack="True" PackagePath="runtimes/win-x64/native" Condition=" Exists('../../../dist/win-x64-shared/libAlphaSkia.dll') " />
-        <None Include="../../../dist/win-x86-shared/libAlphaSkia.dll" Pack="True" PackagePath="runtimes/win-x86/native" Condition=" Exists('../../../dist/win-x86-shared/libAlphaSkia.dll') " />
-        <None Include="../../../dist/win-arm64-shared/libAlphaSkia.dll" Pack="True" PackagePath="runtimes/win-arm/native" Condition=" Exists('../../../dist/win-arm-shared/libAlphaSkia.dll') " />
+        <None Include="../../../dist/libAlphaSkia-win-x64-shared/libAlphaSkia.dll" Pack="True" PackagePath="runtimes/win-x64/native" Condition=" Exists('../../../dist/libAlphaSkia-win-x64-shared/libAlphaSkia.dll') " />
+        <None Include="../../../dist/libAlphaSkia-win-x86-shared/libAlphaSkia.dll" Pack="True" PackagePath="runtimes/win-x86/native" Condition=" Exists('../../../dist/libAlphaSkia-win-x86-shared/libAlphaSkia.dll') " />
+        <None Include="../../../dist/libAlphaSkia-win-arm64-shared/libAlphaSkia.dll" Pack="True" PackagePath="runtimes/win-arm/native" Condition=" Exists('../../../dist/libAlphaSkia-win-arm-shared/libAlphaSkia.dll') " />
         <None Update="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 </Project>

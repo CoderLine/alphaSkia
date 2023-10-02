@@ -27,9 +27,13 @@ class AlphaSkiaTestCanvas : ICanvas
         get => _color;
         set
         {
+            if ((int)_color.Raw == (int)value.Raw)
+            {
+                return;
+            }
             _source.WriteSetCanvasProperty("Color",
                 _source.MakeCallStaticMethod("AlphaSkiaCanvas", "RgbaToColor",
-                    $"(byte){(byte)value.R}, (byte){(byte)value.G}, (byte){(byte)value.B}, (byte){(byte)value.A}, ",
+                    $"(byte){(byte)value.R}, (byte){(byte)value.G}, (byte){(byte)value.B}, (byte){(byte)value.A}",
                     false
                 )
             );
@@ -52,7 +56,7 @@ class AlphaSkiaTestCanvas : ICanvas
         get => _font;
         set
         {
-            _source.WriteSetProperty("Typeface", _source.MakeCallMethod("GetTypeface",
+            _source.WriteSetProperty("Typeface", _source.MakeCallMethod(_source.MakeMethodAccess("GetTypeface"),
                 $"\"{value.Families[0]}\", {(value.IsBold ? "true" : "false")}, {(value.IsItalic ? "true" : "false")}",
                 false
             ));
@@ -76,7 +80,7 @@ class AlphaSkiaTestCanvas : ICanvas
         get => _textBaseline;
         set
         {
-            _source.WriteSetProperty("TextBaseline", _source.MakeEnumAccess("TextBaseline", value.ToString()));
+            _source.WriteSetProperty("TextBaseline", _source.MakeEnumAccess("AlphaSkiaTextBaseline", value.ToString()));
             _textBaseline = value;
         }
     }
@@ -132,21 +136,23 @@ class AlphaSkiaTestCanvas : ICanvas
     public void FillMusicFontSymbols(double x, double y, double scale, IList<MusicFontSymbol> symbols,
         bool centerAtPosition = false)
     {
-        var text = "\"" + string.Join("", symbols.Select(s => _source.UnicodeEscape((int)s))) + '"';
+        var text = _source.EncodeString(
+            new string(symbols.Select(s => (char)((int)s)).ToArray()));
 
         var textAlign = centerAtPosition
             ? _source.MakeEnumAccess("AlphaSkiaTextAlign", "Center")
             : _source.MakeEnumAccess("AlphaSkiaTextAlign", "Left");
         _source.WriteCallCanvasMethod("FillText",
-            $"{text}, {_source.MakeGetProperty("MusicTypeface")}, {_source.MakeGetProperty("MusicFontSize")}, (float){x}, (float){y}, {textAlign}, {_source.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
+            $"{text}, {_source.MakeGetProperty("MusicTypeface")}, (float)({_source.MakeGetProperty("MusicFontSize")} * {scale}), (float){x}, (float){y}, {textAlign}, {_source.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
     }
 
     public void BeginRender(double width, double height)
     {
+        _source.Resume();
         var methodName = _source.MakeMethodAccess("DrawMusicSheetPart" + _partialCounter++);
         _source.WriteLine($"private AlphaSkiaImage {methodName}(AlphaSkiaCanvas canvas)");
         _source.BeginBlock();
-        _source.WriteCallCanvasMethod("BeginRender", $"(int){width}, (int){height}");
+        _source.WriteCallCanvasMethod("BeginRender", $"(int){width}, (int){height}, (float){_source.MakeGetProperty("RenderScale")}");
     }
 
     public object? EndRender()
@@ -154,6 +160,7 @@ class AlphaSkiaTestCanvas : ICanvas
         _source.WriteLine(
             $"return {_source.MakeCallMethod(_source.MakeMethodAccess("canvas", "EndRender"))}");
         _source.EndBlock();
+        _source.Suspend();
         return _source;
     }
 

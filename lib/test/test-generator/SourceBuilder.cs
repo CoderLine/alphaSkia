@@ -7,6 +7,7 @@ abstract class SourceBuilder
     private readonly StringBuilder _source = new();
     private bool _isStartOfLine;
     private int _indent;
+    private bool _suspended;
 
     public override string ToString()
     {
@@ -15,6 +16,10 @@ abstract class SourceBuilder
 
     public void WriteLine(string? text = null)
     {
+        if(_suspended)
+        {
+            return;
+        }
         if (text != null)
         {
             Write(text);
@@ -26,6 +31,10 @@ abstract class SourceBuilder
 
     public void Write(string text)
     {
+        if(_suspended)
+        {
+            return;
+        }
         WriteIndent();
         _source.Append(text);
         _isStartOfLine = false;
@@ -42,17 +51,24 @@ abstract class SourceBuilder
 
     public void BeginBlock()
     {
-        WriteLine("{ ");
+        if(_suspended)
+        {
+            return;
+        }
+        WriteLine("{");
         _indent++;
     }
 
-    public void EndBlock()
+    public void EndBlock(bool statement = false)
     {
+        if(_suspended)
+        {
+            return;
+        }
         _indent--;
-        WriteLine("}");
+        WriteLine("}" + (statement ? ";" : ""));
     }
 
-    public abstract string MakePropertyAccess(string expression, string member);
     public abstract string MakeGetProperty(string property);
     public abstract string MakeMethodAccess(string expression, string member);
     public abstract string MakeMethodAccess(string member);
@@ -66,22 +82,17 @@ abstract class SourceBuilder
 
     public void WriteCallCanvasMethod(string methodName, string args = "", bool statement = true)
     {
-        WriteCallMethod(MakeMethodAccess("canvas", methodName), args, statement);
-    }
-
-    private void WriteCallMethod(string methodName, string args = "", bool statement = true)
-    {
-        WriteLine(MakeCallMethod(methodName, args, statement));
+        WriteLine(this.MakeCallMethod(MakeMethodAccess("canvas", methodName), args, statement));
     }
 
     public string MakeCallMethod(string methodName, string args = "", bool statement = true)
     {
-        return $"{MakeMethodAccess(methodName)}(${args}){(statement ? ";" : "")}";
+        return $"{methodName}({args}){(statement ? ";" : "")}";
     }
 
     public string MakeCallStaticMethod(string typeName, string methodName, string args = "", bool statement = true)
     {
-        return $"{MakeMethodAccess(typeName, methodName)}(${args}){(statement ? ";" : "")}";
+        return $"{MakeMethodAccess(typeName, methodName)}({args}){(statement ? ";" : "")}";
     }
 
     protected static string ToPascalCase(string s)
@@ -98,11 +109,21 @@ abstract class SourceBuilder
     {
         return System.Text.Json.JsonSerializer.Serialize(text);
     }
+
+    public void Resume()
+    {
+        _suspended = false;
+    }
+
+    public void Suspend()
+    {
+        _suspended = true;
+    }
 }
 
 class CSharpSourceBuilder : SourceBuilder
 {
-    public override string MakePropertyAccess(string expression, string member)
+    private string MakePropertyAccess(string expression, string member)
     {
         return $"{expression}.{ToPascalCase(member)}";
     }
@@ -134,22 +155,17 @@ class CSharpSourceBuilder : SourceBuilder
 
     public override string UnicodeEscape(int x)
     {
-        return $"\\x{x:XXXX}";
+        return $"\\x{x:X4}";
     }
 
     public override void WriteSetCanvasProperty(string property, string value)
     {
-        WriteSetProperty(MakePropertyAccess("canvas", property), value);
+        WriteLine($"{MakePropertyAccess("canvas", property)} = {value};");
     }
 }
 
 class JavaSourceBuilder : SourceBuilder
 {
-    public override string MakePropertyAccess(string expression, string member)
-    {
-        return $"{expression}.get{ToPascalCase(member)}";
-    }
-
     public override string MakeMethodAccess(string member)
     {
         return ToCamelCase(member);
@@ -167,7 +183,7 @@ class JavaSourceBuilder : SourceBuilder
 
     public override string MakeGetProperty(string property)
     {
-        return $"get{ToPascalCase(property)}";
+        return $"get{ToPascalCase(property)}()";
     }
 
     public override string MakeEnumAccess(string type, string field)
@@ -182,6 +198,6 @@ class JavaSourceBuilder : SourceBuilder
 
     public override void WriteSetCanvasProperty(string property, string value)
     {
-        WriteLine($"canvas.set{ToPascalCase(property)}({value})");
+        WriteLine($"canvas.set{ToPascalCase(property)}({value});");
     }
 }

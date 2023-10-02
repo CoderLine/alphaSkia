@@ -90,10 +90,11 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// </summary>
     /// <param name="width">The width of the image to produce.</param>
     /// <param name="height">The height of the image to produce.</param>
-    public void BeginRender(int width, int height)
+    /// <param name="renderScale">The scale factor for the image (e.g. for high DPI rendering with keeping cooridnatess).</param>
+    public void BeginRender(int width, int height, float renderScale = 1)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_begin_render(Native, width, height);
+        NativeMethods.alphaskia_canvas_begin_render(Native, width, height, renderScale);
     }
 
     /// <summary>
@@ -102,10 +103,12 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// <param name="image">The image to draw.</param>
     /// <param name="x">The X-coordinate at which to draw the image.</param>
     /// <param name="y">The Y-coordinate at which to draw the image.</param>
-    public void DrawImage(AlphaSkiaImage image, float x, float y)
+    /// <param name="w">The target width to which the image should be scaled.</param>
+    /// <param name="h">The target height to which the image should be scaled.</param>
+    public void DrawImage(AlphaSkiaImage image, float x, float y, float w, float h)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_draw_image(Native, image.Native, x, y);
+        NativeMethods.alphaskia_canvas_draw_image(Native, image.Native, x, y, w, h);
     }
 
     /// <summary>
@@ -153,7 +156,8 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// <summary>
     /// Begins a new dynamic path for rendering.
     /// </summary>
-    public void BeginPath()
+    public void 
+        BeginPath()
     {
         CheckDisposed();
         NativeMethods.alphaskia_canvas_begin_path(Native);

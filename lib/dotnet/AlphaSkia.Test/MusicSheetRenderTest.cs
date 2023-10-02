@@ -3,6 +3,7 @@ namespace AlphaSkia.Test;
 public abstract class MusicSheetRenderTest
 {
     protected static AlphaSkiaTypeface MusicTypeface { get; private set; } = null!;
+    protected static float RenderScale { get; private set; } = 1;
     protected static int MusicFontSize { get; private set; } = 34;
 
     private static readonly IDictionary<string, AlphaSkiaTypeface> CustomTypefaces =
@@ -87,11 +88,11 @@ public abstract class MusicSheetRenderTest
 
         var images = AllParts.Select(p => p(canvas)).ToArray();
 
-        canvas.BeginRender(TotalWidth, TotalHeight);
+        canvas.BeginRender(TotalWidth, TotalHeight, RenderScale);
 
         for (var i = 0; i < images.Length; i++)
         {
-            canvas.DrawImage(images[i], PartPositions[i, 0], PartPositions[i, 1]);
+            canvas.DrawImage(images[i], PartPositions[i, 0], PartPositions[i, 1], images[i].Width / RenderScale, images[i].Height / RenderScale);
             images[i].Dispose();
         }
 
@@ -109,7 +110,7 @@ public abstract class MusicSheetRenderTest
 
     protected abstract int TotalWidth { get; }
     protected abstract int TotalHeight { get; }
-    protected abstract int[,] PartPositions { get; }
+    protected abstract float[,] PartPositions { get; }
 
     protected abstract Func<AlphaSkiaCanvas, AlphaSkiaImage>[] AllParts { get; }
 }

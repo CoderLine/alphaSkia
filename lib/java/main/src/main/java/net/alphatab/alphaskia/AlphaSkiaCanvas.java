@@ -1,4 +1,4 @@
-package alphaskia;
+package net.alphatab.alphaskia;
 
 /**
  * A Skia based canvas for rendering images.
@@ -39,10 +39,10 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      */
     public static int rgbaToColor(byte r, byte g, byte b, byte a) {
         return switch (getColorType()) {
-            case BGRA_8888 -> (((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((g & 0xFF) << 8) |
-                    ((r & 0xFF) << 0));
-            case RGBA_8888 -> (((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) |
+            case BGRA_8888 -> (((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) |
                     ((b & 0xFF) << 0));
+            case RGBA_8888 -> (((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((g & 0xFF) << 8) |
+                    ((r & 0xFF) << 0));
             default -> throw new IllegalStateException("Unknown color type");
         };
     }
@@ -70,7 +70,19 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param width  The width of the image to produce.
      * @param height The height of the image to produce.
      */
-    public native void beginRender(int width, int height);
+    public void beginRender(int width, int height)
+    {
+        beginRender(width, height, 1);
+    }
+
+    /**
+     * Starts a new rendering session in the canvas.
+     *
+     * @param width  The width of the image to produce.
+     * @param height The height of the image to produce.
+     * @param scaleFactor The scale factor for the image (e.g. for high DPI rendering with keeping cooridnatess).
+     */
+    public native void beginRender(int width, int height, float scaleFactor);
 
     /**
      * Draws the given image into the canvas.
@@ -78,8 +90,10 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param image The image to draw.
      * @param x     The X-coordinate at which to draw the image.
      * @param y     The Y-coordinate at which to draw the image.
+     * @param w     The target width to which the image should be scaled.
+     * @param h     The target height to which the image should be scaled.
      */
-    public native void drawImage(AlphaSkiaImage image, float x, float y);
+    public native void drawImage(AlphaSkiaImage image, float x, float y, float w, float h);
 
     /**
      * Ends the rendering session and provides the rendered result.

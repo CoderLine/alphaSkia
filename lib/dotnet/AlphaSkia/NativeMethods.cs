@@ -90,7 +90,8 @@ internal static partial class NativeMethods
 
     [LibraryImport(AlphaSkiaNativeLibName)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-    public static partial void alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int width, int height);
+    public static partial void alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int width, int height,
+        float render_scale);
 
     [LibraryImport(AlphaSkiaNativeLibName)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
@@ -150,13 +151,13 @@ internal static partial class NativeMethods
     public static partial void alphaskia_canvas_stroke(alphaskia_canvas_t canvas);
 
 
-    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf16)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, string text,
         alphaskia_typeface_t type_face, float font_size, float x, float y, AlphaSkiaTextAlign text_align,
         AlphaSkiaTextBaseline baseline);
 
-    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(AlphaSkiaNativeLibName, StringMarshalling = StringMarshalling.Utf16)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, string text,
         alphaskia_typeface_t type_face, float font_size);
@@ -173,5 +174,5 @@ internal static partial class NativeMethods
     [LibraryImport(AlphaSkiaNativeLibName)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial void alphaskia_canvas_draw_image(alphaskia_canvas_t canvas, alphaskia_image_t image, float x,
-        float y);
+        float y, float w, float h);
 }

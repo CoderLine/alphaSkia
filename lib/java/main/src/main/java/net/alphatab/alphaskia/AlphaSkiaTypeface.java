@@ -1,4 +1,4 @@
-package alphaskia;
+package net.alphatab.alphaskia;
 
 public class AlphaSkiaTypeface extends AlphaSkiaNative {
     private final AlphaSkiaData data;

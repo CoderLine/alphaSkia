@@ -24,23 +24,23 @@
     </ItemGroup>
     
     <ItemGroup>
-        <EmbeddedResource Include="../../test/font/**/*.ttf" />
+        <EmbeddedResource Include="../../test/font/**/*.ttf" LinkBase="font" />
     </ItemGroup>
 
     <ItemGroup>
         <!-- https://github.com/dotnet/sdk/issues/24708 -->
-        <None Include="$(RootDirectory)dist/linux-x64-shared/libAlphaSkia.so" LinkBase="runtimes/linux-x64/native"
-              Condition=" Exists('$(RootDirectory)dist/linux-x64-shared/libAlphaSkia.so') "
+        <None Include="$(RootDirectory)dist/libAlphaSkia-linux-x64-shared/libAlphaSkia.so" LinkBase="runtimes/linux-x64/native"
+              Condition=" Exists('$(RootDirectory)dist/libAlphaSkia-linux-x64-shared/libAlphaSkia.so') "
               CopyToOutputDirectory="PreserveNewest"/>
         
-        <None Include="$(RootDirectory)dist/win-x64-shared/libAlphaSkia.dll" LinkBase="runtimes/win-x64/native"
-              Condition=" Exists('$(RootDirectory)dist/win-x64-shared/libAlphaSkia.dll') "
+        <None Include="$(RootDirectory)dist/libAlphaSkia-win-x64-shared/libAlphaSkia.dll" LinkBase="runtimes/win-x64/native"
+              Condition=" Exists('$(RootDirectory)dist/libAlphaSkia-win-x64-shared/libAlphaSkia.dll') "
               CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="$(RootDirectory)dist/win-x86-shared/libAlphaSkia.dll" LinkBase="runtimes/win-x86/native"
-              Condition=" Exists('$(RootDirectory)dist/win-x86-shared/libAlphaSkia.dll') "
+        <None Include="$(RootDirectory)dist/libAlphaSkia-win-x86-shared/libAlphaSkia.dll" LinkBase="runtimes/win-x86/native"
+              Condition=" Exists('$(RootDirectory)dist/libAlphaSkia-win-x86-shared/libAlphaSkia.dll') "
               CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="$(RootDirectory)dist/win-arm64-shared/libAlphaSkia.dll" LinkBase="runtimes/win-arm/native"
-              Condition=" Exists('$(RootDirectory)dist/win-arm64-shared/libAlphaSkia.dll') "
+        <None Include="$(RootDirectory)dist/libAlphaSkia-win-arm64-shared/libAlphaSkia.dll" LinkBase="runtimes/win-arm/native"
+              Condition=" Exists('$(RootDirectory)dist/libAlphaSkia-win-arm64-shared/libAlphaSkia.dll') "
               CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 </Project>

@@ -19,7 +19,7 @@ public:
     float get_line_width() const;
     void set_line_width(float line_width);
 
-    void begin_render(int32_t width, int32_t height);
+    void begin_render(int32_t width, int32_t height, float render_scale);
     sk_sp<SkImage> end_render();
 
     void fill_rect(float x, float y, float width, float height);
@@ -34,17 +34,17 @@ public:
     void stroke_circle(float x, float y, float radius);
     void fill();
     void stroke();
-    void draw_image(sk_sp<SkImage> image, float x, float y);
+    void draw_image(sk_sp<SkImage> image, float x, float y, float w, float h);
    
-    void fill_text(const char *utf8, sk_sp<SkTypeface> typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
-    float measure_text(const char *utf8, sk_sp<SkTypeface> typeface, float font_size);
+    void fill_text(const char16_t *text, sk_sp<SkTypeface> typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
+    float measure_text(const char16_t *text, sk_sp<SkTypeface> typeface, float font_size);
     void begin_rotate(float center_x, float center_y, float angle);
     void end_rotate();
 
 private:
     SkPaint create_paint();
 
-    std::string convert_to_utf8(wchar_t *text);
+    std::string convert_utf16_to_utf8(const char16_t *text);
 
     SkColor color_;
     float line_width_;
@@ -54,7 +54,7 @@ private:
     // Chromium adopted text shaping and blob creation
     static const uint32_t layoutUnitFractionalBits_;
     static const int32_t fixedPointDenominator_;
-    void text_run(const char* utf8,
+    void text_run(const char16_t* text,
                   SkFont &font,
                   sk_sp<SkTextBlob> &realBlob,
                   float &width);

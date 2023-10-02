@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../../dist/linux-x64-shared/libAlphaSkia.so" Pack="True" PackagePath="runtimes/linux-x64/native" Condition=" Exists('../../../dist/linux-x64-shared/libAlphaSkia.so') " />
+        <None Include="../../../dist/libAlphaSkia-linux-x64-shared/libAlphaSkia.so" Pack="True" PackagePath="runtimes/linux-x64/native" Condition=" Exists('../../../dist/libAlphaSkia-linux-x64-shared/libAlphaSkia.so') " />
         <None Update="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 </Project>
