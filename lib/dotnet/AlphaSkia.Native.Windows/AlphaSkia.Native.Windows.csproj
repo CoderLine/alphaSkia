@@ -3,7 +3,7 @@
         <IsPackable>true</IsPackable>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
 

@@ -32,9 +32,14 @@ partial class Build : NukeBuild
     }
 
     Target PrepareGitHubArtifacts => _ => _
-        .OnlyWhenDynamic(() => GetVariable("GITHUB_ACTION") != null)
         .Executes(() =>
         {
+            if (!GetVariable<bool>("GITHUB_ACTIONS"))
+            {
+                Log.Debug("Skipping GitHub Artifact preparation, GITHUB_ACTIONS was not set");
+                return;
+            }
+            
             // We auto download all artifacts of all dependencies
             // which results in a nested structure like
             // dist/<artifactname>/<files>
@@ -42,6 +47,8 @@ partial class Build : NukeBuild
             var dist = RootDirectory / "dist";
             if (!dist.DirectoryExists())
             {
+                Log.Debug("Skipping GitHub Artifact preparation, no dependencies");
+
                 // nothing to do
                 return;
             }

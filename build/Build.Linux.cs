@@ -57,9 +57,9 @@ partial class Build
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = RootDirectory / "dist" / $"libAlphaSkia-win-{arch}-static";
+        var staticLibPath = RootDirectory / "dist" / $"libAlphaSkia-linux-{arch}-static";
         gnArgs["extra_ldflags"] =
-            $"[ '-L:{staticLibPath}', '-llibAlphaSkia.lib', '-llibskia.lib' ]";
+            $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
         BuildSkiaLinux("libAlphaSkiaJni", arch, variant, gnArgs, new[] { "libAlphaSkiaJni.so" });
     }
