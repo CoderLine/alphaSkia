@@ -422,7 +422,7 @@ partial class Build
         var isShared = variant == Variant.Shared;
         var artifactDir = $"{buildTarget}-{targetOs}-{arch}-{variant}";
         var distPath = DistBasePath / artifactDir;
-        var artifactsPath = IsGitHubActions ? ArtifactBasePath / artifactDir : null;
+        var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / artifactDir : null;
 
         gnArgs["target_os"] = targetOs;
         gnArgs["target_cpu"] = arch;
@@ -469,21 +469,20 @@ partial class Build
             {
                 FileSystemTasks.CopyFile(outDir / file,
                     distPath / file, FileExistsPolicy.Overwrite);
-                if (artifactsPath != null)
+                if (artifactsLibPath != null)
                 {
                     FileSystemTasks.CopyFile(outDir / file,
-                        artifactsPath / file, FileExistsPolicy.Overwrite);
+                        artifactsLibPath / file, FileExistsPolicy.Overwrite);
                 }
             }
 
             FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
                 DistBasePath / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
 
-            if (artifactsPath != null)
+            if (artifactsLibPath != null)
             {
                 FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
-                    DistBasePath / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
-
+                    ArtifactBasePath / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
             }
         }
         catch (Exception e)
