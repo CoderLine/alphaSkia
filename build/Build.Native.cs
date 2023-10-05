@@ -427,18 +427,13 @@ partial class Build
         gnArgs["target_os"] = targetOs;
         gnArgs["target_cpu"] = arch;
         gnArgs["is_shared_alphaskia"] = isShared.ToString().ToLowerInvariant();
+        
+        // disable features we don't need
         gnArgs["skia_use_icu"] = "false";
         gnArgs["skia_use_piex"] = "false";
         gnArgs["skia_use_sfntly"] = "false";
-        gnArgs["skia_use_system_expat"] = "false";
-        gnArgs["skia_use_system_libjpeg_turbo"] = "false";
-        gnArgs["skia_use_system_libpng"] = "false";
-        gnArgs["skia_use_system_libwebp"] = "false";
-        gnArgs["skia_use_system_zlib"] = "false";
-        gnArgs["skia_use_system_harfbuzz"] = "false";
         gnArgs["skia_enable_skshaper"] = "true";
         gnArgs["skia_pdf_subset_harfbuzz"] = "false";
-        gnArgs["skia_use_vulkan"] = "true";
         gnArgs["skia_use_expat"] = "false";
         gnArgs["skia_enable_pdf"] = "false";
         gnArgs["skia_use_dng_sdk"] = "false";
@@ -446,7 +441,24 @@ partial class Build
         gnArgs["skia_use_libjpeg_turbo_encode"] = "false";
         gnArgs["skia_use_libwebp_decode"] = "false";
         gnArgs["skia_use_libwebp_encode"] = "false";
+        gnArgs["skia_use_xps"] = "false";
+        gnArgs["skia_use_libavif"] = "false";
+        gnArgs["skia_use_libjxl_decode"] = "false";
+        gnArgs["skia_enable_vello_shaders"] = "false";
+        
+        gnArgs["skia_enable_sksl"] = "false";
+        
+        gnArgs["skia_use_system_expat"] = "false";
+        gnArgs["skia_use_system_libjpeg_turbo"] = "false";
+        gnArgs["skia_use_system_libpng"] = "false";
+        gnArgs["skia_use_system_libwebp"] = "false";
+        gnArgs["skia_use_system_zlib"] = "false";
+        gnArgs["skia_use_system_harfbuzz"] = "false";
 
+        // graphite is still in dev, stay on ganesh backend
+        gnArgs["skia_enable_graphite"] = "false";
+        gnArgs["skia_enable_ganesh"] = "true";
+        gnArgs["skia_use_vulkan"] = "true";
 
         GnNinja($"out/{buildTarget}/{targetOs}/{arch}/{variant}", buildTarget, gnArgs, SkiaPath);
 

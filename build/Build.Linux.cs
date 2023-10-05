@@ -69,7 +69,6 @@ partial class Build
     {
         SetClangLinux(arch, gnArgs);
 
-        gnArgs["skia_enable_ganesh"] = "true";
         gnArgs["skia_use_system_freetype2"] = "false";
 
         BuildSkia(buildTarget, "linux", arch, variant, gnArgs, filesToCopy);
