@@ -84,7 +84,7 @@ jobs:
           key: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
 
       - run: ./externals/skia/tools/install_dependencies.sh
-      - run: ./build.sh LinuxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - run: ./build.sh LinuxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ github.events.inputs.use-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -139,7 +139,7 @@ jobs:
           key: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
 
       - run: ./externals/skia/tools/install_dependencies.sh
-      - run: ./build.sh AndroidSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - run: ./build.sh AndroidSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ github.events.inputs.use-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -191,7 +191,7 @@ jobs:
           path: dist
           key: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
 
-      - run: ./build.sh MacOsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - run: ./build.sh MacOsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ github.events.inputs.use-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}

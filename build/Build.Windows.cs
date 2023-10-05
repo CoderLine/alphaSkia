@@ -9,6 +9,7 @@ using Nuke.Common.Tooling;
 partial class Build
 {
     public Target WindowsSkia => _ => _
+        .OnlyWhenDynamic(() => !UseCache)
         .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
@@ -128,7 +129,7 @@ partial class Build
 
         gnArgs["cc"] = "clang";
         gnArgs["cxx"] = "'clang++'";
-        
+
         // override win_vc with the command line args
         var vsInstall = VsInstall;
         if (!string.IsNullOrEmpty(vsInstall))
@@ -137,7 +138,7 @@ partial class Build
             winVc /= "VC";
             gnArgs["win_vc"] = winVc;
         }
-        
+
         AppendToFlagList(gnArgs, "extra_cflags", "'/MT', '/EHsc', '/Z7', '-D_HAS_AUTO_PTR_ETC=1'");
         AppendToFlagList(gnArgs, "extra_ldflags", "'/DEBUG:FULL'");
     }

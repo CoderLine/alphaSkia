@@ -5,6 +5,7 @@ using Nuke.Common;
 partial class Build
 {
     public Target MacOsSkia => _ => _
+        .OnlyWhenDynamic(() => !UseCache)
         .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
