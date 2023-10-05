@@ -32,7 +32,6 @@ partial class Build
     [Parameter] static AbsolutePath SkiaPath = RootDirectory / "externals" / "skia";
     [Parameter] static AbsolutePath DepotPath = RootDirectory / "externals" / "depot_tools";
 
-
     // Compiler Option
     [Parameter]
     readonly string LlvmHome = GetVariable<string>("LLVM_HOME") ??
@@ -417,7 +416,9 @@ partial class Build
         string[] filesToCopy)
     {
         var isShared = variant == Variant.Shared;
-        var finalPath = RootDirectory / "dist" / $"{buildTarget}-{targetOs}-{arch}-{variant}";
+        var artifactDir = $"{buildTarget}-{targetOs}-{arch}-{variant}";
+        var distPath = DistBasePath / artifactDir;
+        var artifactsPath = IsGitHubActions ? ArtifactBasePath / artifactDir : null;
 
         gnArgs["target_os"] = targetOs;
         gnArgs["target_cpu"] = arch;
@@ -451,11 +452,23 @@ partial class Build
             foreach (var file in filesToCopy)
             {
                 FileSystemTasks.CopyFile(outDir / file,
-                    finalPath / file, FileExistsPolicy.Overwrite);
+                    distPath / file, FileExistsPolicy.Overwrite);
+                if (artifactsPath != null)
+                {
+                    FileSystemTasks.CopyFile(outDir / file,
+                        artifactsPath / file, FileExistsPolicy.Overwrite);
+                }
             }
 
             FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
-                RootDirectory / "dist" / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
+                DistBasePath / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
+
+            if (artifactsPath != null)
+            {
+                FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
+                    DistBasePath / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
+
+            }
         }
         catch (Exception e)
         {

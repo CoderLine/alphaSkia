@@ -51,13 +51,13 @@ partial class Build
     void BuildSkiaLinuxJni(Architecture arch, Variant variant)
     {
         var gnArgs = new Dictionary<string, string>();
-        var alphaSkiaInclude = RootDirectory / "dist" / "include";
+        var alphaSkiaInclude = DistBasePath / "include";
         var jniInclude = JavaHome / "include";
         var jniWinInclude = JavaHome / "include" / "linux";
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = RootDirectory / "dist" / $"libAlphaSkia-linux-{arch}-static";
+        var staticLibPath = DistBasePath / $"libAlphaSkia-linux-{arch}-static";
         gnArgs["extra_ldflags"] =
             $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
@@ -67,8 +67,16 @@ partial class Build
     void BuildSkiaLinux(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
         string[] filesToCopy)
     {
-        gnArgs["skia_enable_ganesh"] = "true";
+        SetClangLinux(arch, gnArgs);
 
+        gnArgs["skia_enable_ganesh"] = "true";
+        gnArgs["skia_use_system_freetype2"] = "false";
+
+        BuildSkia(buildTarget, "linux", arch, variant, gnArgs, filesToCopy);
+    }
+
+    void SetClangLinux(Architecture arch, Dictionary<string, string> gnArgs)
+    {
         AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'");
 
         if (arch == Architecture.X64)
@@ -93,9 +101,5 @@ partial class Build
         }
 
         // gnArgs["ar"] = "llvm-ar";
-        gnArgs["skia_use_system_freetype2"] = "false";
-
-
-        BuildSkia(buildTarget, "linux", arch, variant, gnArgs, filesToCopy);
     }
 }
