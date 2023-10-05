@@ -30,14 +30,7 @@ jobs:
           name: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
 
-      - uses: actions/cache/restore@v3
-        if: ${{ github.events.inputs.use-cache == 'true' }}
-        with:
-          path: dist
-          key: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
-
       - uses: actions/cache/save@v3
-        if: ${{ github.events.inputs.use-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -91,7 +84,6 @@ jobs:
           path: artifacts
 
       - uses: actions/cache/save@v3
-        if: ${{ github.events.inputs.use-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -146,7 +138,6 @@ jobs:
           path: artifacts
 
       - uses: actions/cache/save@v3
-        if: ${{ github.events.inputs.use-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -198,7 +189,6 @@ jobs:
           path: artifacts
 
       - uses: actions/cache/save@v3
-        if: ${{ github.events.inputs.use-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
