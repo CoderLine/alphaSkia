@@ -22,5 +22,5 @@ tasks.test {
 }
 
 tasks.jar {
-    archiveBaseName = "net.alphatab.alphaskia.windows"
+    archiveBaseName = "net.alphatab.alphaskia"
 }

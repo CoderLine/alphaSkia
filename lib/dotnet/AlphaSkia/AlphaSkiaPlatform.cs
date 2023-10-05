@@ -64,7 +64,7 @@ public static class AlphaSkiaPlatform
         {
             PlatformID.Unix => ".so",
             PlatformID.Win32NT => ".dll",
-            PlatformID.MacOSX => ".so", //TODO .dylib?
+            PlatformID.MacOSX => ".dylib",
             _ => ""
         };
         

@@ -33,7 +33,7 @@ partial class Build
         {
             filesToCopy = new[]
             {
-                "libAlphaSkia.so"
+                "libAlphaSkia.dylib"
             };
         }
         else
