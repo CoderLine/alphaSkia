@@ -76,7 +76,10 @@ partial class Build
                 "third_party/externals/libpng",
                 "third_party/externals/zlib",
                 "third_party/externals/wuffs",
-                "third_party/externals/vulkanmemoryallocator"
+                "third_party/externals/vulkanmemoryallocator",
+                
+                // Android font manager
+                "third_party/externals/expat"
             };
 
             return GitSyncDepsCustom(requiredDependencies);
