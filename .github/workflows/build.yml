@@ -3,7 +3,7 @@ on:
     inputs:
       use-skia-cache:
         type: boolean
-        description: Whether to use the cached skia libraries when possible.
+        description: Use Skia Binary from cache
 
 jobs:
   windows:

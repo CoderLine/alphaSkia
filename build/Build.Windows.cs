@@ -9,7 +9,7 @@ using Nuke.Common.Tooling;
 partial class Build
 {
     public Target WindowsSkia => _ => _
-        .OnlyWhenDynamic(() => !UseCache)
+        .OnlyWhenDynamic(() => !UseCache || !HasCachedFiles("libAlphaSkia", "win"))
         .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)

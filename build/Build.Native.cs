@@ -501,4 +501,10 @@ partial class Build
             throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
         }
     }
+    
+    bool HasCachedFiles(string buildTarget, string targetOsOutDir)
+    {
+        var expectedDirectory = DistBasePath / $"{buildTarget}-{targetOsOutDir}-{Architecture}-{Variant}";
+        return expectedDirectory.DirectoryExists() && expectedDirectory.GetFiles().Any();
+    }
 }

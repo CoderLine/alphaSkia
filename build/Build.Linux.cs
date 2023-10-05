@@ -5,7 +5,7 @@ using Nuke.Common;
 partial class Build
 {
     public Target LinuxSkia => _ => _
-        .OnlyWhenDynamic(() => !UseCache)
+        .OnlyWhenDynamic(() => !UseCache || !HasCachedFiles("libAlphaSkia", "linux"))
         .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
