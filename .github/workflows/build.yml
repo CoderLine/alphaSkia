@@ -1,5 +1,9 @@
 on:
   workflow_dispatch:
+    inputs:
+      use-skia-cache:
+        type: boolean
+        description: Whether to use the cached skia libraries when possible.
 
 jobs:
   windows:
@@ -14,11 +18,30 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - run: ./build.cmd WindowsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - uses: actions/cache/restore@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
+
+      - run: ./build.cmd WindowsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ github.events.inputs.use-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
+
+      - uses: actions/cache/restore@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
+
+      - uses: actions/cache/save@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
+
 
   windows-jni:
     runs-on: windows-latest
@@ -54,12 +77,25 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - uses: actions/cache/restore@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
+
       - run: ./externals/skia/tools/install_dependencies.sh
       - run: ./build.sh LinuxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
+
+      - uses: actions/cache/save@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
+
 
   linux-jni:
     runs-on: ubuntu-latest
@@ -96,12 +132,25 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - uses: actions/cache/restore@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
+
       - run: ./externals/skia/tools/install_dependencies.sh
       - run: ./build.sh AndroidSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
+
+      - uses: actions/cache/save@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
+
 
   android-jni:
     runs-on: ubuntu-latest
@@ -136,11 +185,24 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - uses: actions/cache/restore@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
+
       - run: ./build.sh MacOsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
+
+      - uses: actions/cache/save@v3
+        if: ${{ github.events.inputs.use-cache == 'true' }}
+        with:
+          path: dist
+          key: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
+
 
   macos-jni:
     runs-on: macos-latest
