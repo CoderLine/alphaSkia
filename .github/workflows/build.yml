@@ -125,7 +125,7 @@ jobs:
           name: alphaskia-android-jni-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
 
-  osx:
+  macos:
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -136,15 +136,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - run: ./build.sh OsxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - run: ./build.sh MacOsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
       - uses: actions/upload-artifact@v3
         with:
-          name: alphaskia-osx-${{ matrix.architecture }}-${{ matrix.variant }}
+          name: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
 
-  osx-jni:
+  macos-jni:
     runs-on: macos-latest
-    needs: [osx]
+    needs: [macos]
     strategy:
       fail-fast: false
       matrix:
@@ -158,10 +158,10 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: dist
-      - run: ./build.cmd OsxJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - run: ./build.cmd MacOsJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
       - uses: actions/upload-artifact@v3
         with:
-          name: alphaskia-osx-jni-${{ matrix.architecture }}-${{ matrix.variant }}
+          name: alphaskia-macos-jni-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
 
   dotnet:
@@ -197,7 +197,4 @@ jobs:
       with:
         name: Jars
         path: |
-          lib/java/main/build/libs/*.jar
-          lib/java/linux/build/libs/*.jar
-          lib/java/android/build/libs/*.jar
-          lib/java/windows/build/libs/*.jar
+          lib/java/*/build/libs/*.jar

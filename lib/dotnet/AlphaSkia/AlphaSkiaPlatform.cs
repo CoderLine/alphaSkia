@@ -64,7 +64,7 @@ public static class AlphaSkiaPlatform
         {
             PlatformID.Unix => ".so",
             PlatformID.Win32NT => ".dll",
-            PlatformID.MacOSX => ".dylib",
+            PlatformID.MacOSX => ".so", //TODO .dylib?
             _ => ""
         };
         
@@ -72,7 +72,7 @@ public static class AlphaSkiaPlatform
         {
             PlatformID.Unix => "linux",
             PlatformID.Win32NT => "win",
-            PlatformID.MacOSX => "osx",
+            PlatformID.MacOSX => "macos",
             _ => officialOs
         };
         if (string.IsNullOrEmpty(os))

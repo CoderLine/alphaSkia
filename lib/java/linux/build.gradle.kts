@@ -9,7 +9,7 @@ java {
 }
 
 tasks.jar {
-    archiveBaseName = "net.alphatab.alphaskia.windows"
+    archiveBaseName = "net.alphatab.alphaskia.linux"
 
     into("native/linux-x64/") {
         from(rootProject.projectDir.resolve("../../dist/libAlphaSkiaJni-linux-x64-shared/"))

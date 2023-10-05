@@ -40,7 +40,7 @@ public abstract class MusicSheetRenderTest {
         String libName;
         String target;
         if (os.startsWith("Mac")) {
-            target = "osx";
+            target = "macos";
             libName = "libAlphaSkiaJni.dylib";
         } else if (os.startsWith("Win")) {
             target = "win";
