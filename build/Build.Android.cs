@@ -55,7 +55,7 @@ partial class Build
         });
 
     public Target AndroidJni => _ => _
-        .DependsOn(SetupDepotTools, PatchSkiaBuildFiles)
+        .DependsOn(GitSyncDepsJni, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant == Variant.Shared)
         .Executes(() =>

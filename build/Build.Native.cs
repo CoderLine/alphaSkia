@@ -17,6 +17,7 @@ public class Architecture : Enumeration
 {
     public static Architecture X64 = new() { Value = "x64" };
     public static Architecture X86 = new() { Value = "x86" };
+    public static Architecture Arm = new() { Value = "arm" };
     public static Architecture Arm64 = new() { Value = "arm64" };
 }
 
