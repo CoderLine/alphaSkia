@@ -5,11 +5,12 @@ using System.Linq;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using Serilog;
 
 partial class Build
 {
     public Target WindowsSkia => _ => _
-        .OnlyWhenDynamic(() => !UseCache || !HasCachedFiles("libAlphaSkia", "win"))
+        .OnlyWhenDynamic(() => !CanUseCachedBinaries("libAlphaSkia", "win"))
         .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)
@@ -18,7 +19,7 @@ partial class Build
         {
             BuildSkiaWindowsMain(Architecture, Variant);
         });
-
+    
     public Target WindowsJni => _ => _
         .DependsOn(PrepareGitHubArtifacts, GitSyncDepsJni, PatchSkiaBuildFiles)
         .Requires(() => Architecture)

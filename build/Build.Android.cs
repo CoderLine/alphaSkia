@@ -46,7 +46,7 @@ partial class Build
     }
 
     public Target AndroidSkia => _ => _
-        .OnlyWhenDynamic(() => !UseCache || !HasCachedFiles("libAlphaSkia", "android"))
+        .OnlyWhenDynamic(() => !CanUseCachedBinaries("libAlphaSkia", "android"))
         .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
         .Requires(() => Variant)

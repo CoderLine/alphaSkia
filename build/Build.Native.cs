@@ -59,7 +59,9 @@ partial class Build
     [Parameter] readonly Architecture Architecture;
 
     [Parameter] readonly Variant Variant;
-    [Parameter(Name = "use-cache")] readonly bool UseCache;
+    [Parameter(Name = "use-cache")] readonly string UseCacheParam;
+
+    bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
 
     public Target GitSyncDepsSkia => _ => _
         .DependsOn(SetupDepotTools)

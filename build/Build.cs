@@ -72,4 +72,21 @@ partial class Build : NukeBuild
                 }
             }
         });
+    
+    bool CanUseCachedBinaries(string buildTarget, string targetOsDir)
+    {
+        if (!UseCache)
+        {
+            Log.Debug("Cache use is disabled.");
+            return false;
+        }
+
+        if (!HasCachedFiles(buildTarget, targetOsDir))
+        {
+            Log.Information("Did not find cached binaries.");
+            return false;
+        }
+
+        return true;
+    }
 }

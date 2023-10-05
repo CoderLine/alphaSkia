@@ -9,6 +9,7 @@
         "Architecture": {
           "type": "string",
           "enum": [
+            "Arm",
             "Arm64",
             "X64",
             "X86"
@@ -61,6 +62,9 @@
         "LlvmHome": {
           "type": "string"
         },
+        "NdkPath": {
+          "type": "string"
+        },
         "NinjaExe": {
           "type": "string"
         },
@@ -102,6 +106,8 @@
           "items": {
             "type": "string",
             "enum": [
+              "AndroidJni",
+              "AndroidSkia",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -111,9 +117,12 @@
               "Java",
               "LinuxJni",
               "LinuxSkia",
+              "MacOsJni",
+              "MacOsSkia",
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
+              "Test",
               "WindowsJni",
               "WindowsSkia"
             ]
@@ -125,6 +134,8 @@
           "items": {
             "type": "string",
             "enum": [
+              "AndroidJni",
+              "AndroidSkia",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -134,13 +145,19 @@
               "Java",
               "LinuxJni",
               "LinuxSkia",
+              "MacOsJni",
+              "MacOsSkia",
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
+              "Test",
               "WindowsJni",
               "WindowsSkia"
             ]
           }
+        },
+        "use-cache": {
+          "type": "string"
         },
         "Variant": {
           "type": "string",
