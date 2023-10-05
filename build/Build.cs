@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using Nuke.Common;
 using Nuke.Common.IO;
-using Nuke.Common.Tooling;
-using Octokit;
 using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 
@@ -12,6 +10,9 @@ partial class Build : NukeBuild
     // Path handling
     static readonly string ExeExtension = OperatingSystem.IsWindows() ? ".exe" : "";
     static readonly string ScriptExtension = OperatingSystem.IsWindows() ? ".bat" : "";
+    static readonly bool IsGitHubActions = GetVariable<bool>("GITHUB_ACTIONS");
+    static readonly AbsolutePath DistBasePath = RootDirectory / "dist";
+    static readonly AbsolutePath ArtifactBasePath = RootDirectory / "artifacts";
 
     public static int Main() => Execute<Build>();
 
@@ -34,7 +35,7 @@ partial class Build : NukeBuild
     Target PrepareGitHubArtifacts => _ => _
         .Executes(() =>
         {
-            if (!GetVariable<bool>("GITHUB_ACTIONS"))
+            if (!IsGitHubActions)
             {
                 Log.Debug("Skipping GitHub Artifact preparation, GITHUB_ACTIONS was not set");
                 return;
@@ -44,7 +45,7 @@ partial class Build : NukeBuild
             // which results in a nested structure like
             // dist/<artifactname>/<files>
             // but we want them at dist/<files>
-            var dist = RootDirectory / "dist";
+            var dist = DistBasePath;
             if (!dist.DirectoryExists())
             {
                 Log.Debug("Skipping GitHub Artifact preparation, no dependencies");
@@ -53,11 +54,6 @@ partial class Build : NukeBuild
                 return;
             }
 
-            if (OperatingSystem.IsWindows())
-            {
-                ToolResolver.GetPathTool("tree")("/F", workingDirectory: dist);
-            }
-            
             var includeDir = dist / "include";
             if (includeDir.DirectoryExists())
             {
@@ -74,11 +70,6 @@ partial class Build : NukeBuild
                     FileSystemTasks.MoveDirectoryToDirectory(artifactSubDir, dist, DirectoryExistsPolicy.Merge,
                         FileExistsPolicy.OverwriteIfNewer);
                 }
-            }
-            
-            if (OperatingSystem.IsWindows())
-            {
-                ToolResolver.GetPathTool("tree")("/F", workingDirectory: dist);
             }
         });
 }

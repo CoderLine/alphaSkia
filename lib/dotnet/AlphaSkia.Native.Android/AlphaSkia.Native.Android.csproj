@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <IsPackable>true</IsPackable>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../../../dist/libAlphaSkia-android-x64-shared/libAlphaSkia.so" Pack="True" PackagePath="runtimes/android-x64/native" Condition=" Exists('../../../dist/libAlphaSkia-android-x64-shared/libAlphaSkia.so') " />
+        <None Include="../../../dist/libAlphaSkia-android-x86-shared/libAlphaSkia.so" Pack="True" PackagePath="runtimes/android-x86/native" Condition=" Exists('../../../dist/libAlphaSkia-android-x86-shared/libAlphaSkia.so') " />
+        <None Include="../../../dist/libAlphaSkia-android-arm-shared/libAlphaSkia.so" Pack="True" PackagePath="runtimes/android-arm/native" Condition=" Exists('../../../dist/libAlphaSkia-android-arm-shared/libAlphaSkia.so') " />
+        <None Include="../../../dist/libAlphaSkia-android-arm64-shared/libAlphaSkia.so" Pack="True" PackagePath="runtimes/android-arm64/native" Condition=" Exists('../../../dist/libAlphaSkia-android-arm64-shared/libAlphaSkia.so') " />
+        <None Update="README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+</Project>

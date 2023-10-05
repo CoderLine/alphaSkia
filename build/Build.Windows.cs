@@ -82,13 +82,13 @@ partial class Build
     void BuildSkiaWindowsJni(Architecture arch, Variant variant)
     {
         var gnArgs = new Dictionary<string, string>();
-        var alphaSkiaInclude = RootDirectory / "dist" / "include";
+        var alphaSkiaInclude = DistBasePath / "include";
         var jniInclude = JavaHome / "include";
         var jniWinInclude = JavaHome / "include" / "win32";
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = RootDirectory / "dist" / $"libAlphaSkia-win-{arch}-static";
+        var staticLibPath = DistBasePath / $"libAlphaSkia-win-{arch}-static";
         gnArgs["extra_ldflags"] =
             $"[ '/LIBPATH:{staticLibPath}', 'libAlphaSkia.lib', 'skia.lib', 'user32.lib', 'OpenGL32.lib' ]";
 
@@ -102,6 +102,15 @@ partial class Build
 
     void BuildSkiaWindows(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
         string[] filesToCopy)
+    {
+        SetClangWindows(gnArgs);
+
+        gnArgs["skia_enable_fontmgr_win_gdi"] = "false";
+
+        BuildSkia(buildTarget, "win", arch, variant, gnArgs, filesToCopy);
+    }
+
+    void SetClangWindows(Dictionary<string, string> gnArgs)
     {
         if (!string.IsNullOrEmpty(LlvmHome))
         {
@@ -119,12 +128,7 @@ partial class Build
 
         gnArgs["cc"] = "clang";
         gnArgs["cxx"] = "'clang++'";
-
-        gnArgs["skia_enable_fontmgr_win_gdi"] = "false";
-
-        AppendToFlagList(gnArgs, "extra_cflags", "'/MT', '/EHsc', '/Z7', '-D_HAS_AUTO_PTR_ETC=1'");
-        AppendToFlagList(gnArgs, "extra_ldflags", "'/DEBUG:FULL'");
-
+        
         // override win_vc with the command line args
         var vsInstall = VsInstall;
         if (!string.IsNullOrEmpty(vsInstall))
@@ -133,7 +137,8 @@ partial class Build
             winVc /= "VC";
             gnArgs["win_vc"] = winVc;
         }
-
-        BuildSkia(buildTarget, "win", arch, variant, gnArgs, filesToCopy);
+        
+        AppendToFlagList(gnArgs, "extra_cflags", "'/MT', '/EHsc', '/Z7', '-D_HAS_AUTO_PTR_ETC=1'");
+        AppendToFlagList(gnArgs, "extra_ldflags", "'/DEBUG:FULL'");
     }
 }

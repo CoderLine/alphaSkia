@@ -1,8 +1,8 @@
 package net.alphatab.alphaskia;
 
-public class AlphaSkiaWindows {
+public class AlphaSkiaLinux {
     public static final String[] libraries = {
-            "native/windows-" + getCurrentArchitecture() + "/libAlphaSkiaJni.dll"
+            "native/linux-" + getCurrentArchitecture() + "/libAlphaSkiaJni.so"
     };
 
     private static String getCurrentArchitecture() {
