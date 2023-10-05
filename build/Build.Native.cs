@@ -320,6 +320,7 @@ partial class Build
             buildNew.AppendLine("    frameworks = [");
             buildNew.AppendLine("      \"AppKit.framework\",");
             buildNew.AppendLine("      \"ApplicationServices.framework\",");
+            buildNew.AppendLine("      \"Metal.framework\",");
             buildNew.AppendLine("    ]");
             buildNew.AppendLine("  }");
             buildNew.AppendLine();
