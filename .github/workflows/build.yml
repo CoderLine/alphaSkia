@@ -20,12 +20,12 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
 
-      - run: ./build.cmd WindowsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-cache }}
+      - run: ./build.cmd WindowsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-skia-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -72,13 +72,13 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
 
       - run: ./externals/skia/tools/install_dependencies.sh
-      - run: ./build.sh LinuxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-cache }}
+      - run: ./build.sh LinuxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-skia-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -126,13 +126,13 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
 
       - run: ./externals/skia/tools/install_dependencies.sh
-      - run: ./build.sh AndroidSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-cache }}
+      - run: ./build.sh AndroidSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-skia-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -178,12 +178,12 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache == 'true' }}
         with:
           path: dist
           key: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
 
-      - run: ./build.sh MacOsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-cache }}
+      - run: ./build.sh MacOsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }} --use-cache ${{ inputs.use-skia-cache }}
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
