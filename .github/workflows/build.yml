@@ -166,7 +166,7 @@ jobs:
 
   dotnet:
     runs-on: windows-latest
-    needs: [windows, linux]
+    needs: [windows, linux, android, macos]
     steps:
     - uses: actions/checkout@v3
       with:
@@ -184,7 +184,7 @@ jobs:
 
   java:
     runs-on: ubuntu-latest
-    needs: [windows-jni, linux-jni, android-jni]
+    needs: [windows-jni, linux-jni, android-jni, macos-jni]
     steps:
     - uses: actions/checkout@v3
       with:
