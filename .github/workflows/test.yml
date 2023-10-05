@@ -1,0 +1,11 @@
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  osx:
+    runs-on: macos-latest
+    steps:
+      - run: echo $JAVA_HOME
+      - run: ls -l $JAVA_HOME
+      - run: ls -l $JAVA_HOME/include

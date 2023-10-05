@@ -125,6 +125,45 @@ jobs:
           name: alphaskia-android-jni-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
 
+  osx:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+        variant: ['shared', 'static']
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: ./build.sh OsxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: alphaskia-osx-${{ matrix.architecture }}-${{ matrix.variant }}
+          path: artifacts
+
+  osx-jni:
+    runs-on: macos-latest
+    needs: [osx]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+        variant: ['shared', 'static']
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: actions/download-artifact@v3
+        with:
+          path: dist
+      - run: ./build.cmd OsxJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: alphaskia-osx-jni-${{ matrix.architecture }}-${{ matrix.variant }}
+          path: artifacts
+
   dotnet:
     runs-on: windows-latest
     needs: [windows, linux]
