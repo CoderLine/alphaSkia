@@ -20,7 +20,7 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-skia-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache }}
         with:
           path: dist
           key: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -72,7 +72,7 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-skia-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache }}
         with:
           path: dist
           key: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -126,7 +126,7 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-skia-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache }}
         with:
           path: dist
           key: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
@@ -178,7 +178,7 @@ jobs:
         with:
           submodules: true
       - uses: actions/cache/restore@v3
-        if: ${{ inputs.use-skia-cache == 'true' }}
+        if: ${{ inputs.use-skia-cache }}
         with:
           path: dist
           key: alphaskia-macos-${{ matrix.architecture }}-${{ matrix.variant }}
