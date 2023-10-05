@@ -18,7 +18,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: dist
+          path: artifacts
 
   windows-jni:
     runs-on: windows-latest
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-windows-jni-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: dist
+          path: artifacts
 
   linux:
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: dist
+          path: artifacts
 
   linux-jni:
     runs-on: ubuntu-latest
@@ -82,7 +82,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-linux-jni-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: dist
+          path: artifacts
 
   android:
     runs-on: ubuntu-latest
@@ -101,7 +101,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: dist
+          path: artifacts
 
   android-jni:
     runs-on: ubuntu-latest
@@ -123,7 +123,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: alphaskia-android-jni-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: dist
+          path: artifacts
 
   dotnet:
     runs-on: windows-latest
