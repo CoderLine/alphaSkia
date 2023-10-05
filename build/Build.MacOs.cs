@@ -59,7 +59,7 @@ partial class Build
         // Add Libs and lib search paths
         var staticLibPath = DistBasePath / $"libAlphaSkia-macos-{arch}-static";
         gnArgs["extra_ldflags"] =
-            $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia', '-Wl-framework', '-WlAppKit', '-Wl-framework', '-WlApplicationServices' ]";
+            $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
         BuildSkiaMacOs("libAlphaSkiaJni", arch, variant, gnArgs, new[] { "libAlphaSkiaJni.so" });
     }

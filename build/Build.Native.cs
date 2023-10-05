@@ -315,6 +315,12 @@ partial class Build
             buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaImage.cpp\",");
             buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaTypeface.cpp\"");
             buildNew.AppendLine("  ]");
+            buildNew.AppendLine("  if (is_mac) {");
+            buildNew.AppendLine("    frameworks = [");
+            buildNew.AppendLine("      \"AppKit.framework\",");
+            buildNew.AppendLine("      \"ApplicationServices.framework\",");
+            buildNew.AppendLine("    ]");
+            buildNew.AppendLine("  }");
             buildNew.AppendLine();
             buildNew.AppendLine("}");
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew.ToString());
