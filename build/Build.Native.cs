@@ -51,7 +51,7 @@ partial class Build
     Tool PythonTool => File.Exists(PythonExe) ? ToolResolver.GetTool(PythonExe) : ToolResolver.GetPathTool("python3");
 
     [Parameter] readonly bool ParallelGitClone = GetVariable<bool?>("GIT_CLONE_PARALLEL") ?? true;
-    
+
     [Parameter] readonly string GitExe = GetVariable<string>("GIT_EXE") ?? "git";
     Tool GitTool => File.Exists(GitExe) ? ToolResolver.GetTool(GitExe) : ToolResolver.GetPathTool("git");
 
@@ -78,14 +78,14 @@ partial class Build
                 "third_party/externals/zlib",
                 "third_party/externals/wuffs",
                 "third_party/externals/vulkanmemoryallocator",
-                
+
                 // Android font manager
                 "third_party/externals/expat"
             };
 
             return GitSyncDepsCustom(requiredDependencies);
         });
-    
+
     public Target GitSyncDepsJni => _ => _
         .DependsOn(SetupDepotTools)
         .Executes(() =>
@@ -114,7 +114,7 @@ partial class Build
 
                 GitSyncDepsCustom(d, url);
             }));
-            
+
             return Task.WhenAll(all.ToArray());
         }
         else
@@ -149,7 +149,7 @@ partial class Build
         if (!(directory / ".git").DirectoryExists())
         {
             directory.CreateDirectory();
-            GitTool("init",
+            GitTool("init --quiet",
                 workingDirectory: directory);
             GitTool($"remote add origin {repo}",
                 workingDirectory: directory);
@@ -159,9 +159,9 @@ partial class Build
         {
             Log.Information("Fetching {repo}@{commitHash}", repo, commitHash);
             GitTool($"fetch origin {commitHash}",
-                workingDirectory: directory);
+                workingDirectory: directory, logOutput: false);
             GitTool($"reset --hard {commitHash}",
-                workingDirectory: directory);
+                workingDirectory: directory, logOutput: false);
         }
         else
         {
@@ -171,9 +171,9 @@ partial class Build
 
     string GetGitHash(AbsolutePath directory)
     {
-        var output = GitTool("rev-parse HEAD", workingDirectory: directory, exitHandler: process =>
+        var output = GitTool("rev-parse HEAD", workingDirectory: directory, exitHandler: _ =>
         {
-        });
+        }, logOutput: false, logInvocation: false);
 
         // error
         if (output.Count == 0 || output.Any(o => o.Text == "fatal: "))
@@ -240,11 +240,11 @@ partial class Build
                 arguments: (SkiaPath / "bin" / "fetch-ninja").ToString(),
                 workingDirectory: SkiaPath
             );
-            
+
             PythonTool(
                 arguments: (SkiaPath / "bin" / "fetch-gn").ToString(),
                 workingDirectory: SkiaPath
-            );    
+            );
         });
 
     public Target PatchSkiaBuildFiles => _ => _
@@ -427,7 +427,7 @@ partial class Build
         gnArgs["target_os"] = targetOs;
         gnArgs["target_cpu"] = arch;
         gnArgs["is_shared_alphaskia"] = isShared.ToString().ToLowerInvariant();
-        
+
         // disable features we don't need
         gnArgs["skia_use_icu"] = "false";
         gnArgs["skia_use_piex"] = "false";
@@ -445,9 +445,9 @@ partial class Build
         gnArgs["skia_use_libavif"] = "false";
         gnArgs["skia_use_libjxl_decode"] = "false";
         gnArgs["skia_enable_vello_shaders"] = "false";
-        
+
         gnArgs["skia_enable_sksl"] = "false";
-        
+
         gnArgs["skia_use_system_expat"] = "false";
         gnArgs["skia_use_system_libjpeg_turbo"] = "false";
         gnArgs["skia_use_system_libpng"] = "false";
@@ -491,6 +491,5 @@ partial class Build
                 File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
             throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
         }
-     
     }
 }
