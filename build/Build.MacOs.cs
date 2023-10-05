@@ -72,7 +72,7 @@ partial class Build
         gnArgs["skia_use_system_freetype2"] = "false";
         gnArgs["skia_use_metal"] = "true";
 
-        BuildSkia(buildTarget, "mac", arch, variant, gnArgs, filesToCopy);
+        BuildSkia(buildTarget, "mac", arch, variant, gnArgs, filesToCopy, "macos");
     }
 
     void SetClangMacOs(Architecture arch, Dictionary<string, string> gnArgs)

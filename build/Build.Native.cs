@@ -417,10 +417,12 @@ partial class Build
         string arch,
         Variant variant,
         Dictionary<string, string> gnArgs,
-        string[] filesToCopy)
+        string[] filesToCopy,
+        string targetOsOutDir = null)
     {
+        targetOsOutDir ??= targetOs;
         var isShared = variant == Variant.Shared;
-        var artifactDir = $"{buildTarget}-{targetOs}-{arch}-{variant}";
+        var artifactDir = $"{buildTarget}-{targetOsOutDir}-{arch}-{variant}";
         var distPath = DistBasePath / artifactDir;
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / artifactDir : null;
 
@@ -460,9 +462,9 @@ partial class Build
         gnArgs["skia_enable_ganesh"] = "true";
         gnArgs["skia_use_vulkan"] = "true";
 
-        GnNinja($"out/{buildTarget}/{targetOs}/{arch}/{variant}", buildTarget, gnArgs, SkiaPath);
+        GnNinja($"out/{buildTarget}/{targetOsOutDir}/{arch}/{variant}", buildTarget, gnArgs, SkiaPath);
 
-        var outDir = SkiaPath / "out" / buildTarget / targetOs / arch / variant;
+        var outDir = SkiaPath / "out" / buildTarget / targetOsOutDir / arch / variant;
         try
         {
             foreach (var file in filesToCopy)
