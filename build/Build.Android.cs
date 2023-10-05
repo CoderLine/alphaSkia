@@ -99,7 +99,7 @@ partial class Build
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = DistBasePath / $"libAlphaSkia-linux-{arch}-static";
+        var staticLibPath = DistBasePath / $"libAlphaSkia-android-{arch}-static";
         gnArgs["extra_ldflags"] =
             $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
