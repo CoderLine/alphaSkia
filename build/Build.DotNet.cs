@@ -8,6 +8,7 @@ partial class Build
         .DependsOn(DotNetPack);
     
     public Target DotNetPack => _ => _
+        .Unlisted()
         .DependsOn(DotNetTest)
         .Executes(() =>
         {
@@ -17,6 +18,7 @@ partial class Build
             );
         });
     public Target DotNetTest => _ => _
+        .Unlisted()
         .DependsOn(DotNetBuild)
         .Executes(() =>
         {
@@ -26,6 +28,7 @@ partial class Build
             );
         });
     public Target DotNetBuild => _ => _
+        .Unlisted()
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {

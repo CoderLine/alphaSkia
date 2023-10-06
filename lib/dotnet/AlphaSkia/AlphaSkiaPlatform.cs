@@ -72,7 +72,7 @@ public static class AlphaSkiaPlatform
         {
             PlatformID.Unix => "linux",
             PlatformID.Win32NT => "win",
-            PlatformID.MacOSX => "osx",
+            PlatformID.MacOSX => "macos",
             _ => officialOs
         };
         if (string.IsNullOrEmpty(os))

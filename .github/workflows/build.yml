@@ -1,7 +1,15 @@
 on:
   workflow_dispatch:
+    inputs:
+      use-skia-cache:
+        type: boolean
+        description: Use Skia Binary from cache
+        default: 'false'
 
 jobs:
+
+#
+# Windows
   windows:
     runs-on: windows-latest
     strategy:
@@ -9,17 +17,13 @@ jobs:
       matrix:
         architecture: [x64, x86, arm64]
         variant: ['shared', 'static']
-        
     steps:
-      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
         with:
-          submodules: true
-      - run: ./build.cmd WindowsSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-      - uses: actions/upload-artifact@v3
-        with:
-          name: alphaskia-windows-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: artifacts
-
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: windows
   windows-jni:
     runs-on: windows-latest
     needs: [windows]
@@ -28,20 +32,15 @@ jobs:
       matrix:
         architecture: [x64, x86, arm64]
         variant: ['shared']
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-jni
         with:
-          submodules: true
-      - uses: actions/download-artifact@v3
-        with:
-          path: dist
-      - run: ./build.cmd WindowsJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-      - uses: actions/upload-artifact@v3
-        with:
-          name: alphaskia-windows-jni-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: artifacts
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: windows
 
+#
+# Linux
   linux:
     runs-on: ubuntu-latest
     strategy:
@@ -51,16 +50,12 @@ jobs:
         # TODO architecture: [x64, x86, arm64]
         variant: ['shared', 'static']
     steps:
-      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
         with:
-          submodules: true
-      - run: ./externals/skia/tools/install_dependencies.sh
-      - run: ./build.sh LinuxSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-      - uses: actions/upload-artifact@v3
-        with:
-          name: alphaskia-linux-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: artifacts
-
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: linux
   linux-jni:
     runs-on: ubuntu-latest
     needs: [linux]
@@ -70,20 +65,15 @@ jobs:
         # TODO architecture: [x64, x86, arm64]
         architecture: [x64]
         variant: ['shared']
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-jni
         with:
-          submodules: true
-      - uses: actions/download-artifact@v3
-        with:
-          path: dist
-      - run: ./build.cmd LinuxJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-      - uses: actions/upload-artifact@v3
-        with:
-          name: alphaskia-linux-jni-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: artifacts
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: linux
 
+#
+# Android
   android:
     runs-on: ubuntu-latest
     strategy:
@@ -91,18 +81,13 @@ jobs:
       matrix:
         architecture: [x64, x86, arm, arm64]
         variant: ['shared', 'static']
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
         with:
-          submodules: true
-      - run: ./externals/skia/tools/install_dependencies.sh
-      - run: ./build.sh AndroidSkia --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-      - uses: actions/upload-artifact@v3
-        with:
-          name: alphaskia-android-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: artifacts
-
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: android
   android-jni:
     runs-on: ubuntu-latest
     needs: [android]
@@ -111,23 +96,47 @@ jobs:
       matrix:
         architecture: [x64, x86, arm, arm64]
         variant: ['shared']
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-jni
         with:
-          submodules: true
-      - uses: actions/download-artifact@v3
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: android
+#
+# MacOs
+  macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+        variant: ['shared', 'static']
+    steps:
+      - uses: ./.github/actions/build-skia
         with:
-          path: dist
-      - run: ./build.cmd AndroidJni --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-      - uses: actions/upload-artifact@v3
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: macos
+  macos-jni:
+    runs-on: macos-latest
+    needs: [macos]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+        variant: ['shared']
+    steps:
+      - uses: ./.github/actions/build-jni
         with:
-          name: alphaskia-android-jni-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: artifacts
-
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: macos
+#
+# Libraries
   dotnet:
     runs-on: windows-latest
-    needs: [windows, linux]
+    needs: [windows, linux, android, macos]
     steps:
     - uses: actions/checkout@v3
       with:
@@ -145,7 +154,7 @@ jobs:
 
   java:
     runs-on: ubuntu-latest
-    needs: [windows-jni, linux-jni, android-jni]
+    needs: [windows-jni, linux-jni, android-jni, macos-jni]
     steps:
     - uses: actions/checkout@v3
       with:
@@ -158,7 +167,4 @@ jobs:
       with:
         name: Jars
         path: |
-          lib/java/main/build/libs/*.jar
-          lib/java/linux/build/libs/*.jar
-          lib/java/android/build/libs/*.jar
-          lib/java/windows/build/libs/*.jar
+          lib/java/*/build/libs/*.jar

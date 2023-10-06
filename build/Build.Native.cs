@@ -11,6 +11,17 @@ using Nuke.Common.Tooling;
 using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 
+[TypeConverter(typeof(TypeConverter<TargetOperatingSystem>))]
+public class TargetOperatingSystem : Enumeration
+{
+    public static TargetOperatingSystem Windows = new() { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
+    public static TargetOperatingSystem Linux = new() { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
+    public static TargetOperatingSystem Android = new() { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
+    public static TargetOperatingSystem MacOs = new() { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
+
+    public string SkiaTargetOs { get; private set; }
+    public string RuntimeIdentifier { get; private set; }
+}
 
 [TypeConverter(typeof(TypeConverter<Architecture>))]
 public class Architecture : Enumeration
@@ -56,11 +67,16 @@ partial class Build
     Tool GitTool => File.Exists(GitExe) ? ToolResolver.GetTool(GitExe) : ToolResolver.GetPathTool("git");
 
     // Output Options
+    [Parameter] readonly TargetOperatingSystem TargetOs;
     [Parameter] readonly Architecture Architecture;
 
     [Parameter] readonly Variant Variant;
+    [Parameter(Name = "use-cache")] readonly string UseCacheParam;
 
-    public Target GitSyncDepsSkia => _ => _
+    bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
+
+    public Target GitSyncDepsAlphaSkia => _ => _
+        .Unlisted()
         .DependsOn(SetupDepotTools)
         .Executes(() =>
         {
@@ -86,7 +102,8 @@ partial class Build
             return GitSyncDepsCustom(requiredDependencies);
         });
 
-    public Target GitSyncDepsJni => _ => _
+    public Target GitSyncDepsLibAlphaSkiaJni => _ => _
+        .Unlisted()
         .DependsOn(SetupDepotTools)
         .Executes(() =>
         {
@@ -97,6 +114,74 @@ partial class Build
 
             return GitSyncDepsCustom(requiredDependencies);
         });
+
+    public Target LibAlphaSkiaWithCache => _ => _
+        .Unlisted()
+        .OnlyWhenStatic(() => !CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier))
+        .Requires(() => Architecture)
+        .Requires(() => Variant)
+        .Requires(() => TargetOs)
+        .Triggers(LibAlphaSkia);
+
+    public Target LibAlphaSkia => _ => _
+        .DependsOn(GitSyncDepsAlphaSkia, PatchSkiaBuildFiles)
+        .Requires(() => Architecture)
+        .Requires(() => Variant)
+        .Requires(() => TargetOs)
+        .Executes(() =>
+        {
+            if (TargetOs == TargetOperatingSystem.Windows)
+            {
+                BuildLibAlphaSkiaWindows();
+            }
+            else if (TargetOs == TargetOperatingSystem.Linux)
+            {
+                BuildLibAlphaSkiaLinux();
+            }
+            else if (TargetOs == TargetOperatingSystem.Android)
+            {
+                BuildLibAlphaSkiaAndroid();
+            }
+            else if (TargetOs == TargetOperatingSystem.MacOs)
+            {
+                BuildLibAlphaSkiaMacOs();
+            }
+        });
+    
+    public Target LibAlphaSkiaJni => _ => _
+        .DependsOn(PrepareGitHubArtifacts, GitSyncDepsLibAlphaSkiaJni, PatchSkiaBuildFiles)
+        .Requires(() => Architecture)
+        .Requires(() => Variant)
+        .Requires(() => TargetOs)
+        .Executes(() =>
+        {
+            if (TargetOs == TargetOperatingSystem.Windows)
+            {
+                BuildLibAlphaSkiaJniWindows();
+            }
+            else if (TargetOs == TargetOperatingSystem.Linux)
+            {
+                BuildLibAlphaSkiaJniLinux();
+            }
+            else if (TargetOs == TargetOperatingSystem.Android)
+            {
+                BuildLibAlphaSkiaJniAndroid();
+            }
+            else if (TargetOs == TargetOperatingSystem.MacOs)
+            {
+                BuildLibAlphaSkiaJniMacOs();
+            }
+        });
+    
+    string GetLibDirectory(string libName = "libAlphaSkia", TargetOperatingSystem targetOs = null,
+        Architecture arch = null, Variant variant = null)
+    {
+        targetOs ??= TargetOs;
+        arch ??= Architecture;
+        variant ??= Variant;
+
+        return $"{libName}-{targetOs.RuntimeIdentifier}-{arch}-{variant}";
+    }
 
     Task GitSyncDepsCustom(string[] requiredDependencies)
     {
@@ -230,6 +315,7 @@ partial class Build
     }
 
     public Target SetupDepotTools => _ => _
+        .Unlisted()
         .Executes(() =>
         {
             var oldValue = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
@@ -248,6 +334,7 @@ partial class Build
         });
 
     public Target PatchSkiaBuildFiles => _ => _
+        .Unlisted()
         .Executes(() =>
         {
             var buildConfigNew = new StringBuilder();
@@ -315,6 +402,13 @@ partial class Build
             buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaImage.cpp\",");
             buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaTypeface.cpp\"");
             buildNew.AppendLine("  ]");
+            buildNew.AppendLine("  if (is_mac) {");
+            buildNew.AppendLine("    frameworks = [");
+            buildNew.AppendLine("      \"AppKit.framework\",");
+            buildNew.AppendLine("      \"ApplicationServices.framework\",");
+            buildNew.AppendLine("      \"Metal.framework\",");
+            buildNew.AppendLine("    ]");
+            buildNew.AppendLine("  }");
             buildNew.AppendLine();
             buildNew.AppendLine("}");
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew.ToString());
@@ -413,19 +507,29 @@ partial class Build
 
     void BuildSkia(
         string buildTarget,
-        string targetOs,
-        string arch,
-        Variant variant,
         Dictionary<string, string> gnArgs,
         string[] filesToCopy)
     {
-        var isShared = variant == Variant.Shared;
-        var artifactDir = $"{buildTarget}-{targetOs}-{arch}-{variant}";
-        var distPath = DistBasePath / artifactDir;
-        var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / artifactDir : null;
+        if (OperatingSystem.IsWindows())
+        {
+            SetClangWindows(gnArgs);
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            SetClangLinux(gnArgs);
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            SetClangMacOs(gnArgs);
+        }
+        
+        var isShared = Variant == Variant.Shared;
+        var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
+        var distPath = DistBasePath / libDir;
+        var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
 
-        gnArgs["target_os"] = targetOs;
-        gnArgs["target_cpu"] = arch;
+        gnArgs["target_os"] = TargetOs.SkiaTargetOs;
+        gnArgs["target_cpu"] = Architecture;
         gnArgs["is_shared_alphaskia"] = isShared.ToString().ToLowerInvariant();
 
         // disable features we don't need
@@ -460,9 +564,9 @@ partial class Build
         gnArgs["skia_enable_ganesh"] = "true";
         gnArgs["skia_use_vulkan"] = "true";
 
-        GnNinja($"out/{buildTarget}/{targetOs}/{arch}/{variant}", buildTarget, gnArgs, SkiaPath);
+        GnNinja($"out/{libDir}", buildTarget, gnArgs, SkiaPath);
 
-        var outDir = SkiaPath / "out" / buildTarget / targetOs / arch / variant;
+        var outDir = SkiaPath / "out" / libDir;
         try
         {
             foreach (var file in filesToCopy)
@@ -491,5 +595,11 @@ partial class Build
                 File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
             throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
         }
+    }
+
+    bool HasCachedFiles(string buildTarget, string targetOsOutDir)
+    {
+        var expectedDirectory = DistBasePath / $"{buildTarget}-{targetOsOutDir}-{Architecture}-{Variant}";
+        return expectedDirectory.DirectoryExists() && expectedDirectory.GetFiles().Any();
     }
 }

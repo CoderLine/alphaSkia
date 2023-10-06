@@ -9,6 +9,7 @@
         "Architecture": {
           "type": "string",
           "enum": [
+            "Arm",
             "Arm64",
             "X64",
             "X86"
@@ -61,6 +62,9 @@
         "LlvmHome": {
           "type": "string"
         },
+        "NdkPath": {
+          "type": "string"
+        },
         "NinjaExe": {
           "type": "string"
         },
@@ -102,6 +106,11 @@
           "items": {
             "type": "string",
             "enum": [
+              "AndroidJni",
+              "AndroidSkia",
+              "Compile",
+              "CompileTests",
+              "CompileWithCache",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -111,11 +120,15 @@
               "Java",
               "LinuxJni",
               "LinuxSkia",
+              "MacOsJni",
+              "MacOsSkia",
               "PatchSkiaBuildFiles",
+              "PrepareForBuild",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
               "WindowsJni",
-              "WindowsSkia"
+              "WindowsSkia",
+              "WithDependencies"
             ]
           }
         },
@@ -125,6 +138,11 @@
           "items": {
             "type": "string",
             "enum": [
+              "AndroidJni",
+              "AndroidSkia",
+              "Compile",
+              "CompileTests",
+              "CompileWithCache",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -134,13 +152,20 @@
               "Java",
               "LinuxJni",
               "LinuxSkia",
+              "MacOsJni",
+              "MacOsSkia",
               "PatchSkiaBuildFiles",
+              "PrepareForBuild",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
               "WindowsJni",
-              "WindowsSkia"
+              "WindowsSkia",
+              "WithDependencies"
             ]
           }
+        },
+        "use-cache": {
+          "type": "string"
         },
         "Variant": {
           "type": "string",

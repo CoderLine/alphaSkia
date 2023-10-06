@@ -23,8 +23,8 @@ In the initial release of the library we plan to support following platform matr
 | linux-x86           | ✅    | ✅    | ✅       |
 | linux-arm           | ✅    | ✅    | ✅       |
 | linux-arm64         | ✅    | ✅    | ✅       |
-| osx-x64             | ✅    | ✅    | ✅       |
-| osx-arm64           | ✅    | ✅    | ✅       |
+| macos-x64           | ✅    | ✅    | ✅       |
+| macos-arm64         | ✅    | ✅    | ✅       |
 | android-x64         | ✅    | ✅    |         |
 | android-x86         | ✅    | ✅    |         |
 | android-arm         | ✅    | ✅    |         |

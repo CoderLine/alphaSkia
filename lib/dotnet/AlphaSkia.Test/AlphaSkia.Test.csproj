@@ -42,5 +42,14 @@
         <None Include="$(RootDirectory)dist/libAlphaSkia-win-arm64-shared/libAlphaSkia.dll" LinkBase="runtimes/win-arm/native"
               Condition=" Exists('$(RootDirectory)dist/libAlphaSkia-win-arm64-shared/libAlphaSkia.dll') "
               CopyToOutputDirectory="PreserveNewest"/>
+
+
+        <None Include="$(RootDirectory)dist/libAlphaSkia-macos-x64-shared/libAlphaSkia.dylib" LinkBase="runtimes/osx-x64/native"
+              Condition=" Exists('$(RootDirectory)dist/libAlphaSkia-macos-x64-shared/libAlphaSkia.dylib') "
+              CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="$(RootDirectory)dist/libAlphaSkia-macos-arm64-shared/libAlphaSkia.dylib" LinkBase="runtimes/osx-arm64/native"
+              Condition=" Exists('$(RootDirectory)dist/libAlphaSkia-macos-arm64-shared/libAlphaSkia.dylib') "
+              CopyToOutputDirectory="PreserveNewest"/>
+
     </ItemGroup>
 </Project>

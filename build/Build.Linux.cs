@@ -1,34 +1,12 @@
-using System;
 using System.Collections.Generic;
-using Nuke.Common;
 
 partial class Build
 {
-    public Target LinuxSkia => _ => _
-        .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
-        .Requires(() => Architecture)
-        .Requires(() => Variant)
-        .OnlyWhenStatic(OperatingSystem.IsLinux)
-        .Executes(() =>
-        {
-            BuildSkiaLinuxMain(Architecture, Variant);
-        });
-
-    public Target LinuxJni => _ => _
-        .DependsOn(PrepareGitHubArtifacts, GitSyncDepsJni, PatchSkiaBuildFiles)
-        .Requires(() => Architecture)
-        .Requires(() => Variant == Variant.Shared)
-        .OnlyWhenStatic(OperatingSystem.IsLinux)
-        .Executes(() =>
-        {
-            BuildSkiaLinuxJni(Architecture, Variant);
-        });
-
-    void BuildSkiaLinuxMain(Architecture arch, Variant variant)
+    void BuildLibAlphaSkiaLinux()
     {
         var gnArgs = new Dictionary<string, string>();
         string[] filesToCopy;
-        var isShared = variant == Variant.Shared;
+        var isShared = Variant == Variant.Shared;
         if (isShared)
         {
             filesToCopy = new[]
@@ -45,10 +23,10 @@ partial class Build
             };
         }
 
-        BuildSkiaLinux("libAlphaSkia", arch, variant, gnArgs, filesToCopy);
+        BuildSkiaLinux("libAlphaSkia", gnArgs, filesToCopy);
     }
 
-    void BuildSkiaLinuxJni(Architecture arch, Variant variant)
+    void BuildLibAlphaSkiaJniLinux()
     {
         var gnArgs = new Dictionary<string, string>();
         var alphaSkiaInclude = DistBasePath / "include";
@@ -57,41 +35,39 @@ partial class Build
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = DistBasePath / $"libAlphaSkia-linux-{arch}-static";
+        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Shared);
         gnArgs["extra_ldflags"] =
             $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
-        BuildSkiaLinux("libAlphaSkiaJni", arch, variant, gnArgs, new[] { "libAlphaSkiaJni.so" });
+        BuildSkiaLinux("libAlphaSkiaJni", gnArgs, new[] { "libAlphaSkiaJni.so" });
     }
 
-    void BuildSkiaLinux(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
+    void BuildSkiaLinux(string buildTarget, Dictionary<string, string> gnArgs,
         string[] filesToCopy)
     {
-        SetClangLinux(arch, gnArgs);
-
         gnArgs["skia_use_system_freetype2"] = "false";
 
-        BuildSkia(buildTarget, "linux", arch, variant, gnArgs, filesToCopy);
+        BuildSkia(buildTarget, gnArgs, filesToCopy);
     }
 
-    void SetClangLinux(Architecture arch, Dictionary<string, string> gnArgs)
+    void SetClangLinux(Dictionary<string, string> gnArgs)
     {
         AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'");
 
-        if (arch == Architecture.X64)
+        if (Architecture == Architecture.X64)
         {
             gnArgs["cc"] = "clang";
             gnArgs["cxx"] = "'clang++'";
             AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
         }
-        else if (arch == Architecture.X86)
+        else if (Architecture == Architecture.X86)
         {
             // TODO
             gnArgs["cc"] = "clang";
             gnArgs["cxx"] = "'clang++'";
             AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
         }
-        else if (arch == Architecture.Arm64) // aka AArch64
+        else if (Architecture == Architecture.Arm64) // aka AArch64
         {
             // TODO
             gnArgs["cc"] = "clang";
