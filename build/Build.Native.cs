@@ -130,6 +130,7 @@ partial class Build
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
+        .Before(SetupDepotTools) // ensure it runs before any oher targets
         .Executes(() =>
         {
             if (SkipLibAlphaSkia)
@@ -145,7 +146,7 @@ partial class Build
         .Triggers(LibAlphaSkia);
 
     public Target LibAlphaSkia => _ => _
-        .DependsOn(GitSyncDepsAlphaSkia, PatchSkiaBuildFiles)
+        .DependsOn(PatchSkiaBuildFiles)
         .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Requires(() => Architecture)
         .Requires(() => Variant)
@@ -358,6 +359,7 @@ partial class Build
 
     public Target PatchSkiaBuildFiles => _ => _
         .Unlisted()
+        .DependsOn(GitSyncDepsAlphaSkia)
         .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Executes(() =>
         {
