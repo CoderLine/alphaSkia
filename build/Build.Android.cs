@@ -44,33 +44,14 @@ partial class Build
 
         return string.Empty;
     }
-
-    public Target AndroidSkia => _ => _
-        .OnlyWhenDynamic(() => !CanUseCachedBinaries("libAlphaSkia", "android"))
-        .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
-        .Requires(() => Architecture)
-        .Requires(() => Variant)
-        .Executes(() =>
-        {
-            BuildSkiaAndroidMain(Architecture, Variant);
-        });
-
-    public Target AndroidJni => _ => _
-        .DependsOn(PrepareGitHubArtifacts, GitSyncDepsJni, PatchSkiaBuildFiles)
-        .Requires(() => Architecture)
-        .Requires(() => Variant == Variant.Shared)
-        .Executes(() =>
-        {
-            BuildSkiaAndroidJni(Architecture, Variant);
-        });
-
-    void BuildSkiaAndroidMain(Architecture arch, Variant variant)
+    
+    void BuildLibAlphaSkiaAndroid()
     {
         var gnArgs = new Dictionary<string, string>();
         gnArgs["ndk"] = NdkPath;
 
         string[] filesToCopy;
-        var isShared = variant == Variant.Shared;
+        var isShared = Variant == Variant.Shared;
         if (isShared)
         {
             filesToCopy = new[]
@@ -87,10 +68,10 @@ partial class Build
             };
         }
 
-        BuildSkiaAndroid("libAlphaSkia", arch, variant, gnArgs, filesToCopy);
+        BuildSkiaAndroid("libAlphaSkia", gnArgs, filesToCopy);
     }
 
-    void BuildSkiaAndroidJni(Architecture arch, Variant variant)
+    void BuildLibAlphaSkiaJniAndroid()
     {
         var gnArgs = new Dictionary<string, string>();
         var alphaSkiaInclude = DistBasePath / "include";
@@ -100,30 +81,17 @@ partial class Build
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = DistBasePath / $"libAlphaSkia-android-{arch}-static";
-        gnArgs["extra_ldflags"] =
-            $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
+        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Shared);
+        gnArgs["extra_ldflags"] = $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
-        BuildSkiaAndroid("libAlphaSkiaJni", arch, variant, gnArgs, new[] { "libAlphaSkiaJni.so" });
+        BuildSkiaAndroid("libAlphaSkiaJni", gnArgs, new[] { "libAlphaSkiaJni.so" });
     }
 
-    void BuildSkiaAndroid(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
+    void BuildSkiaAndroid(string buildTarget, Dictionary<string, string> gnArgs,
         string[] filesToCopy)
     {
-        if (OperatingSystem.IsWindows())
-        {
-            SetClangWindows(gnArgs);
-        }
-        else if (OperatingSystem.IsLinux())
-        {
-            SetClangLinux(arch, gnArgs);
-        }
-        
-        // gnArgs["skia_enable_ganesh"] = "true";
         gnArgs["skia_use_system_freetype2"] = "false";
         
-        // -Wdeprecated-declarations
-
-        BuildSkia(buildTarget, "android", arch, variant, gnArgs, filesToCopy);
+        BuildSkia(buildTarget, gnArgs, filesToCopy);
     }
 }

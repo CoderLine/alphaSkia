@@ -2,34 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
-using Serilog;
 
 partial class Build
 {
-    public Target WindowsSkia => _ => _
-        .OnlyWhenDynamic(() => !CanUseCachedBinaries("libAlphaSkia", "win"))
-        .DependsOn(GitSyncDepsSkia, PatchSkiaBuildFiles)
-        .Requires(() => Architecture)
-        .Requires(() => Variant)
-        .OnlyWhenStatic(OperatingSystem.IsWindows)
-        .Executes(() =>
-        {
-            BuildSkiaWindowsMain(Architecture, Variant);
-        });
-    
-    public Target WindowsJni => _ => _
-        .DependsOn(PrepareGitHubArtifacts, GitSyncDepsJni, PatchSkiaBuildFiles)
-        .Requires(() => Architecture)
-        .Requires(() => Variant == Variant.Shared)
-        .OnlyWhenStatic(OperatingSystem.IsWindows)
-        .Executes(() =>
-        {
-            BuildSkiaWindowsJni(Architecture, Variant);
-        });
-
     Tool VsWhere => ToolResolver.GetPathTool(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio", "Installer",
         "vswhere.exe"));
@@ -55,11 +32,11 @@ partial class Build
         }
     }
 
-    void BuildSkiaWindowsMain(Architecture arch, Variant variant)
+    void BuildLibAlphaSkiaWindows()
     {
         var gnArgs = new Dictionary<string, string>();
         string[] filesToCopy;
-        var isShared = variant == Variant.Shared;
+        var isShared = Variant == Variant.Shared;
         if (isShared)
         {
             filesToCopy = new[]
@@ -78,10 +55,10 @@ partial class Build
             };
         }
 
-        BuildSkiaWindows("libAlphaSkia", arch, variant, gnArgs, filesToCopy);
+        BuildSkiaWindows("libAlphaSkia", gnArgs, filesToCopy);
     }
 
-    void BuildSkiaWindowsJni(Architecture arch, Variant variant)
+    void BuildLibAlphaSkiaJniWindows()
     {
         var gnArgs = new Dictionary<string, string>();
         var alphaSkiaInclude = DistBasePath / "include";
@@ -90,11 +67,11 @@ partial class Build
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = DistBasePath / $"libAlphaSkia-win-{arch}-static";
+        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
         gnArgs["extra_ldflags"] =
             $"[ '/LIBPATH:{staticLibPath}', 'libAlphaSkia.lib', 'skia.lib', 'user32.lib', 'OpenGL32.lib' ]";
 
-        BuildSkiaWindows("libAlphaSkiaJni", arch, variant, gnArgs, new[]
+        BuildSkiaWindows("libAlphaSkiaJni", gnArgs, new[]
         {
             "libAlphaSkiaJni.dll",
             "libAlphaSkiaJni.dll.lib",
@@ -102,14 +79,11 @@ partial class Build
         });
     }
 
-    void BuildSkiaWindows(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
+    void BuildSkiaWindows(string buildTarget, Dictionary<string, string> gnArgs,
         string[] filesToCopy)
     {
-        SetClangWindows(gnArgs);
-
         gnArgs["skia_enable_fontmgr_win_gdi"] = "false";
-
-        BuildSkia(buildTarget, "win", arch, variant, gnArgs, filesToCopy);
+        BuildSkia(buildTarget, gnArgs, filesToCopy);
     }
 
     void SetClangWindows(Dictionary<string, string> gnArgs)

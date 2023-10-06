@@ -108,6 +108,9 @@
             "enum": [
               "AndroidJni",
               "AndroidSkia",
+              "Compile",
+              "CompileTests",
+              "CompileWithCache",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -120,10 +123,12 @@
               "MacOsJni",
               "MacOsSkia",
               "PatchSkiaBuildFiles",
+              "PrepareForBuild",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
               "WindowsJni",
-              "WindowsSkia"
+              "WindowsSkia",
+              "WithDependencies"
             ]
           }
         },
@@ -135,6 +140,9 @@
             "enum": [
               "AndroidJni",
               "AndroidSkia",
+              "Compile",
+              "CompileTests",
+              "CompileWithCache",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -147,10 +155,12 @@
               "MacOsJni",
               "MacOsSkia",
               "PatchSkiaBuildFiles",
+              "PrepareForBuild",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
               "WindowsJni",
-              "WindowsSkia"
+              "WindowsSkia",
+              "WithDependencies"
             ]
           }
         },
