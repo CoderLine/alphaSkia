@@ -122,7 +122,6 @@
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
-              "Test",
               "WindowsJni",
               "WindowsSkia"
             ]
@@ -150,7 +149,6 @@
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools",
-              "Test",
               "WindowsJni",
               "WindowsSkia"
             ]

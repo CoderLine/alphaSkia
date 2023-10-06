@@ -62,7 +62,7 @@ partial class Build
         gnArgs["extra_ldflags"] =
             $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
-        BuildSkiaMacOs("libAlphaSkiaJni", arch, variant, gnArgs, new[] { "libAlphaSkiaJni.so" });
+        BuildSkiaMacOs("libAlphaSkiaJni", arch, variant, gnArgs, new[] { "libAlphaSkiaJni.dylib" });
     }
 
     void BuildSkiaMacOs(string buildTarget, Architecture arch, Variant variant, Dictionary<string, string> gnArgs,
