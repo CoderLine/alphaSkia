@@ -121,7 +121,11 @@ partial class Build
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
-        .Triggers(LibAlphaSkia);
+        .Triggers(LibAlphaSkia)
+        .Executes(() =>
+        {
+            GitTool("submodule update --init --recursive");
+        });
 
     public Target LibAlphaSkia => _ => _
         .DependsOn(GitSyncDepsAlphaSkia, PatchSkiaBuildFiles)
