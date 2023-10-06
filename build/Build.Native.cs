@@ -121,10 +121,13 @@ partial class Build
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
+        .Triggers(LibAlphaSkiaPrepareBuild);
+
+    Target LibAlphaSkiaPrepareBuild => _ => _
+        .Unlisted()
         .Triggers(LibAlphaSkia)
         .Executes(() =>
         {
-            Log.Information("Inside LibAlphaSkiaWithCache");
             GitTool("submodule update --init --recursive");
         });
 
