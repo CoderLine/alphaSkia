@@ -106,9 +106,6 @@
           "items": {
             "type": "string",
             "enum": [
-              "A",
-              "B",
-              "C",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -118,7 +115,7 @@
               "Java",
               "LibAlphaSkia",
               "LibAlphaSkiaJni",
-              "LibAlphaSkiaPrepareBuild",
+              "LibAlphaSkiaTrigger",
               "LibAlphaSkiaWithCache",
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
@@ -132,9 +129,6 @@
           "items": {
             "type": "string",
             "enum": [
-              "A",
-              "B",
-              "C",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
@@ -144,7 +138,7 @@
               "Java",
               "LibAlphaSkia",
               "LibAlphaSkiaJni",
-              "LibAlphaSkiaPrepareBuild",
+              "LibAlphaSkiaTrigger",
               "LibAlphaSkiaWithCache",
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",

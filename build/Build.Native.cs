@@ -82,8 +82,11 @@ partial class Build
 
     bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
 
+    bool SkipLibAlphaSkia => CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier);
+
     public Target GitSyncDepsAlphaSkia => _ => _
         .Unlisted()
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .DependsOn(SetupDepotTools)
         .Executes(() =>
         {
@@ -127,28 +130,23 @@ partial class Build
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
-        .Triggers<Build>(_ => CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier)
-            ? LibAlphaSkiaPrepareBuild
-            : CopyDistToArtifacts);
-
-    Target CopyDistToArtifacts => _ => _
-        .Unlisted()
         .Executes(() =>
         {
-            FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
-                FileExistsPolicy.OverwriteIfNewer);
-        });
-
-    Target LibAlphaSkiaPrepareBuild => _ => _
-        .Unlisted()
-        .Executes(() =>
-        {
-            GitTool("submodule update --init --recursive");
+            if (SkipLibAlphaSkia)
+            {
+                FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
+                    FileExistsPolicy.OverwriteIfNewer);
+            }
+            else
+            {
+                GitTool("submodule update --init --recursive");
+            }
         })
         .Triggers(LibAlphaSkia);
 
     public Target LibAlphaSkia => _ => _
         .DependsOn(GitSyncDepsAlphaSkia, PatchSkiaBuildFiles)
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
@@ -340,6 +338,7 @@ partial class Build
 
     public Target SetupDepotTools => _ => _
         .Unlisted()
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Executes(() =>
         {
             var oldValue = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
@@ -359,6 +358,7 @@ partial class Build
 
     public Target PatchSkiaBuildFiles => _ => _
         .Unlisted()
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Executes(() =>
         {
             var buildConfigNew = new StringBuilder();
