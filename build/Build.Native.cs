@@ -14,10 +14,17 @@ using static Nuke.Common.EnvironmentInfo;
 [TypeConverter(typeof(TypeConverter<TargetOperatingSystem>))]
 public class TargetOperatingSystem : Enumeration
 {
-    public static TargetOperatingSystem Windows = new() { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
-    public static TargetOperatingSystem Linux = new() { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
-    public static TargetOperatingSystem Android = new() { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
-    public static TargetOperatingSystem MacOs = new() { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
+    public static TargetOperatingSystem Windows = new()
+        { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
+
+    public static TargetOperatingSystem Linux = new()
+        { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
+
+    public static TargetOperatingSystem Android = new()
+        { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
+
+    public static TargetOperatingSystem MacOs = new()
+        { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
 
     public string SkiaTargetOs { get; private set; }
     public string RuntimeIdentifier { get; private set; }
@@ -117,19 +124,28 @@ partial class Build
 
     public Target LibAlphaSkiaWithCache => _ => _
         .Unlisted()
-        .OnlyWhenStatic(() => !CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier))
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
-        .Triggers(LibAlphaSkiaPrepareBuild);
+        .Triggers<Build>(_ => CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier)
+            ? LibAlphaSkiaPrepareBuild
+            : CopyDistToArtifacts);
+
+    Target CopyDistToArtifacts => _ => _
+        .Unlisted()
+        .Executes(() =>
+        {
+            FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
+                FileExistsPolicy.OverwriteIfNewer);
+        });
 
     Target LibAlphaSkiaPrepareBuild => _ => _
         .Unlisted()
-        .Triggers(LibAlphaSkia)
         .Executes(() =>
         {
             GitTool("submodule update --init --recursive");
-        });
+        })
+        .Triggers(LibAlphaSkia);
 
     public Target LibAlphaSkia => _ => _
         .DependsOn(GitSyncDepsAlphaSkia, PatchSkiaBuildFiles)
@@ -155,7 +171,7 @@ partial class Build
                 BuildLibAlphaSkiaMacOs();
             }
         });
-    
+
     public Target LibAlphaSkiaJni => _ => _
         .DependsOn(PrepareGitHubArtifacts, GitSyncDepsLibAlphaSkiaJni, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
@@ -180,7 +196,7 @@ partial class Build
                 BuildLibAlphaSkiaJniMacOs();
             }
         });
-    
+
     string GetLibDirectory(string libName = "libAlphaSkia", TargetOperatingSystem targetOs = null,
         Architecture arch = null, Variant variant = null)
     {
@@ -530,7 +546,7 @@ partial class Build
         {
             SetClangMacOs(gnArgs);
         }
-        
+
         var isShared = Variant == Variant.Shared;
         var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
         var distPath = DistBasePath / libDir;

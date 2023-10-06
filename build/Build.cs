@@ -87,8 +87,7 @@ partial class Build : NukeBuild
             return false;
         }
         
-        Log.Information("Can use cached binaries, copying them to artifact output");
-        FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge, FileExistsPolicy.OverwriteIfNewer);
+        Log.Information("Can use cached binaries");
 
         return true;
     }

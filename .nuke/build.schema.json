@@ -106,29 +106,23 @@
           "items": {
             "type": "string",
             "enum": [
-              "AndroidJni",
-              "AndroidSkia",
-              "Compile",
-              "CompileTests",
-              "CompileWithCache",
+              "A",
+              "B",
+              "C",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsJni",
-              "GitSyncDepsSkia",
+              "GitSyncDepsAlphaSkia",
+              "GitSyncDepsLibAlphaSkiaJni",
               "Java",
-              "LinuxJni",
-              "LinuxSkia",
-              "MacOsJni",
-              "MacOsSkia",
+              "LibAlphaSkia",
+              "LibAlphaSkiaJni",
+              "LibAlphaSkiaPrepareBuild",
+              "LibAlphaSkiaWithCache",
               "PatchSkiaBuildFiles",
-              "PrepareForBuild",
               "PrepareGitHubArtifacts",
-              "SetupDepotTools",
-              "WindowsJni",
-              "WindowsSkia",
-              "WithDependencies"
+              "SetupDepotTools"
             ]
           }
         },
@@ -138,31 +132,34 @@
           "items": {
             "type": "string",
             "enum": [
-              "AndroidJni",
-              "AndroidSkia",
-              "Compile",
-              "CompileTests",
-              "CompileWithCache",
+              "A",
+              "B",
+              "C",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsJni",
-              "GitSyncDepsSkia",
+              "GitSyncDepsAlphaSkia",
+              "GitSyncDepsLibAlphaSkiaJni",
               "Java",
-              "LinuxJni",
-              "LinuxSkia",
-              "MacOsJni",
-              "MacOsSkia",
+              "LibAlphaSkia",
+              "LibAlphaSkiaJni",
+              "LibAlphaSkiaPrepareBuild",
+              "LibAlphaSkiaWithCache",
               "PatchSkiaBuildFiles",
-              "PrepareForBuild",
               "PrepareGitHubArtifacts",
-              "SetupDepotTools",
-              "WindowsJni",
-              "WindowsSkia",
-              "WithDependencies"
+              "SetupDepotTools"
             ]
           }
+        },
+        "TargetOs": {
+          "type": "string",
+          "enum": [
+            "Android",
+            "Linux",
+            "MacOs",
+            "Windows"
+          ]
         },
         "use-cache": {
           "type": "string"
