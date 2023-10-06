@@ -28,7 +28,7 @@ runs:
     - id: build-info
       run: |
         if [ ${{ runner.os }} != 'Windows' ]; then
-          echo "script=./build" >> "$GITHUB_OUTPUT"
+          echo "script=./build.sh" >> "$GITHUB_OUTPUT"
           echo "shell=bash" >> "$GITHUB_OUTPUT"
         else
           echo "script=./build.cmd" >> "$GITHUB_OUTPUT"
