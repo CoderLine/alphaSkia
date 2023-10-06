@@ -24,7 +24,20 @@ runs:
         path: dist
         restore-keys: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
 
-    - run: ./build.cmd LibAlphaSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }} --use-cache ${{ inputs.use-cache }}
+    - id: build-info
+      run: |
+        if [ ${{ runner.os }} != 'windows' ]; then
+          echo "script=build" >> "$GITHUB_OUTPUT"
+          echo "shell=bash" >> "$GITHUB_OUTPUT"
+        else
+          echo "script=./build.cmd" >> "$GITHUB_OUTPUT"
+          echo "shell=pwsh" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
+    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }} --use-cache ${{ inputs.use-cache }}
+      shell: ${{ steps.build-info.outputs.shell }}
+
     - uses: actions/upload-artifact@v3
       with:
         name: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}

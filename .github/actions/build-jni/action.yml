@@ -20,7 +20,21 @@ runs:
     - uses: actions/download-artifact@v3
       with:
         path: dist
-    - run: ./build.cmd LibAlphaSkiaJni --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }}
+
+    - id: build-info
+      run: |
+        if [ ${{ runner.os }} != 'windows' ]; then
+          echo "script=build" >> "$GITHUB_OUTPUT"
+          echo "shell=bash" >> "$GITHUB_OUTPUT"
+        else
+          echo "script=./build.cmd" >> "$GITHUB_OUTPUT"
+          echo "shell=pwsh" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
+    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkiaJni --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }}
+      shell: ${{ steps.build-info.outputs.shell }}
+
     - uses: actions/upload-artifact@v3
       with:
         name: alphaskia-${{ inputs.target-os }}-jni-${{ inputs.architecture }}-${{ inputs.variant }}
