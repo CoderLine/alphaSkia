@@ -124,6 +124,7 @@ partial class Build
         .Triggers(LibAlphaSkia)
         .Executes(() =>
         {
+            Log.Information("Inside LibAlphaSkiaWithCache");
             GitTool("submodule update --init --recursive");
         });
 
