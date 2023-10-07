@@ -20,6 +20,7 @@ runs:
     - uses: actions/download-artifact@v3
       with:
         path: dist
+        name: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
 
     - id: build-info
       run: |

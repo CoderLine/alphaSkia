@@ -84,7 +84,7 @@ partial class Build
 
     bool SkipLibAlphaSkia => CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier);
 
-    public Target GitSyncDepsAlphaSkia => _ => _
+    public Target GitSyncDepsLibAlphaSkia => _ => _
         .Unlisted()
         .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .DependsOn(SetupDepotTools)
@@ -151,7 +151,7 @@ partial class Build
         .Triggers(LibAlphaSkia);
 
     public Target LibAlphaSkia => _ => _
-        .DependsOn(PatchSkiaBuildFiles)
+        .DependsOn(GitSyncDepsLibAlphaSkia, PatchSkiaBuildFiles)
         .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Requires(() => Architecture)
         .Requires(() => Variant)
@@ -364,7 +364,6 @@ partial class Build
 
     public Target PatchSkiaBuildFiles => _ => _
         .Unlisted()
-        .DependsOn(GitSyncDepsAlphaSkia)
         .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Executes(() =>
         {
