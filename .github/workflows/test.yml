@@ -6,6 +6,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
@@ -40,7 +42,7 @@ jobs:
       - run: sudo dpkg --add-architecture armhf
       - run: sudo dpkg --add-architecture arm64
       - run: sudo dpkg --add-architecture i386
-      - run: sudo cat /'deb [arch=i386,arm64,armhf] mirror+file:/etc/apt/apt-mirrors.txt jammy main universe' >> /etc/apt/sources.list
+      # - run: sudo cat /'deb [arch=i386,arm64,armhf] mirror+file:/etc/apt/apt-mirrors.txt jammy main universe' >> /etc/apt/sources.list
       - run: sudo apt-get update
       
       - run: sudo apt-get install libfontconfig-dev:armhf
