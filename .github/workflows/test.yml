@@ -9,7 +9,7 @@ jobs:
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
-      - run: sudo apt-get install gcc-multilib g++-multilib
+      # - run: sudo apt-get install gcc-multilib g++-multilib
       - run: |
           ls -l /usr/aarch64-linux-gnu
           ls -l /usr/aarch64-linux-gnu/bin
