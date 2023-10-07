@@ -7,8 +7,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo cat /etc/apt/sources.list
-      - run: sudo cat /etc/apt/apt-mirrors.txt
       - run: sudo apt-get update
       - run: sudo apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
       - run: sudo apt-get install gcc-multilib g++-multilib
@@ -39,18 +37,12 @@ jobs:
           ls -l /usr/i686-linux-gnu/include/c++/11/
           echo OK
 
-
       - run: sudo dpkg --add-architecture armhf
-      - run: sudo apt-get update
-      - run: sudo apt-get install libfontconfig-dev:armhf
-      
       - run: sudo dpkg --add-architecture arm64
-      - run: sudo apt-get update
-      - run: sudo apt-get install libfontconfig-dev:arm64
-
       - run: sudo dpkg --add-architecture i386
+      - run: sudo cat /'deb [arch=i386,arm64,armhf] mirror+file:/etc/apt/apt-mirrors.txt jammy main universe' >> /etc/apt/sources.list
       - run: sudo apt-get update
+      
+      - run: sudo apt-get install libfontconfig-dev:armhf
+      - run: sudo apt-get install libfontconfig-dev:arm64
       - run: sudo apt-get install libfontconfig-dev:i386
-
-      # - run: ls -l /usr
-      # - run: ls -l /usr/include
