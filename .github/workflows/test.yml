@@ -10,26 +10,32 @@ jobs:
       - run: sudo apt-get update
       - run: sudo apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
       - run: sudo apt-get install gcc-multilib g++-multilib
-      - run: ls -l /usr/aarch64-linux-gnu
-      - run: ls -l /usr/aarch64-linux-gnu/bin
-      - run: ls -l /usr/aarch64-linux-gnu/lib
-      - run: ls -l /usr/aarch64-linux-gnu/include
-      - run: ls -l /usr/aarch64-linux-gnu/include/c++/
-      - run: ls -l /usr/aarch64-linux-gnu/include/c++/current/
+      - run: |
+          ls -l /usr/aarch64-linux-gnu
+          ls -l /usr/aarch64-linux-gnu/bin
+          ls -l /usr/aarch64-linux-gnu/lib
+          ls -l /usr/aarch64-linux-gnu/include
+          ls -l /usr/aarch64-linux-gnu/include/c++/
+          ls -l /usr/aarch64-linux-gnu/include/c++/11/
+          echo OK
 
-      - run: ls -l /usr/arm-linux-gnueabihf
-      - run: ls -l /usr/arm-linux-gnueabihf/bin
-      - run: ls -l /usr/arm-linux-gnueabihf/lib
-      - run: ls -l /usr/arm-linux-gnueabihf/include
-      - run: ls -l /usr/arm-linux-gnueabihf/include/c++/
-      - run: ls -l /usr/arm-linux-gnueabihf/include/c++/current/
+      - run: |
+          ls -l /usr/arm-linux-gnueabihf
+          ls -l /usr/arm-linux-gnueabihf/bin
+          ls -l /usr/arm-linux-gnueabihf/lib
+          ls -l /usr/arm-linux-gnueabihf/include
+          ls -l /usr/arm-linux-gnueabihf/include/c++/
+          ls -l /usr/arm-linux-gnueabihf/include/c++/11/
+          echo OK
 
-      - run: ls -l /usr/i686-linux-gnu
-      - run: ls -l /usr/i686-linux-gnu/bin
-      - run: ls -l /usr/i686-linux-gnu/lib
-      - run: ls -l /usr/i686-linux-gnu/include
-      - run: ls -l /usr/i686-linux-gnu/include/c++/
-      - run: ls -l /usr/i686-linux-gnu/include/c++/current/
+      - run: |
+          ls -l /usr/i686-linux-gnu
+          ls -l /usr/i686-linux-gnu/bin
+          ls -l /usr/i686-linux-gnu/lib
+          ls -l /usr/i686-linux-gnu/include
+          ls -l /usr/i686-linux-gnu/include/c++/
+          ls -l /usr/i686-linux-gnu/include/c++/11/
+          echo OK
 
 
       - run: sudo dpkg --add-architecture armhf
