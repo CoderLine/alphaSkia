@@ -81,7 +81,7 @@ partial class Build
         gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
 
         // Add Libs and lib search paths
-        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Shared);
+        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
         gnArgs["extra_ldflags"] = $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
 
         BuildSkiaAndroid("libAlphaSkiaJni", gnArgs, new[] { "libAlphaSkiaJni.so" });
