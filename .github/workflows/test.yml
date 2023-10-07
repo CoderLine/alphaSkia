@@ -57,12 +57,12 @@ jobs:
           ls -l /usr/aarch64-linux-gnu/include/c++/11/
           echo OK
 
-      - run: |
-          ls -l /usr/arm-linux-gnueabihf/include
-          ls -l /usr/arm-linux-gnueabihf/include/c++/11/
-          echo OK
+    - run: |
+        ls -l /usr/arm-linux-gnueabihf/include
+        ls -l /usr/arm-linux-gnueabihf/include/c++/11/
+        echo OK
 
-      - run: |
-          ls -l /usr/i686-linux-gnu/include
-          ls -l /usr/i686-linux-gnu/include/c++/11/
-          echo OK
+    - run: |
+        ls -l /usr/i686-linux-gnu/include
+        ls -l /usr/i686-linux-gnu/include/c++/11/
+        echo OK
