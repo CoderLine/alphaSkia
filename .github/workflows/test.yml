@@ -7,6 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - run: sudo cat /etc/apt/sources.list
       - run: sudo apt-get update
       - run: sudo apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
       - run: sudo apt-get install gcc-multilib g++-multilib
