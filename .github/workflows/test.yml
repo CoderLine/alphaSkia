@@ -1,0 +1,12 @@
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ls -l /usr
+      - run: ls -l /usr/bin
+      - run: ls -l /usr/lib
+      - run: ls -l /usr/include

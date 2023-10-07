@@ -48,8 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        architecture: [x64]
-        # TODO architecture: [x64, x86, arm64]
+        architecture: [x64, x86, arm, arm64]
         variant: ['shared', 'static']
     steps:
       - uses: actions/checkout@v3
@@ -65,8 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO architecture: [x64, x86, arm64]
-        architecture: [x64]
+        architecture: [x64, x86, arm, arm64]
         variant: ['shared']
     steps:
       - uses: actions/checkout@v3
