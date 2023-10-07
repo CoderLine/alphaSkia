@@ -50,12 +50,12 @@ jobs:
 
       - run: sudo apt-get -y install aptitude 
 
-      - run: sudo aptitude install libc6-dev:i386
-      - run: sudo aptitude install libc6-dev:arm64
-      - run: sudo aptitude install libc6-dev:armhf
-      - run: sudo aptitude install libfontconfig-dev:i386
-      - run: sudo aptitude install libfontconfig-dev:arm64
-      - run: sudo aptitude install libfontconfig-dev:armhf
+      - run: sudo aptitude install -y libc6-dev:i386
+      - run: sudo aptitude install -y libc6-dev:arm64
+      - run: sudo aptitude install -y libc6-dev:armhf
+      - run: sudo aptitude install -y libfontconfig-dev:i386
+      - run: sudo aptitude install -y libfontconfig-dev:arm64
+      - run: sudo aptitude install -y libfontconfig-dev:armhf
 
       - run: |
           ls -l /usr/aarch64-linux-gnu/include
