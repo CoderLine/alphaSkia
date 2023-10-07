@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: debian:bookworm
+      image: ubuntu:latest
     steps:
       - run: apt-get update
       - run: apt-get install -y crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
@@ -18,7 +18,7 @@ jobs:
           ls -l /usr/aarch64-linux-gnu/lib
           ls -l /usr/aarch64-linux-gnu/include
           ls -l /usr/aarch64-linux-gnu/include/c++/
-          ls -l /usr/aarch64-linux-gnu/include/c++/11/
+          ls -l /usr/aarch64-linux-gnu/include/c++/12/
           echo OK
 
       - run: |
@@ -27,7 +27,7 @@ jobs:
           ls -l /usr/arm-linux-gnueabihf/lib
           ls -l /usr/arm-linux-gnueabihf/include
           ls -l /usr/arm-linux-gnueabihf/include/c++/
-          ls -l /usr/arm-linux-gnueabihf/include/c++/11/
+          ls -l /usr/arm-linux-gnueabihf/include/c++/12/
           echo OK
 
       - run: |
@@ -36,7 +36,7 @@ jobs:
           ls -l /usr/i686-linux-gnu/lib
           ls -l /usr/i686-linux-gnu/include
           ls -l /usr/i686-linux-gnu/include/c++/
-          ls -l /usr/i686-linux-gnu/include/c++/11/
+          ls -l /usr/i686-linux-gnu/include/c++/13/
           echo OK
 
       - run: dpkg --add-architecture armhf
