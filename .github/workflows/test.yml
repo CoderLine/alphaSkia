@@ -48,10 +48,21 @@ jobs:
       - run: sudo su -c "echo 'deb-src [arch=arm64,armhf] http://ports.ubuntu.com/ubuntu-ports jammy main universe' >> /etc/apt/sources.list"
       - run: sudo apt-get update
 
-      # - run: sudo apt-get install libc6-dev:i386 libfontconfig-dev:i386
-      # - run: sudo apt-get install libc6-dev:arm64 libfontconfig-dev:arm64
-      # - run: sudo apt-get install libc6-dev:armhf libfontconfig-dev:armhf
+      - run: sudo apt-get -y install libc6-dev:i386 libc6-dev:arm64 libc6-dev:armhf
+      - run: sudo apt-get -y install libfontconfig-dev:i386 libfontconfig-dev:arm64 libfontconfig-dev:armhf
 
-      - run: sudo apt-get -y install libc6:i386
-      - run: sudo apt-get -y install libc6-dev:i386
-      - run: sudo apt-get -y install libfontconfig-dev:i386
+
+   - run: |
+          ls -l /usr/aarch64-linux-gnu/include
+          ls -l /usr/aarch64-linux-gnu/include/c++/11/
+          echo OK
+
+      - run: |
+          ls -l /usr/arm-linux-gnueabihf/include
+          ls -l /usr/arm-linux-gnueabihf/include/c++/11/
+          echo OK
+
+      - run: |
+          ls -l /usr/i686-linux-gnu/include
+          ls -l /usr/i686-linux-gnu/include/c++/11/
+          echo OK
