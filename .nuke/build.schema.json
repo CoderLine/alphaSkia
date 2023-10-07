@@ -106,29 +106,19 @@
           "items": {
             "type": "string",
             "enum": [
-              "AndroidJni",
-              "AndroidSkia",
-              "Compile",
-              "CompileTests",
-              "CompileWithCache",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsJni",
-              "GitSyncDepsSkia",
+              "GitSyncDepsLibAlphaSkia",
+              "GitSyncDepsLibAlphaSkiaJni",
               "Java",
-              "LinuxJni",
-              "LinuxSkia",
-              "MacOsJni",
-              "MacOsSkia",
+              "LibAlphaSkia",
+              "LibAlphaSkiaJni",
+              "LibAlphaSkiaWithCache",
               "PatchSkiaBuildFiles",
-              "PrepareForBuild",
               "PrepareGitHubArtifacts",
-              "SetupDepotTools",
-              "WindowsJni",
-              "WindowsSkia",
-              "WithDependencies"
+              "SetupDepotTools"
             ]
           }
         },
@@ -138,31 +128,30 @@
           "items": {
             "type": "string",
             "enum": [
-              "AndroidJni",
-              "AndroidSkia",
-              "Compile",
-              "CompileTests",
-              "CompileWithCache",
               "DotNet",
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsJni",
-              "GitSyncDepsSkia",
+              "GitSyncDepsLibAlphaSkia",
+              "GitSyncDepsLibAlphaSkiaJni",
               "Java",
-              "LinuxJni",
-              "LinuxSkia",
-              "MacOsJni",
-              "MacOsSkia",
+              "LibAlphaSkia",
+              "LibAlphaSkiaJni",
+              "LibAlphaSkiaWithCache",
               "PatchSkiaBuildFiles",
-              "PrepareForBuild",
               "PrepareGitHubArtifacts",
-              "SetupDepotTools",
-              "WindowsJni",
-              "WindowsSkia",
-              "WithDependencies"
+              "SetupDepotTools"
             ]
           }
+        },
+        "TargetOs": {
+          "type": "string",
+          "enum": [
+            "Android",
+            "Linux",
+            "MacOs",
+            "Windows"
+          ]
         },
         "use-cache": {
           "type": "string"

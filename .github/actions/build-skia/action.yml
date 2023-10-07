@@ -17,18 +17,28 @@ inputs:
 
 runs:
   using: "composite"
-  steps: 
-    - uses: actions/checkout@v3
-      with:
-        submodules: false
-
+  steps:
     - uses: actions/cache/restore@v3
       if: ${{ inputs.use-cache }}
       with:
         path: dist
+        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }}
         restore-keys: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
 
-    - run: ./build.cmd LibAlphaSkia --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }} --use-cache ${{ inputs.use-cache }}
+    - id: build-info
+      run: |
+        if [ ${{ runner.os }} != 'Windows' ]; then
+          echo "script=./build.sh" >> "$GITHUB_OUTPUT"
+          echo "shell=bash" >> "$GITHUB_OUTPUT"
+        else
+          echo "script=./build.cmd" >> "$GITHUB_OUTPUT"
+          echo "shell=pwsh" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
+    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }} --use-cache ${{ inputs.use-cache }}
+      shell: ${{ steps.build-info.outputs.shell }}
+
     - uses: actions/upload-artifact@v3
       with:
         name: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}

@@ -77,19 +77,14 @@ partial class Build : NukeBuild
     {
         if (!UseCache)
         {
-            Log.Debug("Cache use is disabled.");
             return false;
         }
 
         if (!HasCachedFiles(buildTarget, targetOsDir))
         {
-            Log.Information("Did not find cached binaries.");
             return false;
         }
         
-        Log.Information("Can use cached binaries, copying them to artifact output");
-        FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge, FileExistsPolicy.OverwriteIfNewer);
-
         return true;
     }
 }

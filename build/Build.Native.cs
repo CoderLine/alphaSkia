@@ -14,10 +14,17 @@ using static Nuke.Common.EnvironmentInfo;
 [TypeConverter(typeof(TypeConverter<TargetOperatingSystem>))]
 public class TargetOperatingSystem : Enumeration
 {
-    public static TargetOperatingSystem Windows = new() { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
-    public static TargetOperatingSystem Linux = new() { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
-    public static TargetOperatingSystem Android = new() { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
-    public static TargetOperatingSystem MacOs = new() { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
+    public static TargetOperatingSystem Windows = new()
+        { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
+
+    public static TargetOperatingSystem Linux = new()
+        { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
+
+    public static TargetOperatingSystem Android = new()
+        { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
+
+    public static TargetOperatingSystem MacOs = new()
+        { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
 
     public string SkiaTargetOs { get; private set; }
     public string RuntimeIdentifier { get; private set; }
@@ -75,8 +82,11 @@ partial class Build
 
     bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
 
-    public Target GitSyncDepsAlphaSkia => _ => _
+    bool SkipLibAlphaSkia => CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier);
+
+    public Target GitSyncDepsLibAlphaSkia => _ => _
         .Unlisted()
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .DependsOn(SetupDepotTools)
         .Executes(() =>
         {
@@ -117,14 +127,32 @@ partial class Build
 
     public Target LibAlphaSkiaWithCache => _ => _
         .Unlisted()
-        .OnlyWhenStatic(() => !CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier))
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
+        .Before(SetupDepotTools) // ensure it runs before any oher targets
+        .Executes(() =>
+        {
+            if (SkipLibAlphaSkia)
+            {
+                FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
+                    FileExistsPolicy.OverwriteIfNewer);
+            }
+            else
+            {
+                GitTool("submodule update --init --recursive");
+                if (OperatingSystem.IsLinux())
+                {
+                    var dependenciesScript = SkiaPath / "tools" / "install_dependencies.sh";
+                    ToolResolver.GetPathTool("bash")($"{dependenciesScript}", workingDirectory: SkiaPath);   
+                }
+            }
+        })
         .Triggers(LibAlphaSkia);
 
     public Target LibAlphaSkia => _ => _
-        .DependsOn(GitSyncDepsAlphaSkia, PatchSkiaBuildFiles)
+        .DependsOn(GitSyncDepsLibAlphaSkia, PatchSkiaBuildFiles)
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
@@ -147,7 +175,7 @@ partial class Build
                 BuildLibAlphaSkiaMacOs();
             }
         });
-    
+
     public Target LibAlphaSkiaJni => _ => _
         .DependsOn(PrepareGitHubArtifacts, GitSyncDepsLibAlphaSkiaJni, PatchSkiaBuildFiles)
         .Requires(() => Architecture)
@@ -172,7 +200,7 @@ partial class Build
                 BuildLibAlphaSkiaJniMacOs();
             }
         });
-    
+
     string GetLibDirectory(string libName = "libAlphaSkia", TargetOperatingSystem targetOs = null,
         Architecture arch = null, Variant variant = null)
     {
@@ -316,6 +344,7 @@ partial class Build
 
     public Target SetupDepotTools => _ => _
         .Unlisted()
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Executes(() =>
         {
             var oldValue = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
@@ -335,6 +364,7 @@ partial class Build
 
     public Target PatchSkiaBuildFiles => _ => _
         .Unlisted()
+        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
         .Executes(() =>
         {
             var buildConfigNew = new StringBuilder();
@@ -522,7 +552,7 @@ partial class Build
         {
             SetClangMacOs(gnArgs);
         }
-        
+
         var isShared = Variant == Variant.Shared;
         var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
         var distPath = DistBasePath / libDir;
