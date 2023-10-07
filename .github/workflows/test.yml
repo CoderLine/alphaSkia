@@ -10,8 +10,8 @@ jobs:
       image: debian:bookworm
     steps:
       - run: apt-get update
-      - run: apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
-      - run: apt-get install gcc-multilib g++-multilib
+      - run: apt-get install -y crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
+      - run: apt-get install -y gcc-multilib g++-multilib
       - run: |
           ls -l /usr/aarch64-linux-gnu
           ls -l /usr/aarch64-linux-gnu/bin
@@ -45,6 +45,6 @@ jobs:
       # - run: cat /'deb [arch=i386,arm64,armhf] mirror+file:/etc/apt/apt-mirrors.txt jammy main universe' >> /etc/apt/sources.list
       - run: apt-get update
       
-      - run: apt-get install libfontconfig-dev:armhf
-      - run: apt-get install libfontconfig-dev:arm64
-      - run: apt-get install libfontconfig-dev:i386
+      - run: apt-get install -y libfontconfig-dev:armhf
+      - run: apt-get install -y libfontconfig-dev:arm64
+      - run: apt-get install -y libfontconfig-dev:i386
