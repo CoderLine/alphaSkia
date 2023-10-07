@@ -9,9 +9,9 @@ jobs:
     container:
       image: debian:bookworm
     steps:
-      - run: sudo apt-get update
-      - run: sudo apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
-      - run: sudo apt-get install gcc-multilib g++-multilib
+      - run: apt-get update
+      - run: apt-get install crossbuild-essential-i386 crossbuild-essential-armhf crossbuild-essential-arm64
+      - run: apt-get install gcc-multilib g++-multilib
       - run: |
           ls -l /usr/aarch64-linux-gnu
           ls -l /usr/aarch64-linux-gnu/bin
@@ -39,12 +39,12 @@ jobs:
           ls -l /usr/i686-linux-gnu/include/c++/11/
           echo OK
 
-      - run: sudo dpkg --add-architecture armhf
-      - run: sudo dpkg --add-architecture arm64
-      - run: sudo dpkg --add-architecture i386
-      # - run: sudo cat /'deb [arch=i386,arm64,armhf] mirror+file:/etc/apt/apt-mirrors.txt jammy main universe' >> /etc/apt/sources.list
-      - run: sudo apt-get update
+      - run: dpkg --add-architecture armhf
+      - run: dpkg --add-architecture arm64
+      - run: dpkg --add-architecture i386
+      # - run: cat /'deb [arch=i386,arm64,armhf] mirror+file:/etc/apt/apt-mirrors.txt jammy main universe' >> /etc/apt/sources.list
+      - run: apt-get update
       
-      - run: sudo apt-get install libfontconfig-dev:armhf
-      - run: sudo apt-get install libfontconfig-dev:arm64
-      - run: sudo apt-get install libfontconfig-dev:i386
+      - run: apt-get install libfontconfig-dev:armhf
+      - run: apt-get install libfontconfig-dev:arm64
+      - run: apt-get install libfontconfig-dev:i386
