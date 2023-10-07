@@ -1,5 +1,6 @@
 on:
   workflow_dispatch:
+
   pull_request:
 
 jobs:
@@ -11,25 +12,34 @@ jobs:
       - run: sudo apt-get install gcc-multilib g++-multilib
       - run: ls -l /usr/aarch64-linux-gnu
       - run: ls -l /usr/aarch64-linux-gnu/bin
+      - run: ls -l /usr/aarch64-linux-gnu/lib
       - run: ls -l /usr/aarch64-linux-gnu/include
       - run: ls -l /usr/aarch64-linux-gnu/include/c++/
       - run: ls -l /usr/aarch64-linux-gnu/include/c++/current/
+
       - run: ls -l /usr/arm-linux-gnueabihf
       - run: ls -l /usr/arm-linux-gnueabihf/bin
+      - run: ls -l /usr/arm-linux-gnueabihf/lib
       - run: ls -l /usr/arm-linux-gnueabihf/include
       - run: ls -l /usr/arm-linux-gnueabihf/include/c++/
       - run: ls -l /usr/arm-linux-gnueabihf/include/c++/current/
+
       - run: ls -l /usr/i686-linux-gnu
       - run: ls -l /usr/i686-linux-gnu/bin
+      - run: ls -l /usr/i686-linux-gnu/lib
       - run: ls -l /usr/i686-linux-gnu/include
       - run: ls -l /usr/i686-linux-gnu/include/c++/
       - run: ls -l /usr/i686-linux-gnu/include/c++/current/
 
 
-      # - run: sudo dpkg --add-architecture armhf
-      # - run: sudo dpkg --add-architecture arm64
-      # - run: sudo dpkg --add-architecture i386
+      - run: sudo dpkg --add-architecture armhf
+      - run: sudo apt-get install libfontconfig-dev:armhf
+      
+      - run: sudo dpkg --add-architecture arm64
+      - run: sudo apt-get install libfontconfig-dev:arm64
+
+      - run: sudo dpkg --add-architecture i386
+      - run: sudo apt-get install libfontconfig-dev:i386
+
       # - run: ls -l /usr
-      # - run: ls -l /usr/bin
-      # - run: ls -l /usr/lib
       # - run: ls -l /usr/include
