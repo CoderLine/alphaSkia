@@ -141,6 +141,8 @@ partial class Build
             else
             {
                 GitTool("submodule update --init --recursive");
+                var dependenciesScript = SkiaPath / "tools" / "install_dependencies.sh";
+                ToolResolver.GetPathTool("bash")($"{dependenciesScript}", workingDirectory: SkiaPath);
             }
         })
         .Triggers(LibAlphaSkia);
