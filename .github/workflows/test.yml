@@ -41,11 +41,12 @@ jobs:
       - run: sudo dpkg --add-architecture arm64
       - run: sudo dpkg --add-architecture i386
       # Limit current sources to amd64
-      - run: sudo sed -i "s/deb/deb [arch=amd64]/" /etc/apt/sources.list
+      - run: sudo sed -i "s/deb /deb [arch=amd64] /" /etc/apt/sources.list
+      - run: sudo sed -i "s/deb-src /deb-src [arch=amd64] /" /etc/apt/sources.list
       - run: sudo cat /etc/apt/sources.list
       # Add other archs from ports.ubuntu.com
-      - run: sudo echo 'deb [arch=i386,arm64,armhf] http://ports.ubuntu.com/ubuntu-ports jammy main universe' >> /etc/apt/sources.list
-      - run: sudo echo 'deb-src [arch=i386,arm64,armhf] http://ports.ubuntu.com/ubuntu-ports jammy main universe' >> /etc/apt/sources.list
+      - run: sudo su -c "echo 'deb [arch=i386,arm64,armhf] http://ports.ubuntu.com/ubuntu-ports jammy main universe' >> /etc/apt/sources.list"
+      - run: sudo su -c "echo 'deb-src [arch=i386,arm64,armhf] http://ports.ubuntu.com/ubuntu-ports jammy main universe' >> /etc/apt/sources.list"
       - run: sudo apt-get update
       
       - run: sudo apt-get install libfontconfig-dev:armhf
