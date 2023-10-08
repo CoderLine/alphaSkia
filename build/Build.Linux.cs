@@ -27,8 +27,9 @@ partial class Build
 
         if (arch == Architecture.Arm || arch == Architecture.Arm64)
         {
-            sudo("sed -i 's/deb /deb [arch=amd64,i386] /' /etc/apt/sources.list");
-            sudo("sed -i 's/deb-src /deb-src [arch=amd64,i386] /' /etc/apt/sources.list");
+            sudo("sed -i \"\"\"s/deb /deb [arch=amd64,i386] /\"\"\" /etc/apt/sources.list");
+            sudo("sed -i \"\"\"s/deb-src /deb-src [arch=amd64,i386] /\"\"\" /etc/apt/sources.list");
+            sudo("cat /etc/apt/sources.list");
             sudo(
                 $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list\"\"\"");
             sudo(
