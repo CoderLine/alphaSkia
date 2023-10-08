@@ -19,6 +19,7 @@ partial class Build
         bash($"{dependenciesScript}", workingDirectory: SkiaPath);
 
         var arch = Architecture.LinuxArch;
+        
         sudo($"apt-get update");
         sudo("apt-get install -y aptitude");
 
@@ -26,16 +27,16 @@ partial class Build
 
         if (arch == Architecture.Arm || arch == Architecture.Arm64)
         {
-            sudo("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
-            sudo("sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
+            sudo("sed -i 's/deb /deb [arch=amd64,i386] /' /etc/apt/sources.list");
+            sudo("sed -i 's/deb-src /deb-src [arch=amd64,i386] /' /etc/apt/sources.list");
             sudo(
-                $"su -c \"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list\"");
+                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list\"\"\"");
             sudo(
-                $"su -c \"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list\"");
+                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.lis\"\"\"");
             sudo(
-                $"su -c \"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list\"");
+                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list\"\"\"");
             sudo(
-                $"su -c \"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list\"");
+                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list\"\"\"");
         }
 
         sudo($"apt-get update");
