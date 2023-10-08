@@ -22,7 +22,7 @@ partial class Build
         sudo($"apt-get update");
         sudo("apt-get install -y aptitude");
 
-        sudo($"dpkg -add-architecture {arch}");
+        sudo($"dpkg --add-architecture {arch}");
 
         if (arch == Architecture.Arm || arch == Architecture.Arm64)
         {
