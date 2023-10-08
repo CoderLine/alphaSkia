@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 
@@ -19,30 +20,37 @@ partial class Build
         bash($"{dependenciesScript}", workingDirectory: SkiaPath);
 
         var arch = Architecture.LinuxArch;
-        
-        sudo($"apt-get update");
-        sudo("apt-get install -y aptitude");
 
-        sudo($"dpkg --add-architecture {arch}");
-
-        if (arch == Architecture.Arm || arch == Architecture.Arm64)
+        // cross compilation
+        if (Architecture != Architecture.X64)
         {
-            sudo("sed -i \"\"\"s/deb /deb [arch=amd64,i386] /\"\"\" /etc/apt/sources.list");
-            sudo("sed -i \"\"\"s/deb-src /deb-src [arch=amd64,i386] /\"\"\" /etc/apt/sources.list");
-            sudo("cat /etc/apt/sources.list");
-            sudo(
-                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list\"\"\"");
-            sudo(
-                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.lis\"\"\"");
-            sudo(
-                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list\"\"\"");
-            sudo(
-                $"su -c \"\"\"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list\"\"\"");
-        }
+            var crossInstallDependencies = new StringBuilder();
+            crossInstallDependencies.AppendLine("apt-get update");
+            crossInstallDependencies.AppendLine("apt-get install -y aptitude");
+            crossInstallDependencies.AppendLine($"dpkg --add-architecture {arch}");
 
-        sudo($"apt-get update");
-        sudo($"aptitude install -y crossbuild-essential-{arch} libstdc++-11-dev-{arch}-cross");
-        sudo($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch}");
+            if (arch == Architecture.Arm || arch == Architecture.Arm64)
+            {
+                crossInstallDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
+                crossInstallDependencies.AppendLine("sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
+                crossInstallDependencies.AppendLine("cat /etc/apt/sources.list");
+                crossInstallDependencies.AppendLine($"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
+                crossInstallDependencies.AppendLine(
+                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
+                crossInstallDependencies.AppendLine(
+                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
+                crossInstallDependencies.AppendLine(
+                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.lis");
+                crossInstallDependencies.AppendLine("apt-get update");
+            }
+
+            crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{arch} libstdc++-11-dev-{arch}-cross");
+            crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch}");
+
+            var scriptFile = SkiaPath / "tools" / "cross_install_dependencies.sh";
+            File.WriteAllText(scriptFile, crossInstallDependencies.ToString());
+            sudo($"bash {scriptFile}");
+        }
     }
 
     void BuildLibAlphaSkiaLinux()
