@@ -132,7 +132,8 @@ partial class Build
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
-        .Before(SetupDepotTools) // ensure it runs before any oher targets
+        // ensure it runs before any oher targets
+        .Before(SetupDepotTools, PatchSkiaBuildFiles, GitSyncDepsLibAlphaSkia)
         .Executes(() =>
         {
             if (SkipLibAlphaSkia)
