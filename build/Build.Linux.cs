@@ -20,7 +20,7 @@ partial class Build
 
         var arch = Architecture.LinuxArch;
         sudo($"apt-get update");
-        sudo("apt-get upgrade -y");
+        sudo("apt-get install -y aptitude");
 
         sudo($"dpkg -add-architecture {arch}");
 
