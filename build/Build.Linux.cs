@@ -53,6 +53,10 @@ partial class Build
             crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{arch} libstdc++-11-dev-{arch}-cross");
             crossInstallDependencies.AppendLine("echo Installing arch libs");
             crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch} freeglut3-dev:{arch}");
+            crossInstallDependencies.AppendLine("echo Libs");
+            crossInstallDependencies.AppendLine($"ls -l /usr/lib/{Architecture.LinuxCrossToolchain}");
+            crossInstallDependencies.AppendLine("echo Includes");
+            crossInstallDependencies.AppendLine($"ls /usr/{Architecture.LinuxCrossToolchain}/include");
 
             var scriptFile = SkiaPath / "tools" / "cross_install_dependencies.sh";
             File.WriteAllText(scriptFile, crossInstallDependencies.ToString());
@@ -111,49 +115,26 @@ partial class Build
     void SetClangLinux(Dictionary<string, string> gnArgs)
     {
         AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'");
+        AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
 
         gnArgs["cc"] = "clang";
         gnArgs["cxx"] = "'clang++'";
 
-        string crossCompileToolchainArch = null;
-        string crossCompileTargetArch = null;
-        if (Architecture == Architecture.X64)
-        {
-            AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
-        }
-        else if (Architecture == Architecture.X86)
-        {
-            // TODO
-            crossCompileToolchainArch = "i686-linux-gnu";
-            crossCompileTargetArch = "i686-linux-gnu";
-            AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
-        }
-        else if (Architecture == Architecture.Arm64)
-        {
-            crossCompileToolchainArch = "aarch64-linux-gnu";
-            crossCompileTargetArch = "aarch64-linux-gnu";
-            AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
-        }
-        else if (Architecture == Architecture.Arm)
-        {
-            crossCompileToolchainArch = "arm-linux-gnueabihf";
-            crossCompileTargetArch = "armv7a-linux-gnueabihf";
-            AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
-        }
-
+        var crossCompileToolchainArch = Architecture.LinuxCrossToolchain;
+        var crossCompileTargetArch = Architecture.LinuxCrossTargetArch;
+       
         if (!string.IsNullOrEmpty(crossCompileToolchainArch) && TargetOs == TargetOperatingSystem.Linux)
         {
             var sysroot = $"/usr/{crossCompileToolchainArch}";
             var init = $"'--sysroot={sysroot}', '--target={crossCompileTargetArch}'";
             var bin = $"'-B{sysroot}/bin/' ";
-            var libs = $"'-L{sysroot}/lib/', '-L/usr/lib/{crossCompileToolchainArch}' ";
+            var libs = $"'-L/usr/lib/{crossCompileToolchainArch}'";
 
             AbsolutePath sysRootPath = sysroot;
             var newestCpp = Directory.EnumerateDirectories(sysRootPath / "include" / "c++")
                 .Select(Path.GetFileName)
                 .OrderByDescending(x => x)
                 .First();
-
 
             var includes =
                 $"'-I{sysroot}/include', " +

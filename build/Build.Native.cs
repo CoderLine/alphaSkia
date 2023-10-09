@@ -33,12 +33,14 @@ public class TargetOperatingSystem : Enumeration
 [TypeConverter(typeof(TypeConverter<Architecture>))]
 public class Architecture : Enumeration
 {
-    public static Architecture X64 = new() { Value = "x64", LinuxArch = "amd64" };
-    public static Architecture X86 = new() { Value = "x86", LinuxArch = "i386" };
-    public static Architecture Arm = new() { Value = "arm", LinuxArch = "armhf" };
-    public static Architecture Arm64 = new() { Value = "arm64", LinuxArch = "arm64" };
+    public static Architecture X64 = new() { Value = "x64", LinuxArch = "amd64", LinuxCrossToolchain = "", LinuxCrossTargetArch = ""};
+    public static Architecture X86 = new() { Value = "x86", LinuxArch = "i386", LinuxCrossToolchain = "i686-linux-gnu", LinuxCrossTargetArch = "i686-linux-gnu"};
+    public static Architecture Arm = new() { Value = "arm", LinuxArch = "armhf", LinuxCrossToolchain = "arm-linux-gnueabihf", LinuxCrossTargetArch = "armv7a-linux-gnueabihf"};
+    public static Architecture Arm64 = new() { Value = "arm64", LinuxArch = "arm64", LinuxCrossToolchain = "aarch64-linux-gnu", LinuxCrossTargetArch = "aarch64-linux-gnu"};
 
     public string LinuxArch { get; private set; }
+    public string LinuxCrossToolchain { get; private set; }
+    public string LinuxCrossTargetArch { get; private set; }
 }
 
 [TypeConverter(typeof(TypeConverter<Variant>))]
