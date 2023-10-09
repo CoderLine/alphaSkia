@@ -1,52 +1,26 @@
-name: 'Build Skia'
-description: 'Builds the Skia Native library'
-inputs: 
-  use-cache:
-    description: 'Whether to try using the pre-compiled binary from the cache.'
-    required: false
-    default: 'false'
-  architecture:
-    description: 'The CPU architecture for which to build the lib'
-    required: true
-  variant:
-    description: 'The library type to build'
-    required: true
-  target-os:
-    description: 'The target Operating system identifier'
-    required: true
+on:
+  pull_request:
+  workflow_dispatch:
 
-runs:
-  using: "composite"
-  steps:
-    - uses: actions/cache/restore@v3
-      if: ${{ inputs.use-cache }}
-      with:
-        path: dist
-        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }}
-        restore-keys: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y aptitude
+      - run: sudo dpkg --add-architecture armhf
+      - run: sudo sed -i "s/deb /deb [arch=amd64,i386] /" /etc/apt/sources.list
+      - run: sudo sed -i "s/deb-src /deb-src [arch=amd64,i386] /" /etc/apt/sources.list
+      - run: sudo su -c "echo 'deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list"
+      - run: sudo su -c "echo 'deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list"
+      - run: sudo su -c "echo 'deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list"
+      - run: sudo su -c "echo 'deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list"
+      - run: sudo apt-get update
+      - run: sudo aptitude install -y crossbuild-essential-armhf libstdc++-11-dev-armhf-cross
+      - run: sudo aptitude install -y aptitude install -y libfontconfig-dev:armhf libgl1-mesa-dev:armhf libglu1-mesa-dev:armhf freeglut3-dev:armhf
+      - run: ls /usr
+      - run: ls /usr/lib
+      - run: ls /usr/lib/arm-linux-gnueabihf
+      - run: ls /usr/arm-linux-gnueabihf/include
 
-    - id: build-info
-      run: |
-        if [ ${{ runner.os }} != 'Windows' ]; then
-          echo "script=./build.sh" >> "$GITHUB_OUTPUT"
-          echo "shell=bash" >> "$GITHUB_OUTPUT"
-        else
-          echo "script=./build.cmd" >> "$GITHUB_OUTPUT"
-          echo "shell=pwsh" >> "$GITHUB_OUTPUT"
-        fi
-      shell: bash
-
-    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }} --use-cache ${{ inputs.use-cache }}
-      shell: ${{ steps.build-info.outputs.shell }}
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
-        path: artifacts
-
-    - uses: actions/cache/save@v3
-      with:
-        path: dist
-        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }} 
-
-
+ 
