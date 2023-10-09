@@ -15,7 +15,7 @@ jobs:
       - run: sudo su -c "echo 'deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list"
       - run: sudo apt-get update
       - run: sudo aptitude install -y crossbuild-essential-armhf libstdc++-11-dev-armhf-cross
-      - run: sudo aptitude install -y aptitude install -y libfontconfig-dev:armhf libgl1-mesa-dev:armhf libglu1-mesa-dev:armhf freeglut3-dev:armhf
+      - run: sudo aptitude install -y libfontconfig-dev:armhf libgl1-mesa-dev:armhf libglu1-mesa-dev:armhf freeglut3-dev:armhf
       - run: ls /usr
       - run: ls /usr/lib
       - run: ls /usr/lib/arm-linux-gnueabihf
