@@ -25,26 +25,33 @@ partial class Build
         if (Architecture != Architecture.X64)
         {
             var crossInstallDependencies = new StringBuilder();
+            crossInstallDependencies.AppendLine("echo Install Aptitude");
             crossInstallDependencies.AppendLine("apt-get update");
             crossInstallDependencies.AppendLine("apt-get install -y aptitude");
+            
+            crossInstallDependencies.AppendLine($"echo Adding Arch {arch}");
             crossInstallDependencies.AppendLine($"dpkg --add-architecture {arch}");
 
             if (arch == Architecture.Arm || arch == Architecture.Arm64)
             {
+                crossInstallDependencies.AppendLine("echo Modifying sources.list");
                 crossInstallDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine("sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
-                crossInstallDependencies.AppendLine("cat /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine($"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
                     $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
                     $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
-                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.lis");
+                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
             }
-
+            crossInstallDependencies.AppendLine("echo Installing Dependencies with sources:");
+            crossInstallDependencies.AppendLine("cat /etc/apt/sources.list");
+            crossInstallDependencies.AppendLine("echo Updating Packages");
             crossInstallDependencies.AppendLine("apt-get update");
+            crossInstallDependencies.AppendLine("echo Installing main build tools");
             crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{arch} libstdc++-11-dev-{arch}-cross");
+            crossInstallDependencies.AppendLine("echo Installing arch libs");
             crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch} freeglut3-dev:{arch}");
 
             var scriptFile = SkiaPath / "tools" / "cross_install_dependencies.sh";
@@ -134,7 +141,7 @@ partial class Build
             AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
         }
 
-        if (!string.IsNullOrEmpty(crossCompileToolchainArch))
+        if (!string.IsNullOrEmpty(crossCompileToolchainArch) && TargetOs == TargetOperatingSystem.Linux)
         {
             var sysroot = $"/usr/{crossCompileToolchainArch}";
             var init = $"'--sysroot={sysroot}', '--target={crossCompileTargetArch}'";
