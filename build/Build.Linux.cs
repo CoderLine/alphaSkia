@@ -9,7 +9,7 @@ partial class Build
 {
     void InstallDependenciesLinux()
     {
-        if (!IsGitHubActions || TargetOs != TargetOperatingSystems.Linux)
+        if (!IsGitHubActions || TargetOs != TargetOperatingSystem.Linux)
         {
             return;
         }
