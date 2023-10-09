@@ -9,7 +9,7 @@ partial class Build
 {
     void InstallDependenciesLinux()
     {
-        if (!IsGitHubActions)
+        if (!IsGitHubActions || TargetOs != TargetOperatingSystems.Linux)
         {
             return;
         }
@@ -41,11 +41,11 @@ partial class Build
                     $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
                     $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.lis");
-                crossInstallDependencies.AppendLine("apt-get update");
             }
 
+            crossInstallDependencies.AppendLine("apt-get update");
             crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{arch} libstdc++-11-dev-{arch}-cross");
-            crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch}");
+            crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch} freeglut3-dev:{arch}");
 
             var scriptFile = SkiaPath / "tools" / "cross_install_dependencies.sh";
             File.WriteAllText(scriptFile, crossInstallDependencies.ToString());
@@ -139,7 +139,7 @@ partial class Build
             var sysroot = $"/usr/{crossCompileToolchainArch}";
             var init = $"'--sysroot={sysroot}', '--target={crossCompileTargetArch}'";
             var bin = $"'-B{sysroot}/bin/' ";
-            var libs = $"'-L{sysroot}/lib/' ";
+            var libs = $"'-L{sysroot}/lib/', '-L/usr/lib/{crossCompileToolchainArch}' ";
 
             AbsolutePath sysRootPath = sysroot;
             var newestCpp = Directory.EnumerateDirectories(sysRootPath / "include" / "c++")
