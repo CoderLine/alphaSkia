@@ -45,6 +45,9 @@ partial class Build
                     $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
             }
             
+            installDependencies.AppendLine("echo New sources.list is:");
+            installDependencies.AppendLine("cat /etc/apt/sources.list");
+            
             installDependencies.AppendLine("echo Updating Packages");
             installDependencies.AppendLine("apt-get update");
             installDependencies.AppendLine("echo Installing main build tools");
