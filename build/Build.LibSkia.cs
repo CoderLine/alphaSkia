@@ -5,7 +5,7 @@ using Nuke.Common.IO;
 
 partial class Build
 {
-    bool LibSkiaSkip => CanUseCachedBinaries("skia", TargetOs.RuntimeIdentifier);
+    bool LibSkiaSkip => CanUseCachedBinaries("libSkia", TargetOs.RuntimeIdentifier);
 
     public Target LibSkiaGitSyncDeps => _ => _
         .Unlisted()

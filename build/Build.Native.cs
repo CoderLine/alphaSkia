@@ -34,7 +34,19 @@ partial class Build
     [Parameter] readonly bool ParallelGitClone = GetVariable<bool?>("GIT_CLONE_PARALLEL") ?? true;
 
     [Parameter] readonly string GitExe = GetVariable<string>("GIT_EXE") ?? "git";
-    Tool GitTool => File.Exists(GitExe) ? ToolResolver.GetTool(GitExe) : ToolResolver.GetPathTool("git");
+    Tool GitTool
+    {
+        get
+        {
+            var gitTool = File.Exists(GitExe) ? ToolResolver.GetTool(GitExe) : ToolResolver.GetPathTool("git");
+            return (arguments, directory, variables, timeout, output, invocation, logger, handler) =>
+                gitTool(arguments, directory, variables, timeout, output, invocation, logger ?? ((_, s) =>
+                {
+                    // git logs a lot of stuff to stderr. we rather silence this
+                    Log.Debug(s);
+                }), handler);
+        }
+    }
 
     // Output Options
     [Parameter] readonly TargetOperatingSystem TargetOs;
