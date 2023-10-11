@@ -139,7 +139,7 @@ partial class Build
 
     void BuildAlphaSkia()
     {
-        var gnArgs = PrepareNativeBuild();
+        var gnArgs = PrepareNativeBuild(Variant);
         var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
 
         string buildTarget;

@@ -266,7 +266,7 @@ partial class Build
         );
     }
 
-    Dictionary<string, string> PrepareNativeBuild()
+    Dictionary<string, string> PrepareNativeBuild(Variant variant)
     {
         if (OperatingSystem.IsLinux() && IsGitHubActions)
         {
@@ -299,7 +299,7 @@ partial class Build
 
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;
         gnArgs["target_cpu"] = Architecture;
-        gnArgs["is_shared_alphaskia"] = Variant.IsShared.ToString().ToLowerInvariant();
+        gnArgs["is_shared_alphaskia"] = variant.IsShared.ToString().ToLowerInvariant();
         
         return gnArgs;
     }

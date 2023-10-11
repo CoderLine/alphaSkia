@@ -105,7 +105,7 @@ partial class Build
 
     void BuildSkia()
     {
-        var gnArgs = PrepareNativeBuild();
+        var gnArgs = PrepareNativeBuild(Variant.Static);
         
         var libDir = GetLibDirectory("libskia", TargetOs, Architecture, Variant.Static);
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
