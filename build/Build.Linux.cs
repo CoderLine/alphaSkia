@@ -140,8 +140,7 @@ partial class Build
             var includes =
                 $"'-I{sysroot}/include', " +
                 $"'-I{sysroot}/include/c++/{newestCpp}', " +
-                $"'-I{sysroot}/include/c++/{newestCpp}/{crossCompileToolchainArch}', " +
-                $"'-I/usr/include/' ";
+                $"'-I{sysroot}/include/c++/{newestCpp}/{crossCompileToolchainArch}'";
 
             AppendToFlagList(gnArgs, "extra_asmflags", $"{init}, '-no-integrated-as', {bin}, {includes}");
             AppendToFlagList(gnArgs, "extra_ldflags", $"{init}, {bin}, {libs}");
