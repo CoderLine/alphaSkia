@@ -81,7 +81,7 @@ partial class Build
                 alphaskia_build("libalphaskia") {
                   public_configs = [ ":alphaskia_public" ]
                   configs += [ ":alphaskia_public" ]
-                  sources = alphaskia_wrFapper_sources
+                  sources = alphaskia_wrapper_sources
                 }
                 alphaskia_build("libalphaskiajni") {
                   public_configs = [ ":alphaskia_public" ]
