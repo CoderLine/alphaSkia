@@ -152,7 +152,7 @@ partial class Build
         }
         else if (Variant == Variant.Jni)
         {
-            buildTarget = "libalphaskiaJni";
+            buildTarget = "libalphaskiajni";
             gnArgs["is_shared_alphaskia"] = "true";
 
             var alphaSkiaInclude = DistBasePath / "include";
