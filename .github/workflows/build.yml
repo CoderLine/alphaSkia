@@ -191,7 +191,7 @@ jobs:
 # Libraries
   dotnet:
     runs-on: windows-latest
-    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia]
+    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia, ios-alphaskia]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
@@ -207,7 +207,7 @@ jobs:
 
   java:
     runs-on: ubuntu-latest
-    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia, ios-alphaskia]
+    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
