@@ -1,6 +1,6 @@
 package net.alphatab.alphaskia;
 
-public class AlphaSkiaIOS {
+public class AlphaSkiaMacOs {
     public static final String[] libraries = {
             "native/macos-" + getCurrentArchitecture() + "/libAlphaSkiaJni.so"
     };
