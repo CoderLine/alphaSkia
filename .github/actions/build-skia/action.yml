@@ -8,9 +8,6 @@ inputs:
   architecture:
     description: 'The CPU architecture for which to build the lib'
     required: true
-  variant:
-    description: 'The library type to build'
-    required: true
   target-os:
     description: 'The target Operating system identifier'
     required: true
@@ -22,8 +19,8 @@ runs:
       if: ${{ inputs.use-cache }}
       with:
         path: dist
-        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }}
-        restore-keys: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
+        key: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }}
+        restore-keys: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
 
     - id: build-info
       run: |
@@ -36,15 +33,15 @@ runs:
         fi
       shell: bash
 
-    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }} --use-cache ${{ inputs.use-cache }}
+    - run: ${{ steps.build-info.outputs.script }} LibSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --use-cache ${{ inputs.use-cache }}
       shell: ${{ steps.build-info.outputs.shell }}
 
     - uses: actions/upload-artifact@v3
       with:
-        name: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
+        name: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
         path: artifacts
 
     - uses: actions/cache/save@v3
       with:
         path: dist
-        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }} 
+        key: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }} 

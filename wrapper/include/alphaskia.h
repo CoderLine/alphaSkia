@@ -5,7 +5,7 @@
 #if !defined(AS_API)
 #if defined(ALPHASKIA_DLL)
 #if defined(_MSC_VER)
-#if SKIA_IMPLEMENTATION
+#if ALPHASKIA_IMPLEMENTATION
 #define AS_API __declspec(dllexport)
 #else
 #define AS_API __declspec(dllimport)

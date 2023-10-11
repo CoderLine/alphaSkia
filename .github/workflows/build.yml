@@ -4,38 +4,38 @@ on:
       use-skia-cache:
         type: boolean
         description: Use Skia Binary from cache
-        default: 'false'
+        default: false
 
 jobs:
 
 #
 # Windows
-  windows:
+  windows-skia:
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm64]
-        variant: ['shared', 'static']
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/build-skia
         with:
           use-cache: ${{ inputs.use-skia-cache }}
           architecture: ${{ matrix.architecture }}
-          variant: ${{ matrix.variant }}
           target-os: windows
-  windows-jni:
+  windows-alphaskia:
     runs-on: windows-latest
-    needs: [windows]
+    needs: [windows-skia]
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm64]
-        variant: ['shared']
+        variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/build-jni
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
           variant: ${{ matrix.variant }}
@@ -43,32 +43,32 @@ jobs:
 
 #
 # Linux
-  linux:
+  linux-skia:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm, arm64]
-        variant: ['shared', 'static']
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/build-skia
         with:
           use-cache: ${{ inputs.use-skia-cache }}
           architecture: ${{ matrix.architecture }}
-          variant: ${{ matrix.variant }}
           target-os: linux
-  linux-jni:
+  linux-alphaskia:
     runs-on: ubuntu-latest
-    needs: [linux]
+    needs: [linux-skia]
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm, arm64]
-        variant: ['shared']
+        variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/build-jni
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
           variant: ${{ matrix.variant }}
@@ -76,72 +76,95 @@ jobs:
 
 #
 # Android
-  android:
+  android-skia:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm, arm64]
-        variant: ['shared', 'static']
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - uses: ./.github/actions/build-skia
         with:
           use-cache: ${{ inputs.use-skia-cache }}
           architecture: ${{ matrix.architecture }}
-          variant: ${{ matrix.variant }}
           target-os: android
-  android-jni:
+  android-alphaskia:
     runs-on: ubuntu-latest
-    needs: [android]
+    needs: [android-skia]
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm, arm64]
-        variant: ['shared']
+        variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/build-jni
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
           variant: ${{ matrix.variant }}
           target-os: android
 #
 # MacOs
-  macos:
+  macos-skia:
     runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, arm64]
-        variant: ['shared', 'static']
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/build-skia
         with:
           use-cache: ${{ inputs.use-skia-cache }}
           architecture: ${{ matrix.architecture }}
-          variant: ${{ matrix.variant }}
           target-os: macos
-  macos-jni:
+  macos-alphaskia:
     runs-on: macos-latest
-    needs: [macos]
+    needs: [macos-skia]
     strategy:
       fail-fast: false
       matrix:
         architecture: [x64, arm64]
-        variant: ['shared']
+        variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/build-jni
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
           variant: ${{ matrix.variant }}
           target-os: macos
+
 #
 # iOS
-  ios:
+  ios-skia:
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: arm64
+            target-os: ios
+          - architecture: arm64
+            target-os: iossimulator
+          - architecture: x64
+            target-os: iossimulator
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          target-os: ${{ matrix.target-os }}
+  ios-alphaskia:
+    runs-on: macos-latest
+    needs: [ios-skia]
     strategy:
       fail-fast: false
       matrix:
@@ -157,17 +180,18 @@ jobs:
             target-os: iossimulator
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/build-skia
         with:
-          use-cache: ${{ inputs.use-skia-cache }}
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
+        with:
           architecture: ${{ matrix.architecture }}
           variant: ${{ matrix.variant }}
-          target-os: ${{ matrix.target-os }}
+          target-os: ${{ matrix.target-os }}          
 #
 # Libraries
   dotnet:
     runs-on: windows-latest
-    needs: [windows, linux, android, macos, ios]
+    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia, ios-alphaskia]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
@@ -183,7 +207,7 @@ jobs:
 
   java:
     runs-on: ubuntu-latest
-    needs: [windows-jni, linux-jni, android-jni, macos-jni]
+    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3

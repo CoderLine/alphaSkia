@@ -32,60 +32,6 @@ partial class Build
         }
     }
 
-    void BuildLibAlphaSkiaWindows()
-    {
-        var gnArgs = new Dictionary<string, string>();
-        string[] filesToCopy;
-        var isShared = Variant == Variant.Shared;
-        if (isShared)
-        {
-            filesToCopy = new[]
-            {
-                "libAlphaSkia.dll",
-                "libAlphaSkia.dll.lib",
-                "libAlphaSkia.dll.pdb"
-            };
-        }
-        else
-        {
-            filesToCopy = new[]
-            {
-                "libAlphaSkia.lib",
-                "skia.lib"
-            };
-        }
-
-        BuildSkiaWindows("libAlphaSkia", gnArgs, filesToCopy);
-    }
-
-    void BuildLibAlphaSkiaJniWindows()
-    {
-        var gnArgs = new Dictionary<string, string>();
-        var alphaSkiaInclude = DistBasePath / "include";
-        var jniInclude = JavaHome / "include";
-        var jniWinInclude = JavaHome / "include" / "win32";
-        gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
-
-        // Add Libs and lib search paths
-        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
-        gnArgs["extra_ldflags"] =
-            $"[ '/LIBPATH:{staticLibPath}', 'libAlphaSkia.lib', 'skia.lib', 'user32.lib', 'OpenGL32.lib' ]";
-
-        BuildSkiaWindows("libAlphaSkiaJni", gnArgs, new[]
-        {
-            "libAlphaSkiaJni.dll",
-            "libAlphaSkiaJni.dll.lib",
-            "libAlphaSkiaJni.dll.pdb"
-        });
-    }
-
-    void BuildSkiaWindows(string buildTarget, Dictionary<string, string> gnArgs,
-        string[] filesToCopy)
-    {
-        gnArgs["skia_enable_fontmgr_win_gdi"] = "false";
-        BuildSkia(buildTarget, gnArgs, filesToCopy);
-    }
-
     void SetClangWindows(Dictionary<string, string> gnArgs)
     {
         if (!string.IsNullOrEmpty(LlvmHome))
@@ -101,9 +47,6 @@ partial class Build
                 gnArgs["clang_win_version"] = newestVersion.Name;
             }
         }
-
-        gnArgs["cc"] = "clang";
-        gnArgs["cxx"] = "'clang++'";
 
         // override win_vc with the command line args
         var vsInstall = VsInstall;

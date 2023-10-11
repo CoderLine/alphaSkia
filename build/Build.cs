@@ -33,14 +33,9 @@ partial class Build : NukeBuild
     }
 
     Target PrepareGitHubArtifacts => _ => _
+        .OnlyWhenStatic(() => IsGitHubActions)
         .Executes(() =>
         {
-            if (!IsGitHubActions)
-            {
-                Log.Debug("Skipping GitHub Artifact preparation, GITHUB_ACTIONS was not set");
-                return;
-            }
-            
             // We auto download all artifacts of all dependencies
             // which results in a nested structure like
             // dist/<artifactname>/<files>
@@ -73,14 +68,15 @@ partial class Build : NukeBuild
             }
         });
     
-    bool CanUseCachedBinaries(string buildTarget, string targetOsDir)
+    bool CanUseCachedBinaries(string buildTarget, Variant variant)
     {
         if (!UseCache)
         {
+            Log.Debug($"Cache for {GetLibDirectory(buildTarget, variant: variant)} is disabled");
             return false;
         }
 
-        if (!HasCachedFiles(buildTarget, targetOsDir))
+        if (!HasCachedFiles(buildTarget, variant))
         {
             return false;
         }

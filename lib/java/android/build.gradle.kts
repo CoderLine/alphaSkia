@@ -12,22 +12,22 @@ tasks.jar {
     archiveBaseName = "net.alphatab.alphaskia.android"
 
     into("native/android-x64/") {
-        from(rootProject.projectDir.resolve("../../dist/libAlphaSkiaJni-android-x64-shared/")) {
+        from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-x64-shared/")) {
             include("*.so")
         }
     }
     into("native/android-x86/") {
-        from(rootProject.projectDir.resolve("../../dist/libAlphaSkiaJni-android-x86-shared/")) {
+        from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-x86-shared/")) {
             include("*.so")
         }
     }
     into("native/android-arm64/") {
-        from(rootProject.projectDir.resolve("../../dist/libAlphaSkiaJni-android-arm64-shared/")) {
+        from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-arm64-shared/")) {
             include("*.so")
         }
     }
     into("native/android-arm/") {
-        from(rootProject.projectDir.resolve("../../dist/libAlphaSkiaJni-android-arm-shared/")) {
+        from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-arm-shared/")) {
             include("*.so")
         }
     }

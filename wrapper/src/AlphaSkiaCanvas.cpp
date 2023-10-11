@@ -8,7 +8,7 @@
 #include "../../externals/skia/include/core/SkPath.h"
 #include "../../externals/skia/include/core/SkStream.h"
 #include "../../externals/skia/include/core/SkFontMetrics.h"
-#include "../../externals/skia/src/core/SkTextBlobPriv.h"
+#include "../../externals/skia/include/core/SkTextBlob.h"
 
 #include "../../externals/skia/third_party/externals/harfbuzz/src/hb.h"
 #include "../../externals/skia/third_party/externals/harfbuzz/src/hb-ot.h"

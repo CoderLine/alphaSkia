@@ -110,13 +110,14 @@
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsLibAlphaSkia",
-              "GitSyncDepsLibAlphaSkiaJni",
               "Java",
               "LibAlphaSkia",
-              "LibAlphaSkiaJni",
-              "LibAlphaSkiaWithCache",
-              "PatchSkiaBuildFiles",
+              "LibAlphaSkiaGitSyncDeps",
+              "LibAlphaSkiaPatchSkiaBuildFiles",
+              "LibSkia",
+              "LibSkiaGitSyncDeps",
+              "LibSkiaPatchSkiaBuildFiles",
+              "LibSkiaWithCache",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
             ]
@@ -132,13 +133,14 @@
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsLibAlphaSkia",
-              "GitSyncDepsLibAlphaSkiaJni",
               "Java",
               "LibAlphaSkia",
-              "LibAlphaSkiaJni",
-              "LibAlphaSkiaWithCache",
-              "PatchSkiaBuildFiles",
+              "LibAlphaSkiaGitSyncDeps",
+              "LibAlphaSkiaPatchSkiaBuildFiles",
+              "LibSkia",
+              "LibSkiaGitSyncDeps",
+              "LibSkiaPatchSkiaBuildFiles",
+              "LibSkiaWithCache",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
             ]
@@ -148,6 +150,8 @@
           "type": "string",
           "enum": [
             "Android",
+            "iOS",
+            "iOSSimulator",
             "Linux",
             "MacOs",
             "Windows"
@@ -159,6 +163,7 @@
         "Variant": {
           "type": "string",
           "enum": [
+            "Jni",
             "Shared",
             "Static"
           ]

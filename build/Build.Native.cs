@@ -1,76 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Serilog;
 using static Nuke.Common.EnvironmentInfo;
-
-[TypeConverter(typeof(TypeConverter<TargetOperatingSystem>))]
-public class TargetOperatingSystem : Enumeration
-{
-    public static TargetOperatingSystem Windows = new()
-        { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
-
-    public static TargetOperatingSystem Linux = new()
-        { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
-
-    public static TargetOperatingSystem Android = new()
-        { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
-
-    public static TargetOperatingSystem MacOs = new()
-        { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
-
-    public static TargetOperatingSystem iOS = new()
-        { Value = "ios", SkiaTargetOs = "ios", RuntimeIdentifier = "ios" };
-
-    public static TargetOperatingSystem iOSSimulator = new()
-        { Value = "ios", SkiaTargetOs = "ios", RuntimeIdentifier = "iossimulator" };
-
-    public string SkiaTargetOs { get; private set; }
-    public string RuntimeIdentifier { get; private set; }
-}
-
-[TypeConverter(typeof(TypeConverter<Architecture>))]
-public class Architecture : Enumeration
-{
-    public static Architecture X64 = new()
-        { Value = "x64", LinuxArch = "amd64", LinuxCrossToolchain = "", LinuxCrossTargetArch = "" };
-
-    public static Architecture X86 = new()
-    {
-        Value = "x86", LinuxArch = "i386", LinuxCrossToolchain = "i686-linux-gnu",
-        LinuxCrossTargetArch = "i686-linux-gnu"
-    };
-
-    public static Architecture Arm = new()
-    {
-        Value = "arm", LinuxArch = "armhf", LinuxCrossToolchain = "arm-linux-gnueabihf",
-        LinuxCrossTargetArch = "armv7a-linux-gnueabihf"
-    };
-
-    public static Architecture Arm64 = new()
-    {
-        Value = "arm64", LinuxArch = "arm64", LinuxCrossToolchain = "aarch64-linux-gnu",
-        LinuxCrossTargetArch = "aarch64-linux-gnu"
-    };
-
-    public string LinuxArch { get; private set; }
-    public string LinuxCrossToolchain { get; private set; }
-    public string LinuxCrossTargetArch { get; private set; }
-}
-
-[TypeConverter(typeof(TypeConverter<Variant>))]
-public class Variant : Enumeration
-{
-    public static Variant Static = new() { Value = "static" };
-    public static Variant Shared = new() { Value = "shared" };
-}
 
 partial class Build
 {
@@ -97,154 +34,36 @@ partial class Build
     [Parameter] readonly bool ParallelGitClone = GetVariable<bool?>("GIT_CLONE_PARALLEL") ?? true;
 
     [Parameter] readonly string GitExe = GetVariable<string>("GIT_EXE") ?? "git";
-    Tool GitTool => File.Exists(GitExe) ? ToolResolver.GetTool(GitExe) : ToolResolver.GetPathTool("git");
+    Tool GitTool
+    {
+        get
+        {
+            var gitTool = File.Exists(GitExe) ? ToolResolver.GetTool(GitExe) : ToolResolver.GetPathTool("git");
+            return (arguments, directory, variables, timeout, output, invocation, logger, handler) =>
+                gitTool(arguments, directory, variables, timeout, output, invocation, logger ?? ((_, s) =>
+                {
+                    // git logs a lot of stuff to stderr. we rather silence this
+                    Log.Debug(s);
+                }), handler);
+        }
+    }
 
     // Output Options
     [Parameter] readonly TargetOperatingSystem TargetOs;
     [Parameter] readonly Architecture Architecture;
-
     [Parameter] readonly Variant Variant;
-    [Parameter(Name = "use-cache")] readonly string UseCacheParam;
 
+    [Parameter(Name = "use-cache")] readonly string UseCacheParam;
     bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
 
-    bool SkipLibAlphaSkia => CanUseCachedBinaries("libAlphaSkia", TargetOs.RuntimeIdentifier);
-
-    public Target GitSyncDepsLibAlphaSkia => _ => _
-        .Unlisted()
-        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
-        .DependsOn(SetupDepotTools)
-        .Executes(() =>
-        {
-            // syncing all dependencies requires a lot of disk space
-            // exceeding also the availabel space on GHA runners
-            // here we try to only sync dependencies we know are needed
-            // This list is created based on the compile logs indicating
-            // which third party modules are needed
-            var requiredDependencies = new[]
-            {
-                "buildtools",
-                "third_party/externals/harfbuzz",
-                "third_party/externals/freetype",
-                "third_party/externals/libpng",
-                "third_party/externals/zlib",
-                "third_party/externals/wuffs",
-                "third_party/externals/vulkanmemoryallocator",
-
-                // Android font manager
-                "third_party/externals/expat"
-            };
-
-            return GitSyncDepsCustom(requiredDependencies);
-        });
-
-    public Target GitSyncDepsLibAlphaSkiaJni => _ => _
-        .Unlisted()
-        .DependsOn(SetupDepotTools)
-        .Executes(() =>
-        {
-            var requiredDependencies = new[]
-            {
-                "buildtools"
-            };
-
-            return GitSyncDepsCustom(requiredDependencies);
-        });
-
-    public Target LibAlphaSkiaWithCache => _ => _
-        .Unlisted()
-        .Requires(() => Architecture)
-        .Requires(() => Variant)
-        .Requires(() => TargetOs)
-        // ensure it runs before any oher targets
-        .Before(SetupDepotTools, PatchSkiaBuildFiles, GitSyncDepsLibAlphaSkia)
-        .Executes(() =>
-        {
-            if (SkipLibAlphaSkia)
-            {
-                FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
-                    FileExistsPolicy.OverwriteIfNewer);
-            }
-            else
-            {
-                GitTool("submodule update --init --recursive");
-                if (OperatingSystem.IsLinux())
-                {
-                    InstallDependenciesLinux();
-                }
-            }
-        })
-        .Triggers(LibAlphaSkia);
-
-    public Target LibAlphaSkia => _ => _
-        .DependsOn(GitSyncDepsLibAlphaSkia, PatchSkiaBuildFiles)
-        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
-        .Requires(() => Architecture)
-        .Requires(() => Variant)
-        .Requires(() => TargetOs)
-        .Executes(() =>
-        {
-            if (TargetOs == TargetOperatingSystem.Windows)
-            {
-                BuildLibAlphaSkiaWindows();
-            }
-            else if (TargetOs == TargetOperatingSystem.Linux)
-            {
-                BuildLibAlphaSkiaLinux();
-            }
-            else if (TargetOs == TargetOperatingSystem.Android)
-            {
-                BuildLibAlphaSkiaAndroid();
-            }
-            else if (TargetOs == TargetOperatingSystem.MacOs)
-            {
-                BuildLibAlphaSkiaMacOs();
-            }
-            else if (TargetOs == TargetOperatingSystem.iOS || TargetOs == TargetOperatingSystem.iOSSimulator)
-            {
-                BuildLibAlphaSkiaiOS();
-            }
-        });
-
-    public Target LibAlphaSkiaJni => _ => _
-        .DependsOn(PrepareGitHubArtifacts, GitSyncDepsLibAlphaSkiaJni, PatchSkiaBuildFiles)
-        .Requires(() => Architecture)
-        .Requires(() => Variant)
-        .Requires(() => TargetOs)
-        .Executes(() =>
-        {
-            GitTool("submodule update --init --recursive");
-            if (OperatingSystem.IsLinux())
-            {
-                InstallDependenciesLinux();
-            }
-
-            if (TargetOs == TargetOperatingSystem.Windows)
-            {
-                BuildLibAlphaSkiaJniWindows();
-            }
-            else if (TargetOs == TargetOperatingSystem.Linux)
-            {
-                BuildLibAlphaSkiaJniLinux();
-            }
-            else if (TargetOs == TargetOperatingSystem.Android)
-            {
-                BuildLibAlphaSkiaJniAndroid();
-            }
-            else if (TargetOs == TargetOperatingSystem.MacOs)
-            {
-                BuildLibAlphaSkiaJniMacOs();
-            }
-        });
-
-    string GetLibDirectory(string libName = "libAlphaSkia", TargetOperatingSystem targetOs = null,
+    string GetLibDirectory(string libName = "libskia", TargetOperatingSystem targetOs = null,
         Architecture arch = null, Variant variant = null)
     {
         targetOs ??= TargetOs;
         arch ??= Architecture;
         variant ??= Variant;
 
-        return $"{libName}-{targetOs.RuntimeIdentifier}-{arch}-{variant}";
+        return $"{libName.ToLowerInvariant()}-{targetOs.RuntimeIdentifier}-{arch}-{variant}";
     }
 
     Task GitSyncDepsCustom(string[] requiredDependencies)
@@ -380,7 +199,7 @@ partial class Build
 
     public Target SetupDepotTools => _ => _
         .Unlisted()
-        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
+        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Executes(() =>
         {
             var oldValue = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
@@ -397,130 +216,6 @@ partial class Build
                 workingDirectory: SkiaPath
             );
         });
-
-    public Target PatchSkiaBuildFiles => _ => _
-        .Unlisted()
-        .OnlyWhenStatic(() => !SkipLibAlphaSkia)
-        .Executes(() =>
-        {
-            var buildConfigNew = new StringBuilder();
-            buildConfigNew.AppendLine("declare_args() {");
-            buildConfigNew.AppendLine("    is_shared_alphaskia = true");
-            buildConfigNew.AppendLine("}");
-            buildConfigNew.AppendLine("template(\"alphaskia_build\") {");
-            buildConfigNew.AppendLine("    _alphaskia_mode = \"shared_library\"");
-            buildConfigNew.AppendLine("    if (!is_shared_alphaskia) {");
-            buildConfigNew.AppendLine("        _alphaskia_mode = \"static_library\"");
-            buildConfigNew.AppendLine("    }");
-            buildConfigNew.AppendLine();
-            buildConfigNew.AppendLine("    target(_alphaskia_mode, target_name) {");
-            buildConfigNew.AppendLine("        forward_variables_from(invoker, \"*\")");
-            buildConfigNew.AppendLine("    }");
-            buildConfigNew.AppendLine("}");
-            buildConfigNew.AppendLine("set_defaults(\"alphaskia_build\") {");
-            buildConfigNew.AppendLine("  configs = default_configs");
-            buildConfigNew.AppendLine("  if (!is_shared_alphaskia) {");
-            buildConfigNew.AppendLine("      complete_static_lib = true");
-            buildConfigNew.AppendLine("  }");
-            buildConfigNew.AppendLine("}");
-
-            buildConfigNew.AppendLine("template(\"alphaskia_jni_build\") {");
-            buildConfigNew.AppendLine("    _alphaskia_jni_mode = \"shared_library\"");
-            buildConfigNew.AppendLine();
-            buildConfigNew.AppendLine("    target(_alphaskia_jni_mode, target_name) {");
-            buildConfigNew.AppendLine("        forward_variables_from(invoker, \"*\")");
-            buildConfigNew.AppendLine("    }");
-            buildConfigNew.AppendLine("}");
-            buildConfigNew.AppendLine("set_defaults(\"alphaskia_jni_build\") {");
-            buildConfigNew.AppendLine("  configs = default_configs");
-            buildConfigNew.AppendLine("}");
-
-            PatchSkiaFile(SkiaPath / "gn" / "BUILDCONFIG.gn", buildConfigNew.ToString());
-
-            var buildNew = new StringBuilder();
-            buildNew.AppendLine("alphaskia_build(\"libAlphaSkia\") {");
-            buildNew.AppendLine("  public_configs = [ \":skia_public\" ]");
-            buildNew.AppendLine("  configs += skia_library_configs");
-            buildNew.AppendLine();
-            buildNew.AppendLine("  defines = [ \"_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING\" ]");
-            buildNew.AppendLine("  if (is_shared_alphaskia) {");
-            buildNew.AppendLine("      defines += [ \"ALPHASKIA_DLL\" ]");
-            buildNew.AppendLine("  }");
-            buildNew.AppendLine();
-            buildNew.AppendLine("  ");
-            buildNew.AppendLine("  deps = [");
-            buildNew.AppendLine("    \":skia\",");
-            buildNew.AppendLine("    \"//third_party/harfbuzz\",");
-            buildNew.AppendLine("  ]");
-            buildNew.AppendLine();
-            buildNew.AppendLine("  sources = [");
-            buildNew.AppendLine("    \"../../wrapper/src/AlphaSkiaCanvas.cpp\",");
-            buildNew.AppendLine("    \"../../wrapper/src/alphaskia_canvas.cpp\",");
-            buildNew.AppendLine("    \"../../wrapper/src/alphaskia_image.cpp\",");
-            buildNew.AppendLine("    \"../../wrapper/src/alphaskia_typeface.cpp\",");
-            buildNew.AppendLine("    \"../../wrapper/src/alphaskia_data.cpp\"");
-            buildNew.AppendLine("  ]");
-            buildNew.AppendLine("}");
-            buildNew.AppendLine("alphaskia_build(\"libAlphaSkiaJni\") {");
-            buildNew.AppendLine("  sources = [");
-            buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaCanvas.cpp\",");
-            buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaData.cpp\",");
-            buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaImage.cpp\",");
-            buildNew.AppendLine("    \"../../lib/java/jni/src/AlphaSkiaTypeface.cpp\"");
-            buildNew.AppendLine("  ]");
-            buildNew.AppendLine("  if (is_mac) {");
-            buildNew.AppendLine("    frameworks = [");
-            buildNew.AppendLine("      \"AppKit.framework\",");
-            buildNew.AppendLine("      \"ApplicationServices.framework\",");
-            buildNew.AppendLine("      \"Metal.framework\",");
-            buildNew.AppendLine("    ]");
-            buildNew.AppendLine("  }");
-            buildNew.AppendLine();
-            buildNew.AppendLine("}");
-            PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew.ToString());
-
-            // Bug in skia toolchain, setenv.cmd is not existing in this path. 
-            var toolChainBuildFile = SkiaPath / "gn" / "toolchain" / "BUILD.gn";
-            var oldToolChainSource = toolChainBuildFile.ReadAllText();
-            toolChainBuildFile.WriteAllText(oldToolChainSource.Replace(
-                "env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86",
-                "# env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86"
-            ));
-        });
-
-    void PatchSkiaFile(AbsolutePath file, string newText)
-    {
-        var existingText = file.ReadAllText();
-        const string startMarker = "# AlphaSkia Patch Start";
-        const string endMarker = "# AlphaSkia Patch End";
-        var newTextWithMarker = new StringBuilder();
-        newTextWithMarker.AppendLine();
-        newTextWithMarker.AppendLine(startMarker);
-        newTextWithMarker.AppendLine(newText);
-        newTextWithMarker.AppendLine(endMarker);
-
-        var beforePatchIndex = existingText.IndexOf(startMarker, StringComparison.OrdinalIgnoreCase);
-        if (beforePatchIndex == -1)
-        {
-            // not yet patched
-            file.WriteAllText(existingText + newTextWithMarker);
-        }
-        else
-        {
-            var afterPatchIndex = existingText.IndexOf(endMarker, beforePatchIndex, StringComparison.OrdinalIgnoreCase);
-            if (afterPatchIndex == -1)
-            {
-                // corrupt patch (no end)
-                file.WriteAllText(existingText[..beforePatchIndex].TrimEnd() + newTextWithMarker);
-            }
-            else
-            {
-                // already patched
-                file.WriteAllText(existingText[..beforePatchIndex].TrimEnd() + newTextWithMarker +
-                                  existingText[(afterPatchIndex + endMarker.Length)..].TrimStart());
-            }
-        }
-    }
 
     void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs, AbsolutePath workingDirectory)
     {
@@ -571,11 +266,19 @@ partial class Build
         );
     }
 
-    void BuildSkia(
-        string buildTarget,
-        Dictionary<string, string> gnArgs,
-        string[] filesToCopy)
+    Dictionary<string, string> PrepareNativeBuild(Variant variant)
     {
+        if (OperatingSystem.IsLinux() && IsGitHubActions)
+        {
+            InstallDependenciesLinux();
+        }
+
+        var gnArgs = new Dictionary<string, string>(TargetOs.SkiaGnArgs)
+        {
+            ["cc"] = "clang",
+            ["cxx"] = "'clang++'"
+        };
+
         if (OperatingSystem.IsWindows())
         {
             SetClangWindows(gnArgs);
@@ -589,83 +292,69 @@ partial class Build
             SetClangMacOs(gnArgs);
         }
 
-        var isShared = Variant == Variant.Shared;
-        var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
-        var distPath = DistBasePath / libDir;
-        var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
+        if (TargetOs == TargetOperatingSystem.Android)
+        {
+            gnArgs["ndk"] = NdkPath;
+        }
 
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;
         gnArgs["target_cpu"] = Architecture;
-        gnArgs["is_shared_alphaskia"] = isShared.ToString().ToLowerInvariant();
-
-        // disable features we don't need
-        gnArgs["skia_use_icu"] = "false";
-        gnArgs["skia_use_piex"] = "false";
-        gnArgs["skia_use_sfntly"] = "false";
-        gnArgs["skia_enable_skshaper"] = "true";
-        gnArgs["skia_pdf_subset_harfbuzz"] = "false";
-        gnArgs["skia_use_expat"] = "false";
-        gnArgs["skia_enable_pdf"] = "false";
-        gnArgs["skia_use_dng_sdk"] = "false";
-        gnArgs["skia_use_libjpeg_turbo_decode"] = "false";
-        gnArgs["skia_use_libjpeg_turbo_encode"] = "false";
-        gnArgs["skia_use_libwebp_decode"] = "false";
-        gnArgs["skia_use_libwebp_encode"] = "false";
-        gnArgs["skia_use_xps"] = "false";
-        gnArgs["skia_use_libavif"] = "false";
-        gnArgs["skia_use_libjxl_decode"] = "false";
-        gnArgs["skia_enable_vello_shaders"] = "false";
-
-        gnArgs["skia_enable_sksl"] = "false";
-
-        gnArgs["skia_use_system_expat"] = "false";
-        gnArgs["skia_use_system_libjpeg_turbo"] = "false";
-        gnArgs["skia_use_system_libpng"] = "false";
-        gnArgs["skia_use_system_libwebp"] = "false";
-        gnArgs["skia_use_system_zlib"] = "false";
-        gnArgs["skia_use_system_harfbuzz"] = "false";
-
-        // graphite is still in dev, stay on ganesh backend
-        gnArgs["skia_enable_graphite"] = "false";
-        gnArgs["skia_enable_ganesh"] = "true";
-        gnArgs["skia_use_vulkan"] = "true";
-
-        GnNinja($"out/{libDir}", buildTarget, gnArgs, SkiaPath);
-
-        var outDir = SkiaPath / "out" / libDir;
-        try
-        {
-            foreach (var file in filesToCopy)
-            {
-                FileSystemTasks.CopyFile(outDir / file,
-                    distPath / file, FileExistsPolicy.Overwrite);
-                if (artifactsLibPath != null)
-                {
-                    FileSystemTasks.CopyFile(outDir / file,
-                        artifactsLibPath / file, FileExistsPolicy.Overwrite);
-                }
-            }
-
-            FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
-                DistBasePath / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
-
-            if (artifactsLibPath != null)
-            {
-                FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "libAlphaSkia.h",
-                    ArtifactBasePath / "include" / "libAlphaSkia.h", FileExistsPolicy.OverwriteIfNewer);
-            }
-        }
-        catch (Exception e)
-        {
-            var fileList = Directory.EnumerateFileSystemEntries(outDir).Select(d =>
-                File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
-            throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
-        }
+        gnArgs["is_shared_alphaskia"] = variant.IsShared.ToString().ToLowerInvariant();
+        
+        return gnArgs;
     }
 
-    bool HasCachedFiles(string buildTarget, string targetOsOutDir)
+    string GetLibExtension(Variant variant)
     {
-        var expectedDirectory = DistBasePath / $"{buildTarget}-{targetOsOutDir}-{Architecture}-{Variant}";
-        return expectedDirectory.DirectoryExists() && expectedDirectory.GetFiles().Any();
+        if (TargetOs == TargetOperatingSystem.Windows)
+        {
+            return variant.IsShared ? ".dll" : ".lib";
+        }
+
+        if (TargetOs == TargetOperatingSystem.Linux || 
+            TargetOs == TargetOperatingSystem.Android)
+        {
+            return variant.IsShared ? ".so" : ".a";
+        }
+
+
+        if (TargetOs == TargetOperatingSystem.MacOs || 
+            TargetOs == TargetOperatingSystem.iOS ||
+            TargetOs == TargetOperatingSystem.iOSSimulator)
+        {
+            return variant.IsShared ? ".dylib" : ".a";
+        }
+
+        throw new InvalidOperationException("Unhandled TargetOS: " + TargetOs);
+    }
+
+    bool HasCachedFiles(string buildTarget, Variant variant)
+    {
+        var libraryDir = GetLibDirectory(buildTarget, variant: variant);
+        var expectedDirectory = DistBasePath / libraryDir;
+        if (!expectedDirectory.DirectoryExists())
+        {
+            Log.Debug($"Cache for {libraryDir} is not usable, folder doesn't exist");
+            return false;
+        }
+
+        if (!expectedDirectory.GetFiles().Any())
+        {
+            Log.Debug($"Cache for {libraryDir} is not usable, no files in folder");
+            return false;
+        }
+
+        return true;
+    }
+
+    void PatchSkiaToolchain()
+    {
+        // Bug in skia toolchain, setenv.cmd is not existing in this path. 
+        var toolChainBuildFile = SkiaPath / "gn" / "toolchain" / "BUILD.gn";
+        var oldToolChainSource = toolChainBuildFile.ReadAllText();
+        toolChainBuildFile.WriteAllText(oldToolChainSource.Replace(
+            "env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86",
+            "# env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86"
+        ));
     }
 }
