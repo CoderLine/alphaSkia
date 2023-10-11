@@ -1,5 +1,5 @@
 #include "../include/net_alphatab_alphaskia_AlphaSkiaTypeface.h"
-#include "../../../../dist/include/libAlphaSkia.h"
+#include "../../../../wrapper/include/alphaskia.h"
 
 extern "C"
 {

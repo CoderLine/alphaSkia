@@ -33,14 +33,9 @@ partial class Build : NukeBuild
     }
 
     Target PrepareGitHubArtifacts => _ => _
+        .OnlyWhenStatic(() => IsGitHubActions)
         .Executes(() =>
         {
-            if (!IsGitHubActions)
-            {
-                Log.Debug("Skipping GitHub Artifact preparation, GITHUB_ACTIONS was not set");
-                return;
-            }
-            
             // We auto download all artifacts of all dependencies
             // which results in a nested structure like
             // dist/<artifactname>/<files>

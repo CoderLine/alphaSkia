@@ -1,4 +1,3 @@
-#include "../include/libAlphaSkia.h"
 #include "../include/AlphaSkiaCanvas.h"
 
 // C - API

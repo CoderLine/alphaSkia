@@ -1,5 +1,4 @@
-#include "../include/libAlphaSkia.h"
-
+#include "../include/alphaskia.h"
 #include "../../externals/skia/include/core/SkTypeface.h"
 #include "../../externals/skia/include/core/SkData.h"
 

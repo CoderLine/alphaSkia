@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libAlphaSkia.h"
+#include "alphaskia.h"
 
 #include "../../externals/skia/include/core/SkPath.h"
 #include "../../externals/skia/include/core/SkCanvas.h"

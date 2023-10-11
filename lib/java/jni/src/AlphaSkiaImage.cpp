@@ -1,6 +1,6 @@
 #include "../include/net_alphatab_alphaskia_AlphaSkiaImage.h"
 #include "../include/JniHelper.h"
-#include "../../../../dist/include/libAlphaSkia.h"
+#include "../../../../wrapper/include/alphaskia.h"
 
 #include <cstring>
 

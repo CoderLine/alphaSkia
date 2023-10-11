@@ -110,11 +110,14 @@
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsLibSkia",
               "Java",
+              "LibAlphaSkia",
+              "LibAlphaSkiaGitSyncDeps",
+              "LibAlphaSkiaPatchSkiaBuildFiles",
               "LibSkia",
+              "LibSkiaGitSyncDeps",
+              "LibSkiaPatchSkiaBuildFiles",
               "LibSkiaWithCache",
-              "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
             ]
@@ -130,11 +133,14 @@
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsLibSkia",
               "Java",
+              "LibAlphaSkia",
+              "LibAlphaSkiaGitSyncDeps",
+              "LibAlphaSkiaPatchSkiaBuildFiles",
               "LibSkia",
+              "LibSkiaGitSyncDeps",
+              "LibSkiaPatchSkiaBuildFiles",
               "LibSkiaWithCache",
-              "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
             ]
@@ -144,6 +150,8 @@
           "type": "string",
           "enum": [
             "Android",
+            "iOS",
+            "iOSSimulator",
             "Linux",
             "MacOs",
             "Windows"
