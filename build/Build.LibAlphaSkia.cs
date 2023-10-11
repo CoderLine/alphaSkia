@@ -75,9 +75,10 @@ partial class Build
                       "ApplicationServices.framework",
 
                       "OpenGL.framework",
+                      
+                      "Metal.framework",
                       "Foundation.framework",
 
-                      "Metal.framework",
                     ]   
                   }
                   if (is_ios) {
@@ -85,9 +86,11 @@ partial class Build
                       "CoreFoundation.framework",
                       "CoreGraphics.framework",
                       "CoreText.framework",
-                      "UIKit.framework",
 
                       "Metal.framework",
+                      "Foundation.framework",
+                      "UIKit.framework",
+
                     ]
                   }
 
