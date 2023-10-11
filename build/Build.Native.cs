@@ -56,7 +56,7 @@ partial class Build
     [Parameter(Name = "use-cache")] readonly string UseCacheParam;
     bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
 
-    string GetLibDirectory(string libName = "skia", TargetOperatingSystem targetOs = null,
+    string GetLibDirectory(string libName = "libSkia", TargetOperatingSystem targetOs = null,
         Architecture arch = null, Variant variant = null)
     {
         targetOs ??= TargetOs;
@@ -199,7 +199,7 @@ partial class Build
 
     public Target SetupDepotTools => _ => _
         .Unlisted()
-        .OnlyWhenStatic(() => !LibSkiaSkip)
+        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Executes(() =>
         {
             var oldValue = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
@@ -327,10 +327,23 @@ partial class Build
         throw new InvalidOperationException("Unhandled TargetOS: " + TargetOs);
     }
 
-    bool HasCachedFiles(string buildTarget, string targetOsOutDir)
+    bool HasCachedFiles(string buildTarget, Variant variant)
     {
-        var expectedDirectory = DistBasePath / $"{buildTarget}-{targetOsOutDir}-{Architecture}-{Variant}";
-        return expectedDirectory.DirectoryExists() && expectedDirectory.GetFiles().Any();
+        var libraryDir = GetLibDirectory(buildTarget, variant: variant);
+        var expectedDirectory = DistBasePath / libraryDir;
+        if (!expectedDirectory.DirectoryExists())
+        {
+            Log.Debug($"Cache for {libraryDir} is not usable, folder doesn't exist");
+            return false;
+        }
+
+        if (!expectedDirectory.GetFiles().Any())
+        {
+            Log.Debug($"Cache for {libraryDir} is not usable, no files in folder");
+            return false;
+        }
+
+        return true;
     }
 
     void PatchSkiaToolchain()

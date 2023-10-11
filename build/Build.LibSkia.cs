@@ -5,11 +5,11 @@ using Nuke.Common.IO;
 
 partial class Build
 {
-    bool LibSkiaSkip => CanUseCachedBinaries("libSkia", TargetOs.RuntimeIdentifier);
+    Lazy<bool> LibSkiaSkip => new(() => CanUseCachedBinaries("libSkia", Variant.Static));
 
     public Target LibSkiaGitSyncDeps => _ => _
         .Unlisted()
-        .OnlyWhenStatic(() => !LibSkiaSkip)
+        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .DependsOn(SetupDepotTools)
         .Executes(() =>
         {
@@ -43,7 +43,7 @@ partial class Build
         .Before(SetupDepotTools, LibSkiaPatchSkiaBuildFiles, LibSkiaGitSyncDeps)
         .Executes(() =>
         {
-            if (LibSkiaSkip)
+            if (LibSkiaSkip.Value)
             {
                 FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
                     FileExistsPolicy.OverwriteIfNewer);
@@ -57,14 +57,14 @@ partial class Build
 
     public Target LibSkia => _ => _
         .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
-        .OnlyWhenStatic(() => !LibSkiaSkip)
+        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
         .Executes(BuildSkia);
 
     public Target LibSkiaPatchSkiaBuildFiles => _ => _
         .Unlisted()
-        .OnlyWhenStatic(() => !LibSkiaSkip)
+        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Executes(() =>
         {
             // add harfbuzz as dependency as we want it for alphaSkia
