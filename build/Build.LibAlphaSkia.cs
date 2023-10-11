@@ -73,9 +73,25 @@ partial class Build
                     frameworks = [
                       "AppKit.framework",
                       "ApplicationServices.framework",
-                      "Metal.framework"
+
+                      "OpenGL.framework",
+                      "Foundation.framework",
+
+                      "Metal.framework",
                     ]   
                   }
+                  if (is_ios) {
+                    frameworks = [
+                      "CoreFoundation.framework",
+                      "CoreGraphics.framework",
+                      "CoreText.framework",
+                      "UIKit.framework",
+
+                      "Metal.framework",
+                    ]
+                  }
+
+
                   if (is_shared_alphaskia) {
                     defines += [ "ALPHASKIA_DLL" ]
                   }

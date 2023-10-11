@@ -45,6 +45,7 @@ public class TargetOperatingSystem : Enumeration
         SkiaGnArgs =
         {
             ["skia_use_system_freetype2"] = "false",
+            ["skia_use_fonthost_mac"] = "true",
             ["skia_use_metal"] = "true"
         },
         RuntimeIdentifier = "macos"
