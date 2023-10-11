@@ -15,16 +15,22 @@ using static Nuke.Common.EnvironmentInfo;
 public class TargetOperatingSystem : Enumeration
 {
     public static TargetOperatingSystem Windows = new()
-    { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
+        { Value = "windows", SkiaTargetOs = "win", RuntimeIdentifier = "win" };
 
     public static TargetOperatingSystem Linux = new()
-    { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
+        { Value = "linux", SkiaTargetOs = "linux", RuntimeIdentifier = "linux" };
 
     public static TargetOperatingSystem Android = new()
-    { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
+        { Value = "android", SkiaTargetOs = "android", RuntimeIdentifier = "android" };
 
     public static TargetOperatingSystem MacOs = new()
-    { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
+        { Value = "macos", SkiaTargetOs = "mac", RuntimeIdentifier = "macos" };
+
+    public static TargetOperatingSystem iOS = new()
+        { Value = "ios", SkiaTargetOs = "ios", RuntimeIdentifier = "ios" };
+
+    public static TargetOperatingSystem iOSSimulator = new()
+        { Value = "ios", SkiaTargetOs = "ios", RuntimeIdentifier = "iossimulator" };
 
     public string SkiaTargetOs { get; private set; }
     public string RuntimeIdentifier { get; private set; }
@@ -33,10 +39,26 @@ public class TargetOperatingSystem : Enumeration
 [TypeConverter(typeof(TypeConverter<Architecture>))]
 public class Architecture : Enumeration
 {
-    public static Architecture X64 = new() { Value = "x64", LinuxArch = "amd64", LinuxCrossToolchain = "", LinuxCrossTargetArch = ""};
-    public static Architecture X86 = new() { Value = "x86", LinuxArch = "i386", LinuxCrossToolchain = "i686-linux-gnu", LinuxCrossTargetArch = "i686-linux-gnu"};
-    public static Architecture Arm = new() { Value = "arm", LinuxArch = "armhf", LinuxCrossToolchain = "arm-linux-gnueabihf", LinuxCrossTargetArch = "armv7a-linux-gnueabihf"};
-    public static Architecture Arm64 = new() { Value = "arm64", LinuxArch = "arm64", LinuxCrossToolchain = "aarch64-linux-gnu", LinuxCrossTargetArch = "aarch64-linux-gnu"};
+    public static Architecture X64 = new()
+        { Value = "x64", LinuxArch = "amd64", LinuxCrossToolchain = "", LinuxCrossTargetArch = "" };
+
+    public static Architecture X86 = new()
+    {
+        Value = "x86", LinuxArch = "i386", LinuxCrossToolchain = "i686-linux-gnu",
+        LinuxCrossTargetArch = "i686-linux-gnu"
+    };
+
+    public static Architecture Arm = new()
+    {
+        Value = "arm", LinuxArch = "armhf", LinuxCrossToolchain = "arm-linux-gnueabihf",
+        LinuxCrossTargetArch = "armv7a-linux-gnueabihf"
+    };
+
+    public static Architecture Arm64 = new()
+    {
+        Value = "arm64", LinuxArch = "arm64", LinuxCrossToolchain = "aarch64-linux-gnu",
+        LinuxCrossTargetArch = "aarch64-linux-gnu"
+    };
 
     public string LinuxArch { get; private set; }
     public string LinuxCrossToolchain { get; private set; }
@@ -178,6 +200,10 @@ partial class Build
             {
                 BuildLibAlphaSkiaMacOs();
             }
+            else if (TargetOs == TargetOperatingSystem.iOS || TargetOs == TargetOperatingSystem.iOSSimulator)
+            {
+                BuildLibAlphaSkiaiOS();
+            }
         });
 
     public Target LibAlphaSkiaJni => _ => _
@@ -192,7 +218,7 @@ partial class Build
             {
                 InstallDependenciesLinux();
             }
-            
+
             if (TargetOs == TargetOperatingSystem.Windows)
             {
                 BuildLibAlphaSkiaJniWindows();

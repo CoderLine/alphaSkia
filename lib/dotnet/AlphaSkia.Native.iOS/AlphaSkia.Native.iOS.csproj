@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <IsPackable>true</IsPackable>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../../../dist/libAlphaSkia-ios-arm64-shared/libAlphaSkia.dylib" Pack="True" PackagePath="runtimes/ios-arm64/native" Condition=" Exists('../../../dist/libAlphaSkia-ios-arm64-shared/libAlphaSkia.dylib') " />
+        <None Include="../../../dist/libAlphaSkia-iossimulator-arm64-shared/libAlphaSkia.dylib" Pack="True" PackagePath="runtimes/iossimulator-arm64/native" Condition=" Exists('../../../dist/libAlphaSkia-iossimulator-arm64-shared/libAlphaSkia.dylib') " />
+        <None Include="../../../dist/libAlphaSkia-iossimulator-x64-shared/libAlphaSkia.dylib" Pack="True" PackagePath="runtimes/iossimulator-x64/native" Condition=" Exists('../../../dist/libAlphaSkia-iossimulator-x64-shared/libAlphaSkia.dylib') " />
+        <None Update="README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+</Project>
