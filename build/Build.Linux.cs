@@ -9,120 +9,62 @@ partial class Build
 {
     void InstallDependenciesLinux()
     {
-        if (!IsGitHubActions)
-        {
-            return;
-        }
+        var installDependencies = new StringBuilder();
+        installDependencies.AppendLine("#!/bin/bash");
+        installDependencies.AppendLine("set -e");
 
-        var bash = ToolResolver.GetPathTool("bash");
-        var sudo = ToolResolver.GetPathTool("sudo");
-        var dependenciesScript = SkiaPath / "tools" / "install_dependencies.sh";
-        if (dependenciesScript.FileExists())
-        {
-            bash($"{dependenciesScript}", workingDirectory: SkiaPath);
-        }
-
-        // Linux cross compilation
+        // Using aptitude here because github actions runners have quite some packages preinstalled
+        // which leads to many version conflicts after adding more sources. aptitude can resolve those 
+        // conflicts easier
+        installDependencies.AppendLine("echo Install Aptitude");
+        installDependencies.AppendLine("apt-get update");
+        installDependencies.AppendLine("apt-get install -y aptitude");
+        
+        // Main system build tools
+        installDependencies.AppendLine("apt-get install -y build-essential");
+        
+        // Cross compilation build tools if needed
+        var linuxArch = Architecture.LinuxArch;
         if (Architecture != Architecture.X64 && TargetOs == TargetOperatingSystem.Linux)
         {
-            var linuxArch = Architecture.LinuxArch;
+            installDependencies.AppendLine($"echo Adding Arch {linuxArch}");
+            installDependencies.AppendLine($"dpkg --add-architecture {linuxArch}");
 
-            var crossInstallDependencies = new StringBuilder();
-            crossInstallDependencies.AppendLine("#!/bin/bash");
-            crossInstallDependencies.AppendLine("set -e");
-
-            // Using aptitude here because github actions runners have quite some packages preinstalled
-            // which leads to many version conflicts after adding more sources. aptitude can resolve those 
-            // conflicts easier
-            crossInstallDependencies.AppendLine("echo Install Aptitude");
-            crossInstallDependencies.AppendLine("apt-get update");
-            crossInstallDependencies.AppendLine("apt-get install -y aptitude");
-            
-            crossInstallDependencies.AppendLine($"echo Adding Arch {linuxArch}");
-            crossInstallDependencies.AppendLine($"dpkg --add-architecture {linuxArch}");
-
-            crossInstallDependencies.AppendLine("echo Modifying sources.list");
-            crossInstallDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
-            crossInstallDependencies.AppendLine("sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
+            installDependencies.AppendLine("echo Modifying sources.list");
+            installDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
+            installDependencies.AppendLine("sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
 
             if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
             {
-                crossInstallDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
-                crossInstallDependencies.AppendLine(
+                installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
+                installDependencies.AppendLine(
                     $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
-                crossInstallDependencies.AppendLine(
+                installDependencies.AppendLine(
                     $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
-                crossInstallDependencies.AppendLine(
+                installDependencies.AppendLine(
                     $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
             }
-            crossInstallDependencies.AppendLine("echo Updating Packages");
-            crossInstallDependencies.AppendLine("apt-get update");
-            crossInstallDependencies.AppendLine("echo Installing main build tools");
-            crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
-            crossInstallDependencies.AppendLine("echo Installing arch libs");
-            crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{linuxArch} libgl1-mesa-dev:{linuxArch} libglu1-mesa-dev:{linuxArch} freeglut3-dev:{linuxArch}");
-
-            var scriptFile = SkiaPath / "tools" / "cross_install_dependencies.sh";
-            File.WriteAllText(scriptFile, crossInstallDependencies.ToString());
-            sudo($"bash {scriptFile}");
+            
+            installDependencies.AppendLine("echo Updating Packages");
+            installDependencies.AppendLine("apt-get update");
+            installDependencies.AppendLine("echo Installing main build tools");
+            installDependencies.AppendLine($"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
         }
-    }
+        
+        // skia libraries
+        var libuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
+        installDependencies.AppendLine("echo Installing libs");
+        installDependencies.AppendLine($"aptitude install -y libfontconfig-dev{libuxArchSuffix} libgl1-mesa-dev{libuxArchSuffix} libglu1-mesa-dev{libuxArchSuffix} freeglut3-dev{libuxArchSuffix}");
 
-    void BuildLibAlphaSkiaLinux()
-    {
-        var gnArgs = new Dictionary<string, string>();
-        string[] filesToCopy;
-        var isShared = Variant == Variant.Shared;
-        if (isShared)
-        {
-            filesToCopy = new[]
-            {
-                "libAlphaSkia.so"
-            };
-        }
-        else
-        {
-            filesToCopy = new[]
-            {
-                "libAlphaSkia.a",
-                "libskia.a"
-            };
-        }
-
-        BuildSkiaLinux("libAlphaSkia", gnArgs, filesToCopy);
-    }
-
-    void BuildLibAlphaSkiaJniLinux()
-    {
-        var gnArgs = new Dictionary<string, string>();
-        var alphaSkiaInclude = DistBasePath / "include";
-        var jniInclude = JavaHome / "include";
-        var jniWinInclude = JavaHome / "include" / "linux";
-        gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniWinInclude}' ]";
-
-        // Add Libs and lib search paths
-        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
-        gnArgs["extra_ldflags"] =
-            $"[ '-L{staticLibPath}', '-lAlphaSkia', '-lskia' ]";
-
-        BuildSkiaLinux("libAlphaSkiaJni", gnArgs, new[] { "libAlphaSkiaJni.so" });
-    }
-
-    void BuildSkiaLinux(string buildTarget, Dictionary<string, string> gnArgs,
-        string[] filesToCopy)
-    {
-        gnArgs["skia_use_system_freetype2"] = "false";
-
-        BuildSkia(buildTarget, gnArgs, filesToCopy);
+        var scriptFile = TemporaryDirectory / "install_dependencies.sh";
+        File.WriteAllText(scriptFile, installDependencies.ToString());
+        ToolResolver.GetPathTool("sudo")($"bash {scriptFile}");
     }
 
     void SetClangLinux(Dictionary<string, string> gnArgs)
     {
         AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'");
         AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
-
-        gnArgs["cc"] = "clang";
-        gnArgs["cxx"] = "'clang++'";
 
         var crossCompileToolchainArch = Architecture.LinuxCrossToolchain;
         var crossCompileTargetArch = Architecture.LinuxCrossTargetArch;

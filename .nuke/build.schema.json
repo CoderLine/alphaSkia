@@ -110,12 +110,10 @@
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsLibAlphaSkia",
-              "GitSyncDepsLibAlphaSkiaJni",
+              "GitSyncDepsLibSkia",
               "Java",
-              "LibAlphaSkia",
-              "LibAlphaSkiaJni",
-              "LibAlphaSkiaWithCache",
+              "LibSkia",
+              "LibSkiaWithCache",
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
@@ -132,12 +130,10 @@
               "DotNetBuild",
               "DotNetPack",
               "DotNetTest",
-              "GitSyncDepsLibAlphaSkia",
-              "GitSyncDepsLibAlphaSkiaJni",
+              "GitSyncDepsLibSkia",
               "Java",
-              "LibAlphaSkia",
-              "LibAlphaSkiaJni",
-              "LibAlphaSkiaWithCache",
+              "LibSkia",
+              "LibSkiaWithCache",
               "PatchSkiaBuildFiles",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
@@ -159,6 +155,7 @@
         "Variant": {
           "type": "string",
           "enum": [
+            "Jni",
             "Shared",
             "Static"
           ]

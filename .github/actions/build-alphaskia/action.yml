@@ -1,5 +1,5 @@
-name: 'Build Skia'
-description: 'Builds the Skia Native library'
+name: 'Build AlphaSkia'
+description: 'Builds the AlphaSkia Native library'
 inputs: 
   use-cache:
     description: 'Whether to try using the pre-compiled binary from the cache.'
@@ -8,6 +8,9 @@ inputs:
   architecture:
     description: 'The CPU architecture for which to build the lib'
     required: true
+  variant:
+    description: 'The library type to build'
+    required: true    
   target-os:
     description: 'The target Operating system identifier'
     required: true
@@ -19,8 +22,8 @@ runs:
       if: ${{ inputs.use-cache }}
       with:
         path: dist
-        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }}
-        restore-keys: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
+        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }}
+        restore-keys: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
 
     - id: build-info
       run: |
@@ -33,15 +36,15 @@ runs:
         fi
       shell: bash
 
-    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --use-cache ${{ inputs.use-cache }}
+    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkia --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }}
       shell: ${{ steps.build-info.outputs.shell }}
 
     - uses: actions/upload-artifact@v3
       with:
-        name: skia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
+        name: skia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
         path: artifacts
 
     - uses: actions/cache/save@v3
       with:
         path: dist
-        key: skia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }} 
+        key: skia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }} 
