@@ -58,6 +58,31 @@ public class TargetOperatingSystem : Enumeration
         RuntimeIdentifier = "macos"
     };
 
+    public static TargetOperatingSystem iOS = new()
+    {
+        Value = "ios",
+        SkiaTargetOs = "ios",
+        SkiaGnArgs =
+        {
+            ["skia_use_system_freetype2"] = "false",
+            ["skia_use_metal"] = "true"
+        },
+        RuntimeIdentifier = "macos"
+    };
+
+    public static TargetOperatingSystem iOSSimulator = new()
+    {
+        Value = "ios",
+        SkiaTargetOs = "ios",
+        SkiaGnArgs =
+        {
+            ["skia_use_system_freetype2"] = "false",
+            ["skia_use_metal"] = "true",
+            ["ios_use_simulator"] = "true"
+        },
+        RuntimeIdentifier = "iossimulator"
+    };
+
     public string SkiaTargetOs { get; private set; }
     public Dictionary<string, string> SkiaGnArgs { get; } = new();
 
@@ -168,18 +193,18 @@ partial class Build
             return GitSyncDepsCustom(requiredDependencies);
         });
 
-    // public Target GitSyncDepsLibAlphaSkiaJni => _ => _
-    //     .Unlisted()
-    //     .DependsOn(SetupDepotTools)
-    //     .Executes(() =>
-    //     {
-    //         var requiredDependencies = new[]
-    //         {
-    //             "buildtools"
-    //         };
-    //
-    //         return GitSyncDepsCustom(requiredDependencies);
-    //     });
+    public Target GitSyncDepsLibAlphaSkia => _ => _
+        .Unlisted()
+        .DependsOn(SetupDepotTools)
+        .Executes(() =>
+        {
+            var requiredDependencies = new[]
+            {
+                "buildtools"
+            };
+
+            return GitSyncDepsCustom(requiredDependencies);
+        });
 
     public Target LibSkiaWithCache => _ => _
         .Unlisted()
@@ -213,7 +238,7 @@ partial class Build
         .Executes(BuildSkia);
 
     public Target LibAlphaSkia => _ => _
-        .DependsOn(PrepareGitHubArtifacts)
+        .DependsOn(GitSyncDepsLibAlphaSkia, PrepareGitHubArtifacts)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
@@ -518,7 +543,7 @@ partial class Build
     {
         var gnArgs = PrepareNativeBuild();
         var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
-        
+
         string buildTarget;
         if (Variant == Variant.Static)
         {
@@ -565,13 +590,14 @@ partial class Build
         if (TargetOs == TargetOperatingSystem.Windows)
         {
             // TODO: check if clang-cl also works with the linux flags
-            AppendToFlagList(gnArgs, "extra_ldflags", $"'/LIBPATH:{staticLibPath}', 'skia.lib', 'user32.lib', 'OpenGL32.lib'");
+            AppendToFlagList(gnArgs, "extra_ldflags",
+                $"'/LIBPATH:{staticLibPath}', 'skia.lib', 'user32.lib', 'OpenGL32.lib'");
         }
         else
         {
             AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia', '-lGL'");
         }
-        
+
         var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
         var distPath = DistBasePath / libDir;
@@ -613,13 +639,16 @@ partial class Build
             return variant.IsShared ? ".dll" : ".lib";
         }
 
-        if (TargetOs == TargetOperatingSystem.Linux || TargetOs == TargetOperatingSystem.Android)
+        if (TargetOs == TargetOperatingSystem.Linux || 
+            TargetOs == TargetOperatingSystem.Android)
         {
             return variant.IsShared ? ".so" : ".a";
         }
 
 
-        if (TargetOs == TargetOperatingSystem.MacOs)
+        if (TargetOs == TargetOperatingSystem.MacOs || 
+            TargetOs == TargetOperatingSystem.iOS ||
+            TargetOs == TargetOperatingSystem.iOSSimulator)
         {
             return variant.IsShared ? ".dylib" : ".a";
         }

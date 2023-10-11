@@ -33,6 +33,8 @@ jobs:
         variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
@@ -64,6 +66,8 @@ jobs:
         variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
@@ -80,6 +84,8 @@ jobs:
         architecture: [x64, x86, arm, arm64]
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - uses: ./.github/actions/build-skia
         with:
           use-cache: ${{ inputs.use-skia-cache }}
@@ -95,6 +101,8 @@ jobs:
         variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
@@ -125,11 +133,59 @@ jobs:
         variant: [shared, jni]
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - uses: ./.github/actions/build-alphaskia
         with:
           architecture: ${{ matrix.architecture }}
           variant: ${{ matrix.variant }}
           target-os: macos
+
+#
+# iOS
+  ios-skia:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: arm64
+            target-os: ios
+          - architecture: arm64
+            target-os: iossimulator
+          - architecture: x64
+            target-os: iossimulator
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          target-os: ${{ matrix.target-os }}
+  ios-alphaskia:
+    runs-on: macos-latest
+    needs: [ios-skia]
+    strategy:
+      fail-fast: false
+      matrix:
+          - architecture: arm64
+            variant: shared
+            target-os: ios
+          - architecture: arm64
+            variant: shared
+            target-os: iossimulator
+          - architecture: x64
+            variant: shared
+            target-os: iossimulator
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
+        with:
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: ${{ matrix.target-os }}          
 #
 # Libraries
   dotnet:
