@@ -4,7 +4,7 @@ on:
       use-skia-cache:
         type: boolean
         description: Use Skia Binary from cache
-        default: 'false'
+        default: false
 
 jobs:
 
@@ -93,7 +93,7 @@ jobs:
           target-os: android
   android-alphaskia:
     runs-on: ubuntu-latest
-    needs: [android]
+    needs: [android-skia]
     strategy:
       fail-fast: false
       matrix:
@@ -168,6 +168,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        include:
           - architecture: arm64
             variant: shared
             target-os: ios
