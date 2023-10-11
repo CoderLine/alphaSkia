@@ -25,6 +25,12 @@ partial class Build
         if (Architecture != Architecture.X64)
         {
             var crossInstallDependencies = new StringBuilder();
+            crossInstallDependencies.AppendLine("#!/bin/bash");
+            crossInstallDependencies.AppendLine("set -e");
+
+            // Using aptitude here because github actions runners have quite some packages preinstalled
+            // which leads to many version conflicts after adding more sources. aptitude can resolve those 
+            // conflicts easier
             crossInstallDependencies.AppendLine("echo Install Aptitude");
             crossInstallDependencies.AppendLine("apt-get update");
             crossInstallDependencies.AppendLine("apt-get install -y aptitude");
@@ -46,18 +52,12 @@ partial class Build
                 crossInstallDependencies.AppendLine(
                     $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
             }
-            crossInstallDependencies.AppendLine("echo Installing Dependencies with sources:");
-            crossInstallDependencies.AppendLine("cat /etc/apt/sources.list");
             crossInstallDependencies.AppendLine("echo Updating Packages");
             crossInstallDependencies.AppendLine("apt-get update");
             crossInstallDependencies.AppendLine("echo Installing main build tools");
             crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{arch} libstdc++-11-dev-{arch}-cross");
             crossInstallDependencies.AppendLine("echo Installing arch libs");
             crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch} freeglut3-dev:{arch}");
-            crossInstallDependencies.AppendLine("echo Libs");
-            crossInstallDependencies.AppendLine($"ls -l /usr/lib/{Architecture.LinuxCrossToolchain}");
-            crossInstallDependencies.AppendLine("echo Includes");
-            crossInstallDependencies.AppendLine($"ls /usr/{Architecture.LinuxCrossToolchain}/include");
 
             var scriptFile = SkiaPath / "tools" / "cross_install_dependencies.sh";
             File.WriteAllText(scriptFile, crossInstallDependencies.ToString());
@@ -142,9 +142,7 @@ partial class Build
                 $"'-I{sysroot}/include/c++/{newestCpp}', " +
                 $"'-I{sysroot}/include/c++/{newestCpp}/{crossCompileToolchainArch}', " +
                 $"'-I/usr/include/{crossCompileToolchainArch}', " +
-                // last fallback to main headers. this can lead to wierd compilation errors if actually an arch specific header is required
-                // in such cases we have to find out which headers are wrongly included and install potentially missing packages.
-                // executing the failed clang/clang++ command with additionally "-H -fshow-skipped-includes" can help finding the problematic headers
+                // non arch specific headers last (as system header to ensure it is really last, normal -I will fail)
                 $"'-isystem/usr/include/' ";
 
             AppendToFlagList(gnArgs, "extra_asmflags", $"{init}, '-no-integrated-as', {bin}, {includes}");
