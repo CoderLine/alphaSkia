@@ -50,11 +50,7 @@ partial class Build
             }
             else
             {
-                GitTool("submodule update --init --recursive");
-                if (OperatingSystem.IsLinux())
-                {
-                    InstallDependenciesLinux();
-                }
+                GitTool("submodule update --init --recursive --depth=1");
             }
         })
         .Triggers(LibSkia);
