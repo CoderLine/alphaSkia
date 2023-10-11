@@ -58,7 +58,5 @@ partial class Build
         gnArgs["cc"] = "clang";
         gnArgs["cxx"] = "'clang++'";
         AppendToFlagList(gnArgs, "extra_ldflags", "'-stdlib=libc++'");
-
-        // gnArgs["ar"] = "llvm-ar";
     }
 }

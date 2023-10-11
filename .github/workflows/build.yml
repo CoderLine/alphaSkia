@@ -139,10 +139,35 @@ jobs:
           variant: ${{ matrix.variant }}
           target-os: macos
 #
+# iOS
+  ios:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: arm64
+            variant: shared
+            target-os: ios
+          - architecture: arm64
+            variant: shared
+            target-os: iossimulator
+          - architecture: x64
+            variant: shared
+            target-os: iossimulator
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: ${{ matrix.target-os }}
+#
 # Libraries
   dotnet:
     runs-on: windows-latest
-    needs: [windows, linux, android, macos]
+    needs: [windows, linux, android, macos, ios]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
