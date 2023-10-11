@@ -36,10 +36,17 @@ partial class Build
 
             if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
             {
+                installDependencies.AppendLine($"echo Adding new {linuxArch} sources");
+
                 installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
                 installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
                 installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
                 installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
+            }
+            else
+            {
+                installDependencies.AppendLine($"echo No additional package sources for {linuxArch}");
+
             }
             
             installDependencies.AppendLine("echo Updating Packages");

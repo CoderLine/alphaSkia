@@ -67,7 +67,7 @@ partial class Build
                     "../../wrapper/src/alphaskia_data.cpp"
                 ]
                 config("alphaskia_public") {
-                  defines = [ "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING" ]
+                  defines = [ "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING", "ALPHASKIA_IMPLEMENTATION=1" ]
                   include_dirs = [ "." ]
                   if (is_mac) {
                     frameworks = [
@@ -175,7 +175,7 @@ partial class Build
                 throw new PlatformNotSupportedException();
             }
 
-            gnArgs["extra_cflags"] = $"[ '-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}' ]";
+            AppendToFlagList(gnArgs, "extra_cflags", $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
         }
         else
         {
