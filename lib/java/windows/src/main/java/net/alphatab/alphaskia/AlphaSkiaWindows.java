@@ -2,7 +2,7 @@ package net.alphatab.alphaskia;
 
 public class AlphaSkiaWindows {
     public static final String[] libraries = {
-            "native/windows-" + getCurrentArchitecture() + "/libAlphaSkiaJni.dll"
+            "native/windows-" + getCurrentArchitecture() + "/libalphaskiajni.dll"
     };
 
     private static String getCurrentArchitecture() {

@@ -78,12 +78,12 @@ partial class Build
                   }
                 }
 
-                alphaskia_build("libAlphaSkia") {
+                alphaskia_build("libalphaskia") {
                   public_configs = [ ":alphaskia_public" ]
                   configs += [ ":alphaskia_public" ]
-                  sources = alphaskia_wrapper_sources
+                  sources = alphaskia_wrFapper_sources
                 }
-                alphaskia_build("libAlphaSkiaJni") {
+                alphaskia_build("libalphaskiajni") {
                   public_configs = [ ":alphaskia_public" ]
                   configs += [ ":alphaskia_public" ]
                   sources = alphaskia_wrapper_sources
@@ -142,17 +142,17 @@ partial class Build
         string buildTarget;
         if (Variant == Variant.Static)
         {
-            buildTarget = "libAlphaSkia";
+            buildTarget = "libalphaskia";
             gnArgs["is_shared_alphaskia"] = "false";
         }
         else if (Variant == Variant.Shared)
         {
-            buildTarget = "libAlphaSkia";
+            buildTarget = "libalphaskia";
             gnArgs["is_shared_alphaskia"] = "true";
         }
         else if (Variant == Variant.Jni)
         {
-            buildTarget = "libAlphaSkiaJni";
+            buildTarget = "libalphaskiaJni";
             gnArgs["is_shared_alphaskia"] = "true";
 
             var alphaSkiaInclude = DistBasePath / "include";

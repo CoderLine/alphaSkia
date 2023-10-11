@@ -5,7 +5,7 @@ using Nuke.Common.IO;
 
 partial class Build
 {
-    Lazy<bool> LibSkiaSkip => new(() => CanUseCachedBinaries("libSkia", Variant.Static));
+    Lazy<bool> LibSkiaSkip => new(() => CanUseCachedBinaries("libskia", Variant.Static));
 
     public Target LibSkiaGitSyncDeps => _ => _
         .Unlisted()
@@ -107,7 +107,7 @@ partial class Build
     {
         var gnArgs = PrepareNativeBuild();
         
-        var libDir = GetLibDirectory("libSkia", TargetOs, Architecture, Variant.Static);
+        var libDir = GetLibDirectory("libskia", TargetOs, Architecture, Variant.Static);
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
         var distPath = DistBasePath / libDir;
         var outDir = SkiaPath / "out" / libDir;

@@ -56,14 +56,14 @@ partial class Build
     [Parameter(Name = "use-cache")] readonly string UseCacheParam;
     bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
 
-    string GetLibDirectory(string libName = "libSkia", TargetOperatingSystem targetOs = null,
+    string GetLibDirectory(string libName = "libskia", TargetOperatingSystem targetOs = null,
         Architecture arch = null, Variant variant = null)
     {
         targetOs ??= TargetOs;
         arch ??= Architecture;
         variant ??= Variant;
 
-        return $"{libName}-{targetOs.RuntimeIdentifier}-{arch}-{variant}";
+        return $"{libName.ToLowerInvariant()}-{targetOs.RuntimeIdentifier}-{arch}-{variant}";
     }
 
     Task GitSyncDepsCustom(string[] requiredDependencies)

@@ -2,7 +2,7 @@ package net.alphatab.alphaskia;
 
 public class AlphaSkiaMacOs {
     public static final String[] libraries = {
-            "native/macos-" + getCurrentArchitecture() + "/libAlphaSkiaJni.so"
+            "native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.so"
     };
 
     private static String getCurrentArchitecture() {

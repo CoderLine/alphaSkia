@@ -19,8 +19,8 @@ runs:
       if: ${{ inputs.use-cache }}
       with:
         path: dist
-        key: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }}
-        restore-keys: alphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
+        key: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }}
+        restore-keys: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
 
     - id: build-info
       run: |
@@ -38,10 +38,10 @@ runs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: skia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
+        name: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
         path: artifacts
 
     - uses: actions/cache/save@v3
       with:
         path: dist
-        key: skia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }} 
+        key: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }} 

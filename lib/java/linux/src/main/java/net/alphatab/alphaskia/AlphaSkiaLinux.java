@@ -2,7 +2,7 @@ package net.alphatab.alphaskia;
 
 public class AlphaSkiaLinux {
     public static final String[] libraries = {
-            "native/linux-" + getCurrentArchitecture() + "/libAlphaSkiaJni.so"
+            "native/linux-" + getCurrentArchitecture() + "/libalphaskiajni.so"
     };
 
     private static String getCurrentArchitecture() {

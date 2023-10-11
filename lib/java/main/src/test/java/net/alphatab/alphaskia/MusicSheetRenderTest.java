@@ -41,16 +41,16 @@ public abstract class MusicSheetRenderTest {
         String target;
         if (os.startsWith("Mac")) {
             target = "macos";
-            libName = "libAlphaSkiaJni.dylib";
+            libName = "libalphaskiajni.dylib";
         } else if (os.startsWith("Win")) {
             target = "win";
-            libName = "libAlphaSkiaJni.dll";
+            libName = "libalphaskiajni.dll";
         } else if (os.startsWith("Linux")) {
             target = "linux";
-            libName = "libAlphaSkiaJni.so";
+            libName = "libalphaskiajni.so";
         } else {
             target = os.toLowerCase();
-            libName = "libAlphaSkiaJni";
+            libName = "libalphaskiajni";
         }
 
         var jarch = System.getProperty("os.arch");
@@ -63,7 +63,7 @@ public abstract class MusicSheetRenderTest {
         };
 
         AlphaSkiaPlatform.loadLibrary(new String[]{
-                Path.of(System.getProperty("alphaskia.library.path"), "libAlphaSkiaJni-" + target + "-" + arch + "-shared", libName).toAbsolutePath().toString()
+                Path.of(System.getProperty("alphaskia.library.path"), "libalphaskiajni-" + target + "-" + arch + "-shared", libName).toAbsolutePath().toString()
         });
 
         var bravura = readFont("font/bravura/Bravura.ttf");
