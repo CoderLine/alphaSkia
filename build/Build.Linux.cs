@@ -42,7 +42,7 @@ partial class Build
             crossInstallDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
             crossInstallDependencies.AppendLine("sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
 
-            if (arch == Architecture.Arm || arch == Architecture.Arm64)
+            if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
             {
                 crossInstallDependencies.AppendLine($"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
