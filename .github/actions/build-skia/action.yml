@@ -33,7 +33,7 @@ runs:
         fi
       shell: bash
 
-    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --use-cache ${{ inputs.use-cache }}
+    - run: ${{ steps.build-info.outputs.script }} LibSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --use-cache ${{ inputs.use-cache }}
       shell: ${{ steps.build-info.outputs.shell }}
 
     - uses: actions/upload-artifact@v3
