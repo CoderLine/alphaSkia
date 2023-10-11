@@ -140,7 +140,11 @@ partial class Build
             var includes =
                 $"'-I{sysroot}/include', " +
                 $"'-I{sysroot}/include/c++/{newestCpp}', " +
-                $"'-I{sysroot}/include/c++/{newestCpp}/{crossCompileToolchainArch}'";
+                $"'-I{sysroot}/include/c++/{newestCpp}/{crossCompileToolchainArch}', " +
+                $"'-I/usr/include/{crossCompileToolchainArch}', " +
+                // last fallback to main headers. this can lead to wierd compilation errors if actually an arch specific header is required
+                // in such cases we have to find out which headers are wrongly included and install potentially missing packages.
+                $"'-I/usr/include/' ";
 
             AppendToFlagList(gnArgs, "extra_asmflags", $"{init}, '-no-integrated-as', {bin}, {includes}");
             AppendToFlagList(gnArgs, "extra_ldflags", $"{init}, {bin}, {libs}");
