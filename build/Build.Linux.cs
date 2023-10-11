@@ -50,6 +50,11 @@ partial class Build
             installDependencies.AppendLine("echo Installing main build tools");
             installDependencies.AppendLine($"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
         }
+        else 
+        {
+            // no cross compilation packages
+            linuxArch = "";
+        }
         
         // skia libraries
         var libuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
