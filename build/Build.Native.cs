@@ -299,7 +299,8 @@ partial class Build
 
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;
         gnArgs["target_cpu"] = Architecture;
-
+        gnArgs["is_shared_alphaskia"] = Variant.IsShared.ToString().ToLowerInvariant();
+        
         return gnArgs;
     }
 

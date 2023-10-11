@@ -76,6 +76,9 @@ partial class Build
                       "Metal.framework"
                     ]   
                   }
+                  if (is_shared_alphaskia) {
+                    defines += [ "ALPHASKIA_DLL" ]
+                  }
                 }
 
                 alphaskia_build("libalphaskia") {
@@ -143,17 +146,14 @@ partial class Build
         if (Variant == Variant.Static)
         {
             buildTarget = "libalphaskia";
-            gnArgs["is_shared_alphaskia"] = "false";
         }
         else if (Variant == Variant.Shared)
         {
             buildTarget = "libalphaskia";
-            gnArgs["is_shared_alphaskia"] = "true";
         }
         else if (Variant == Variant.Jni)
         {
             buildTarget = "libalphaskiajni";
-            gnArgs["is_shared_alphaskia"] = "true";
 
             var alphaSkiaInclude = DistBasePath / "include";
             var jniInclude = JavaHome / "include";
