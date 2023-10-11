@@ -188,9 +188,13 @@ partial class Build
             AppendToFlagList(gnArgs, "extra_ldflags",
                 $"'/LIBPATH:{staticLibPath}', 'skia.lib', 'user32.lib', 'OpenGL32.lib'");
         }
-        else
+        else if(TargetOs == TargetOperatingSystem.Linux)
         {
             AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia', '-lGL'");
+        }
+        else
+        {
+            AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia'");
         }
 
         var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
