@@ -1,4 +1,4 @@
-package alphaskia;
+package net.alphatab.alphaskia;
 
 public class AlphaSkiaMacOs {
     public static final String[] libraries = {
