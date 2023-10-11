@@ -18,12 +18,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/cache/restore@v3
-      if: ${{ inputs.use-cache }}
+    - uses: actions/download-artifact@v3
       with:
         path: dist
-        key: libalphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }}
-        restore-keys: libalphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
+        name: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
 
     - id: build-info
       run: |
@@ -43,8 +41,3 @@ runs:
       with:
         name: libalphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
         path: artifacts
-
-    - uses: actions/cache/save@v3
-      with:
-        path: dist
-        key: libalphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}-${{ github.run_id }} 
