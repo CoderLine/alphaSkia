@@ -9,7 +9,7 @@ partial class Build
 {
     void InstallDependenciesLinux()
     {
-        if (!IsGitHubActions || TargetOs != TargetOperatingSystem.Linux)
+        if (!IsGitHubActions)
         {
             return;
         }
@@ -17,13 +17,16 @@ partial class Build
         var bash = ToolResolver.GetPathTool("bash");
         var sudo = ToolResolver.GetPathTool("sudo");
         var dependenciesScript = SkiaPath / "tools" / "install_dependencies.sh";
-        bash($"{dependenciesScript}", workingDirectory: SkiaPath);
-
-        var arch = Architecture.LinuxArch;
-
-        // cross compilation
-        if (Architecture != Architecture.X64)
+        if (dependenciesScript.FileExists())
         {
+            bash($"{dependenciesScript}", workingDirectory: SkiaPath);
+        }
+
+        // Linux cross compilation
+        if (Architecture != Architecture.X64 && TargetOs == TargetOperatingSystem.Linux)
+        {
+            var linuxArch = Architecture.LinuxArch;
+
             var crossInstallDependencies = new StringBuilder();
             crossInstallDependencies.AppendLine("#!/bin/bash");
             crossInstallDependencies.AppendLine("set -e");
@@ -35,8 +38,8 @@ partial class Build
             crossInstallDependencies.AppendLine("apt-get update");
             crossInstallDependencies.AppendLine("apt-get install -y aptitude");
             
-            crossInstallDependencies.AppendLine($"echo Adding Arch {arch}");
-            crossInstallDependencies.AppendLine($"dpkg --add-architecture {arch}");
+            crossInstallDependencies.AppendLine($"echo Adding Arch {linuxArch}");
+            crossInstallDependencies.AppendLine($"dpkg --add-architecture {linuxArch}");
 
             crossInstallDependencies.AppendLine("echo Modifying sources.list");
             crossInstallDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
@@ -44,20 +47,20 @@ partial class Build
 
             if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
             {
-                crossInstallDependencies.AppendLine($"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
+                crossInstallDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
-                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
+                    $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
-                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
+                    $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
                 crossInstallDependencies.AppendLine(
-                    $"echo 'deb [arch={arch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
+                    $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
             }
             crossInstallDependencies.AppendLine("echo Updating Packages");
             crossInstallDependencies.AppendLine("apt-get update");
             crossInstallDependencies.AppendLine("echo Installing main build tools");
-            crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{arch} libstdc++-11-dev-{arch}-cross");
+            crossInstallDependencies.AppendLine($"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
             crossInstallDependencies.AppendLine("echo Installing arch libs");
-            crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{arch} libgl1-mesa-dev:{arch} libglu1-mesa-dev:{arch} freeglut3-dev:{arch}");
+            crossInstallDependencies.AppendLine($"aptitude install -y libfontconfig-dev:{linuxArch} libgl1-mesa-dev:{linuxArch} libglu1-mesa-dev:{linuxArch} freeglut3-dev:{linuxArch}");
 
             var scriptFile = SkiaPath / "tools" / "cross_install_dependencies.sh";
             File.WriteAllText(scriptFile, crossInstallDependencies.ToString());

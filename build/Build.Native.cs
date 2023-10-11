@@ -187,6 +187,12 @@ partial class Build
         .Requires(() => TargetOs)
         .Executes(() =>
         {
+            GitTool("submodule update --init --recursive");
+            if (OperatingSystem.IsLinux())
+            {
+                InstallDependenciesLinux();
+            }
+            
             if (TargetOs == TargetOperatingSystem.Windows)
             {
                 BuildLibAlphaSkiaJniWindows();
