@@ -144,7 +144,8 @@ partial class Build
                 $"'-I/usr/include/{crossCompileToolchainArch}', " +
                 // last fallback to main headers. this can lead to wierd compilation errors if actually an arch specific header is required
                 // in such cases we have to find out which headers are wrongly included and install potentially missing packages.
-                $"'-I/usr/include/' ";
+                // executing the failed clang/clang++ command with additionally "-H -fshow-skipped-includes" can help finding the problematic headers
+                $"'-isystem/usr/include/' ";
 
             AppendToFlagList(gnArgs, "extra_asmflags", $"{init}, '-no-integrated-as', {bin}, {includes}");
             AppendToFlagList(gnArgs, "extra_ldflags", $"{init}, {bin}, {libs}");
