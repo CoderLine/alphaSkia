@@ -27,7 +27,7 @@ partial class Build
             var crossInstallDependencies = new StringBuilder();
             crossInstallDependencies.AppendLine("echo Install Aptitude");
             crossInstallDependencies.AppendLine("apt-get update");
-            // crossInstallDependencies.AppendLine("apt-get install -y aptitude");
+            crossInstallDependencies.AppendLine("apt-get install -y aptitude");
             
             crossInstallDependencies.AppendLine($"echo Adding Arch {arch}");
             crossInstallDependencies.AppendLine($"dpkg --add-architecture {arch}");
