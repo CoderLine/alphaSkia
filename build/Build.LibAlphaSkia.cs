@@ -128,7 +128,7 @@ partial class Build
                     "../../lib/node/addon/addon.cpp"
                   ]
                   if( is_win ) {
-                    sources += [ ""../../lib/node/addon/win_delay_load_hook.cpp"]
+                    sources += [ "../../lib/node/addon/win_delay_load_hook.cpp"]
                   }
                 }
             """;
