@@ -120,12 +120,16 @@ partial class Build
                   ]
                 } 
                 alphaskia_build("libalphaskianode") {
+                  defines += [ "NODE_GYP_MODULE_NAME=libalphaskianode", "USING_UV_SHARED=1", "USING_V8_SHARED=1", "V8_DEPRECATION_WARNINGS=1", "BUILDING_NODE_EXTENSION" ]
                   public_configs = [ ":alphaskia_public" ]
                   configs += [ ":alphaskia_public" ]
                   sources = alphaskia_wrapper_sources
                   sources += [
                     "../../lib/node/addon/addon.cpp"
                   ]
+                  if( is_win ) {
+                    sources += [ ""../../lib/node/addon/win_delay_load_hook.cpp"]
+                  }
                 }
             """;
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew);
@@ -213,16 +217,15 @@ partial class Build
         {
             buildTarget = "libalphaskianode";
 
-            var nodeLibPath = DownloadNodeLib();
             if (OperatingSystem.IsWindows())
             {
-                // TODO: check if clang-cl also works with the linux flags
+                var nodeLibPath = DownloadNodeLib();
                 AppendToFlagList(gnArgs, "extra_ldflags",
-                    $"'/LIBPATH:{nodeLibPath}', 'node.lib'");
+                    $"'/DELAYLOAD:node.exe', '/LIBPATH:{nodeLibPath}', 'node.lib', 'DelayImp.lib'");
             }
-            else
+            else if(OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
             {
-                AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{nodeLibPath}', '-lnode'");
+                AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
             }
         }
         else
@@ -293,18 +296,6 @@ partial class Build
                 libDir / "node.lib");
             return libDir;
         }
-
-        if (OperatingSystem.IsLinux())
-        {
-            // use system lib paths (node-dev packag is installed)
-            return null;
-        }
-
-        if (OperatingSystem.IsMacOS())
-        {
-            // 
-        }
-
 
         return null;
     }

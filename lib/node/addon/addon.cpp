@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <vector>
 #include <string>
+#include <cstring>
+#include <memory>
 
 #define CONCAT(a, b) a##b
 #define STRINGIFY(s) _STRINGIFY(s)
