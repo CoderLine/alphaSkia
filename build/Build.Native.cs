@@ -217,7 +217,9 @@ partial class Build
             );
         });
 
-    void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs, AbsolutePath workingDirectory)
+    void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs,
+        Dictionary<string, string> gnFlags,
+        AbsolutePath workingDirectory)
     {
         gnArgs["skia_enable_tools"] = "false";
         gnArgs["is_official_build"] = "true";
@@ -245,11 +247,12 @@ partial class Build
             return $"{innerQuote}{value}{innerQuote}";
         }
 
-        var allArgs = string.Join(" ", gnArgs.Select(o => $"{o.Key}={QuoteValue(o.Value)}"));
-
+        gnFlags["script-executable"] = PythonExe;
+        gnFlags["args"] = string.Join(" ", gnArgs.Select(o => $"{o.Key}={QuoteValue(o.Value)}"));
+        var gnFlagsString = string.Join(" ", gnFlags.Select(kvp => $"--{kvp.Key}={quote}{kvp.Value}{quote}"));
         // not inlined to avoid it being treated as FormattedString
         var gnToolArgs =
-            $"gen {outDir} --script-executable={quote}{PythonExe}{quote} --args={quote}{allArgs}{quote}";
+            $"gen {outDir} {gnFlagsString}";
         var argument = new ArgumentStringHandler(gnToolArgs.Length, 0, out _);
         argument.AppendLiteral(gnToolArgs);
         GnTool(
@@ -306,6 +309,12 @@ partial class Build
 
     string GetLibExtension(Variant variant)
     {
+        // TODO
+        // if (variant == Variant.Node)
+        // {
+        //     return ".node";
+        // }
+        
         if (TargetOs == TargetOperatingSystem.Windows)
         {
             return variant.IsShared ? ".dll" : ".lib";

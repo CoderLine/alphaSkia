@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -130,7 +132,7 @@ partial class Build
             PatchSkiaToolchain();
         });
 
-    
+
     void PatchSkiaFile(AbsolutePath file, string newText)
     {
         var existingText = file.ReadAllText();
@@ -169,7 +171,8 @@ partial class Build
     {
         var gnArgs = PrepareNativeBuild(Variant);
         var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
-
+        var gnFlags = new Dictionary<string, string>();
+        
         string buildTarget;
         if (Variant == Variant.Static)
         {
@@ -203,14 +206,24 @@ partial class Build
                 throw new PlatformNotSupportedException();
             }
 
-            AppendToFlagList(gnArgs, "extra_cflags", $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
+            AppendToFlagList(gnArgs, "extra_cflags",
+                $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
         }
         else if (Variant == Variant.Node)
         {
             buildTarget = "libalphaskianode";
 
-            var libPath = DownloadNodeLib();
-
+            var nodeLibPath = DownloadNodeLib();
+            if (OperatingSystem.IsWindows())
+            {
+                // TODO: check if clang-cl also works with the linux flags
+                AppendToFlagList(gnArgs, "extra_ldflags",
+                    $"'/LIBPATH:{nodeLibPath}', 'node.lib'");
+            }
+            else
+            {
+                AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{nodeLibPath}', '-lnode'");
+            }
         }
         else
         {
@@ -223,7 +236,7 @@ partial class Build
             AppendToFlagList(gnArgs, "extra_ldflags",
                 $"'/LIBPATH:{staticLibPath}', 'skia.lib', 'user32.lib', 'OpenGL32.lib'");
         }
-        else if(TargetOs == TargetOperatingSystem.Linux)
+        else if (TargetOs == TargetOperatingSystem.Linux)
         {
             AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia', '-lGL'");
         }
@@ -238,7 +251,7 @@ partial class Build
         var outDir = SkiaPath / "out" / libDir;
         var libExtension = GetLibExtension(Variant);
 
-        GnNinja($"out/{libDir}", buildTarget, gnArgs, SkiaPath);
+        GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath);
 
         try
         {
@@ -266,7 +279,7 @@ partial class Build
         }
     }
 
-    string DownloadNodeLib()
+    AbsolutePath DownloadNodeLib()
     {
         if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
         {
@@ -275,8 +288,24 @@ partial class Build
             // https://nodejs.org/dist/latest/win-x86/node.lib
             // https://nodejs.org/dist/latest/win-arm64/node.lib
             var url = $"https://nodejs.org/dist/latest/{TargetOs.RuntimeIdentifier}-{Architecture}/node.lib";
-            HttpTasks.HttpDownloadFile(url, 
-                TemporaryDirectory / $"libnode-{TargetOs.RuntimeIdentifier}-{Architecture}" / "node.lib");
+            var libDir = TemporaryDirectory / $"libnode-{TargetOs.RuntimeIdentifier}-{Architecture}";
+            HttpTasks.HttpDownloadFile(url,
+                libDir / "node.lib");
+            return libDir;
         }
+
+        if (OperatingSystem.IsLinux())
+        {
+            // use system lib paths (node-dev packag is installed)
+            return null;
+        }
+
+        if (OperatingSystem.IsMacOS())
+        {
+            // 
+        }
+
+
+        return null;
     }
 }

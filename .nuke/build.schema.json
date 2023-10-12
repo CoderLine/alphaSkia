@@ -164,6 +164,7 @@
           "type": "string",
           "enum": [
             "Jni",
+            "Node",
             "Shared",
             "Static"
           ]

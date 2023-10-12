@@ -673,7 +673,7 @@ static napi_value node_alphaskia_canvas_begin_rotate(napi_env env, napi_callback
 {
   napi_status status(napi_ok);
 
-  CHECK_ARGS(1);
+  CHECK_ARGS(4);
   GET_ARGUMENT_HANDLE(0, alphaskia_canvas_t, canvas);
   GET_ARGUMENT_FLOAT(1, center_x);
   GET_ARGUMENT_FLOAT(2, center_y);
