@@ -60,10 +60,10 @@ partial class Build
             linuxArch = "";
         }
         
-        // skia libraries
-        var libuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
+        // dependent libraries
+        var linuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
         installDependencies.AppendLine("echo Installing libs");
-        installDependencies.AppendLine($"aptitude install -y libfontconfig-dev{libuxArchSuffix} libgl1-mesa-dev{libuxArchSuffix} libglu1-mesa-dev{libuxArchSuffix} freeglut3-dev{libuxArchSuffix}");
+        installDependencies.AppendLine($"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix} libnode-dev{linuxArchSuffix}");
 
         var scriptFile = TemporaryDirectory / "install_dependencies.sh";
         File.WriteAllText(scriptFile, installDependencies.ToString());

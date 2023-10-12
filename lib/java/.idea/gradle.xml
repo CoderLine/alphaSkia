@@ -10,6 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/android" />
+            <option value="$PROJECT_DIR$/ios" />
             <option value="$PROJECT_DIR$/linux" />
             <option value="$PROJECT_DIR$/macos" />
             <option value="$PROJECT_DIR$/main" />

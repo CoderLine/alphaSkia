@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.IO;
 
@@ -115,6 +116,14 @@ partial class Build
                     "../../lib/java/jni/src/AlphaSkiaImage.cpp",
                     "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
                   ]
+                } 
+                alphaskia_build("libalphaskianode") {
+                  public_configs = [ ":alphaskia_public" ]
+                  configs += [ ":alphaskia_public" ]
+                  sources = alphaskia_wrapper_sources
+                  sources += [
+                    "../../lib/node/addon/addon.cpp"
+                  ]
                 }
             """;
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew);
@@ -196,6 +205,13 @@ partial class Build
 
             AppendToFlagList(gnArgs, "extra_cflags", $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
         }
+        else if (Variant == Variant.Node)
+        {
+            buildTarget = "libalphaskianode";
+
+            var libPath = DownloadNodeLib();
+
+        }
         else
         {
             throw new ArgumentException("Unknown variant: " + Variant);
@@ -247,6 +263,20 @@ partial class Build
             var fileList = Directory.EnumerateFileSystemEntries(outDir).Select(d =>
                 File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
             throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
+        }
+    }
+
+    string DownloadNodeLib()
+    {
+        if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
+        {
+            // libs are available at urls like: 
+            // https://nodejs.org/dist/latest/win-x64/node.lib
+            // https://nodejs.org/dist/latest/win-x86/node.lib
+            // https://nodejs.org/dist/latest/win-arm64/node.lib
+            var url = $"https://nodejs.org/dist/latest/{TargetOs.RuntimeIdentifier}-{Architecture}/node.lib";
+            HttpTasks.HttpDownloadFile(url, 
+                TemporaryDirectory / $"libnode-{TargetOs.RuntimeIdentifier}-{Architecture}" / "node.lib");
         }
     }
 }

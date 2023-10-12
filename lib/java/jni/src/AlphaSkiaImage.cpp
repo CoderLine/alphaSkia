@@ -29,7 +29,7 @@ extern "C"
     {
         jlong handle = get_handle(env, instance);
         alphaskia_image_t image = reinterpret_cast<alphaskia_image_t>(handle);
-        jsize rowBytes = alphaskia_image_get_width(image) * sizeof(int);
+        jsize rowBytes = alphaskia_image_get_width(image) * sizeof(int32_t);
         jbyteArray pixels = env->NewByteArray(
             rowBytes * alphaskia_image_get_height(image));
         jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
