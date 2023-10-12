@@ -219,13 +219,22 @@ partial class Build
 
             if (OperatingSystem.IsWindows())
             {
+                // windows requires a lib to link against, fetch it from the node downloads
                 var nodeLibPath = DownloadNodeLib();
                 AppendToFlagList(gnArgs, "extra_ldflags",
                     $"'/DELAYLOAD:node.exe', '/LIBPATH:{nodeLibPath}', 'node.lib', 'DelayImp.lib'");
             }
             else if(OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
             {
+                // disable need of a libnode.dylib dependencies are resolve dynamically during runtime 
+                // and as the node binary has them built-in
                 AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
+            } 
+            else if(OperatingSystem.IsLinux() && TargetOs == TargetOperatingSystem.Linux)
+            {
+                // disable need of a libnode.so dependencies are resolve dynamically during runtime 
+                // and as the node binary has them built-in
+                AppendToFlagList(gnArgs, "extra_ldflags", "'-Wl,-export_dynamic'");
             }
         }
         else
