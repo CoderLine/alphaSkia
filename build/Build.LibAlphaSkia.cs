@@ -228,13 +228,13 @@ partial class Build
             {
                 // disable need of a libnode.dylib dependencies are resolve dynamically during runtime 
                 // and as the node binary has them built-in
-                AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
+                // AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
             } 
             else if(OperatingSystem.IsLinux() && TargetOs == TargetOperatingSystem.Linux)
             {
                 // disable need of a libnode.so dependencies are resolve dynamically during runtime 
                 // and as the node binary has them built-in
-                AppendToFlagList(gnArgs, "extra_ldflags", "'-Wl,-export_dynamic'");
+                // AppendToFlagList(gnArgs, "extra_ldflags", "'-Wl,-export_dynamic'");
             }
         }
         else
