@@ -26,6 +26,7 @@ partial class Build
     
         
     public Target JavaBuild => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             GradlewTool("build",
