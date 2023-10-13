@@ -230,11 +230,6 @@ partial class Build
                 // disable need of a libnode.dylib dependencies are resolve dynamically during runtime 
                 // and as the node binary has them built-in
                 AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
-            } 
-            else if(OperatingSystem.IsLinux() && TargetOs == TargetOperatingSystem.Linux)
-            {
-                // export all symbols.
-                AppendToFlagList(gnArgs, "extra_ldflags", "'-Wl,-export_dynamic'");
             }
         }
         else
@@ -248,13 +243,9 @@ partial class Build
             AppendToFlagList(gnArgs, "extra_ldflags",
                 $"'/LIBPATH:{staticLibPath}', 'skia.lib', 'user32.lib', 'OpenGL32.lib'");
         }
-        else if (TargetOs == TargetOperatingSystem.Linux)
-        {
-            AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia', '-lGL'");
-        }
         else
         {
-            AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia'");
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'{staticLibPath / "libskia.a" }'");
         }
 
         var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
