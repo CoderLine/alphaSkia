@@ -124,6 +124,7 @@ partial class Build
                   configs += [ ":alphaskia_public" ]
                   defines = [ "NODE_GYP_MODULE_NAME=libalphaskianode", "USING_UV_SHARED=1", "USING_V8_SHARED=1", "V8_DEPRECATION_WARNINGS=1", "BUILDING_NODE_EXTENSION" ]
                   sources = alphaskia_wrapper_sources
+                  output_extension = "node"
                   sources += [
                     "../../lib/node/addon/addon.cpp"
                   ]

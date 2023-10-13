@@ -54,9 +54,5 @@
     "/dist/alphaskia.min.js",
     "/dist/alphaskia.min.mjs",
     "/dist/alphaskia.d.ts"
-  ],
-  "dependencies": {
-    "@types/bindings": "^1.5.2",
-    "bindings": "^1.5.0"
-  }
+  ]
 }

@@ -34,6 +34,7 @@ partial class Build
     [Parameter] readonly bool ParallelGitClone = GetVariable<bool?>("GIT_CLONE_PARALLEL") ?? true;
 
     [Parameter] readonly string GitExe = GetVariable<string>("GIT_EXE") ?? "git";
+
     Tool GitTool
     {
         get
@@ -303,31 +304,30 @@ partial class Build
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;
         gnArgs["target_cpu"] = Architecture;
         gnArgs["is_shared_alphaskia"] = variant.IsShared.ToString().ToLowerInvariant();
-        
+
         return gnArgs;
     }
 
     string GetLibExtension(Variant variant)
     {
-        // TODO
-        // if (variant == Variant.Node)
-        // {
-        //     return ".node";
-        // }
-        
+        if (variant == Variant.Node)
+        {
+            return ".node";
+        }
+
         if (TargetOs == TargetOperatingSystem.Windows)
         {
             return variant.IsShared ? ".dll" : ".lib";
         }
 
-        if (TargetOs == TargetOperatingSystem.Linux || 
+        if (TargetOs == TargetOperatingSystem.Linux ||
             TargetOs == TargetOperatingSystem.Android)
         {
             return variant.IsShared ? ".so" : ".a";
         }
 
 
-        if (TargetOs == TargetOperatingSystem.MacOs || 
+        if (TargetOs == TargetOperatingSystem.MacOs ||
             TargetOs == TargetOperatingSystem.iOS ||
             TargetOs == TargetOperatingSystem.iOSSimulator)
         {

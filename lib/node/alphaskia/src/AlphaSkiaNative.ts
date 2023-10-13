@@ -1,4 +1,4 @@
-export class AlphaSkiaNative<THandle> implements Disposable{
+export class AlphaSkiaNative<THandle> implements Disposable {
     #release: (handle: THandle) => void;
     #handle: THandle | undefined;
 

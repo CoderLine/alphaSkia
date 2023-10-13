@@ -118,6 +118,10 @@
               "LibSkiaGitSyncDeps",
               "LibSkiaPatchSkiaBuildFiles",
               "LibSkiaWithCache",
+              "Node",
+              "NodeBuild",
+              "NodePack",
+              "NodeTest",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
             ]
@@ -141,6 +145,10 @@
               "LibSkiaGitSyncDeps",
               "LibSkiaPatchSkiaBuildFiles",
               "LibSkiaWithCache",
+              "Node",
+              "NodeBuild",
+              "NodePack",
+              "NodeTest",
               "PrepareGitHubArtifacts",
               "SetupDepotTools"
             ]

@@ -10,7 +10,7 @@
 #define CONCAT(a, b) a##b
 #define STRINGIFY(s) _STRINGIFY(s)
 #define _STRINGIFY(s) #s
-#define ASSERT_STATUS() assert(status == napi_ok);
+#define ASSERT_STATUS() if(status != napi_ok) { napi_throw_error(env, "status", "Internal error"); return nullptr; }
 
 static const napi_type_tag alphaskia_data_t_tag = {0x6a960ece6a0c4caf, 0xad61688dc0a28531};
 static const napi_type_tag alphaskia_typeface_t_tag = {0x0068df0314224b96, 0x8048b968915995f1};
@@ -60,39 +60,52 @@ static const napi_type_tag alphaskia_canvas_t_tag = {0xaa77c76772a34052, 0x88ac8
     return nullptr;                                                              \
   }
 
-#define WRAP_HANDLE(type, name, value)                               \
-  napi_value name;                                                   \
-  if (value)                                                         \
-  {                                                                  \
-    status = napi_create_object(env, &name);                         \
-    ASSERT_STATUS();                                                 \
-    status = napi_type_tag_object(env, name, &CONCAT(type, _tag));   \
-    ASSERT_STATUS();                                                 \
-    status = napi_wrap(env, name, value, nullptr, nullptr, nullptr); \
-    ASSERT_STATUS();                                                 \
-  }                                                                  \
-  else                                                               \
-  {                                                                  \
-    status = napi_get_undefined(env, &name);                         \
-    ASSERT_STATUS();                                                 \
+#define WRAP_HANDLE(type, name, value)                                                                                              \
+  napi_value name;                                                                                                                  \
+  if (value)                                                                                                                        \
+  {                                                                                                                                 \
+    status = napi_create_object(env, &name);                                                                                        \
+    ASSERT_STATUS();                                                                                                                \
+    status = napi_type_tag_object(env, name, &CONCAT(type, _tag));                                                                  \
+    ASSERT_STATUS();                                                                                                                \
+    status = napi_wrap(env, name, value, nullptr, nullptr, nullptr);                                                                \
+    ASSERT_STATUS();                                                                                                                \
+    napi_value public_tag_value;                                                                                                    \
+    status = napi_create_string_utf8(env, STRINGIFY(type), NAPI_AUTO_LENGTH, &public_tag_value);                                    \
+    ASSERT_STATUS();                                                                                                                \
+    napi_property_descriptor public_tag = {/* utf8name: */ "_alphaskia",                                                            \
+                                           /* name: */ nullptr,                                                                     \
+                                           /* method: */ nullptr,                                                                   \
+                                           /* getter: */ nullptr,                                                                   \
+                                           /* setter: */ nullptr,                                                                   \
+                                           /* value: */ public_tag_value,                                                           \
+                                           /* attributes: */ static_cast<napi_property_attributes>(napi_default | napi_enumerable), \
+                                           /* data: */ nullptr};                                                                    \
+    status = napi_define_properties(env, name, 1, &public_tag);                                                                     \
+    ASSERT_STATUS();                                                                                                                \
+  }                                                                                                                                 \
+  else                                                                                                                              \
+  {                                                                                                                                 \
+    status = napi_get_undefined(env, &name);                                                                                        \
+    ASSERT_STATUS();                                                                                                                \
   }
 
-#define GET_ARGUMENT_HANDLE(index, type, name)                                                                             \
-  type name;                                                                                                               \
-  {                                                                                                                        \
-    bool is_handle(false);                                                                                                 \
-    status = napi_check_object_type_tag(env,                                                                               \
-                                        node_argv[index],                                                                  \
-                                        &CONCAT(type, _tag),                                                               \
-                                        &is_handle);                                                                       \
-    ASSERT_STATUS();                                                                                                       \
-    if (!is_handle)                                                                                                        \
-    {                                                                                                                      \
-      napi_throw_type_error(env, NULL, "Wrong argument type at index " STRINGIFY(index) ", expected handle of type TODO"); \
-      return nullptr;                                                                                                      \
-    }                                                                                                                      \
-    status = napi_unwrap(env, node_argv[index], &name);                                                                    \
-    ASSERT_STATUS();                                                                                                       \
+#define GET_ARGUMENT_HANDLE(index, type, name)                                                                                         \
+  type name;                                                                                                                           \
+  {                                                                                                                                    \
+    bool is_handle(false);                                                                                                             \
+    status = napi_check_object_type_tag(env,                                                                                           \
+                                        node_argv[index],                                                                              \
+                                        &CONCAT(type, _tag),                                                                           \
+                                        &is_handle);                                                                                   \
+    ASSERT_STATUS();                                                                                                                   \
+    if (!is_handle)                                                                                                                    \
+    {                                                                                                                                  \
+      napi_throw_type_error(env, NULL, "Wrong argument type at index " STRINGIFY(index) ", expected handle of type " STRINGIFY(type)); \
+      return nullptr;                                                                                                                  \
+    }                                                                                                                                  \
+    status = napi_unwrap(env, node_argv[index], &name);                                                                                \
+    ASSERT_STATUS();                                                                                                                   \
   }
 
 #define GET_ARGUMENT_UTF8_STRING(index, name)                                                        \
@@ -225,7 +238,7 @@ static napi_value node_alphaskia_typeface_register(napi_env env, napi_callback_i
   GET_ARGUMENT_HANDLE(0, alphaskia_data_t, data);
 
   alphaskia_typeface_t typeface = alphaskia_typeface_register(data);
-  WRAP_HANDLE(alphaskia_data_t, wrapped, typeface);
+  WRAP_HANDLE(alphaskia_typeface_t, wrapped, typeface);
   return wrapped;
 }
 
@@ -254,7 +267,6 @@ static napi_value node_alphaskia_typeface_make_from_name(napi_env env, napi_call
   GET_ARGUMENT_BOOL(2, italic);
 
   alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(name.c_str(), bold ? 1 : 0, italic ? 1 : 0);
-
   WRAP_HANDLE(alphaskia_typeface_t, wrapped, typeface);
   return wrapped;
 }
@@ -767,7 +779,7 @@ napi_value init(napi_env env, napi_value exports)
   EXPORT_NODE_FUNCTION(alphaskia_canvas_end_rotate);
 
   napi_status status = napi_define_properties(env, exports, methods.size(), methods.data());
-  assert(status == napi_ok);
+  ASSERT_STATUS();
   return exports;
 }
 

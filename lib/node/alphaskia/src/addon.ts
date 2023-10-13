@@ -1,4 +1,6 @@
-import bindings from 'bindings';
+
+import { createRequire } from 'node:module';
+import { findAddonPath } from './AlphaSkiaPlatform';
 
 export interface AlphaSkiaDataHandle { }
 export interface AlphaSkiaTypefaceHandle { }
@@ -11,7 +13,7 @@ export enum AlphaSkiaTextAlign {
     Right = 2
 }
 
-export enum AlphaSkiaBaseline {
+export enum AlphaSkiaTextBaseline {
     Alphabetic = 0,
     Top = 1,
     Middle = 2,
@@ -78,21 +80,21 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_canvas_stroke(canvas: AlphaSkiaCanvasHandle): void;
     alphaskia_canvas_draw_image(canvas: AlphaSkiaCanvasHandle, image: AlphaSkiaImageHandle, x: number, y: number, w: number, h: number): void;
 
-    alphaskia_canvas_fill_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number, x: number, y: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaBaseline): void;
+    alphaskia_canvas_fill_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number, x: number, y: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void;
     alphaskia_canvas_measure_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number): number;
     alphaskia_canvas_begin_rotate(canvas: AlphaSkiaCanvasHandle, center_x: number, center_y: number, angle: number): void;
     alphaskia_canvas_end_rotate(canvas: AlphaSkiaCanvasHandle): void;
 }
 
-const platformMap: any = {
-    "win32": "win",
-    "darwin": "macos"
+const require = createRequire(import.meta.url);
+let addonInstance: AlphaSkiaNodeAddon | undefined = undefined;
+export function loadAddon() {
+    if (!addonInstance) {
+        const addonPath = findAddonPath();
+        if (!addonPath) {
+            throw new ReferenceError("alphaSkia native addon could not be found");
+        }
+        addonInstance = require(addonPath) as AlphaSkiaNodeAddon
+    }
+    return addonInstance;
 };
-const platform = platformMap[process.platform] || process.platform;
-
-export const Addon = bindings({
-    bindings: 'libalphaskianode.node',
-    try: [
-        ['module_root', 'build', `${platform}-${process.arch}`, 'bindings']
-    ]
-}) as AlphaSkiaNodeAddon;

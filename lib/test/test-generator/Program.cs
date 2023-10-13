@@ -16,3 +16,7 @@ var javaTestFile = Path.Combine(rootDir, "lib", "java", "main", "src", "test", "
     "AlphaTabGeneratedRenderTest.java");
 File.WriteAllText(javaTestFile, AlphaSkiaUnitTestGenerator.GenerateJava());
 Console.WriteLine("Updated Java source in {0}", javaTestFile);
+
+var typeScriptTestFile = Path.Combine(rootDir, "lib", "node", "test", "AlphaTabGeneratedRenderTest.test.ts");
+File.WriteAllText(typeScriptTestFile, AlphaSkiaUnitTestGenerator.GenerateTypeScript());
+Console.WriteLine("Updated TypeScript source in {0}", typeScriptTestFile);
