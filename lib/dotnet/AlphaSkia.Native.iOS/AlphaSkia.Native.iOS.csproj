@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../../dist/libalphaskia-ios-arm64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/ios-arm64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-ios-arm64-shared/libalphaskia.dylib') " />
-        <None Include="../../../dist/libalphaskia-iossimulator-arm64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/iossimulator-arm64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-iossimulator-arm64-shared/libalphaskia.dylib') " />
-        <None Include="../../../dist/libalphaskia-iossimulator-x64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/iossimulator-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-iossimulator-x64-shared/libalphaskia.dylib') " />
+        <None Include="$(DistDirectory)libalphaskia-ios-arm64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/ios-arm64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-ios-arm64-shared/libalphaskia.dylib') " />
+        <None Include="$(DistDirectory)libalphaskia-iossimulator-arm64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/iossimulator-arm64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-iossimulator-arm64-shared/libalphaskia.dylib') " />
+        <None Include="$(DistDirectory)libalphaskia-iossimulator-x64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/iossimulator-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-iossimulator-x64-shared/libalphaskia.dylib') " />
         <None Update="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 </Project>

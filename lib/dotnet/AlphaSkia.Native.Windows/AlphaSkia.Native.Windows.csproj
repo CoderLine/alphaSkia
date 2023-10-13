@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../../dist/libalphaskia-win-x64-shared/libalphaskia.dll" Pack="True" PackagePath="runtimes/win-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-win-x64-shared/libalphaskia.dll') " />
-        <None Include="../../../dist/libalphaskia-win-x86-shared/libalphaskia.dll" Pack="True" PackagePath="runtimes/win-x86/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-win-x86-shared/libalphaskia.dll') " />
-        <None Include="../../../dist/libalphaskia-win-arm64-shared/libalphaskia.dll" Pack="True" PackagePath="runtimes/win-arm/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-win-arm-shared/libalphaskia.dll') " />
+        <None Include="$(DistDirectory)libalphaskia-win-x64-shared/libalphaskia.dll" Pack="True" PackagePath="runtimes/win-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-win-x64-shared/libalphaskia.dll') " />
+        <None Include="$(DistDirectory)libalphaskia-win-x86-shared/libalphaskia.dll" Pack="True" PackagePath="runtimes/win-x86/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-win-x86-shared/libalphaskia.dll') " />
+        <None Include="$(DistDirectory)libalphaskia-win-arm64-shared/libalphaskia.dll" Pack="True" PackagePath="runtimes/win-arm/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-win-arm-shared/libalphaskia.dll') " />
         <None Update="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 </Project>

@@ -8,7 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../../dist/libalphaskia-linux-x64-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/linux-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-linux-x64-shared/libalphaskia.so') " />
+        <None Include="$(DistDirectory)libalphaskia-linux-x64-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/linux-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-x64-shared/libalphaskia.so') " />
+        <None Include="$(DistDirectory)libalphaskia-linux-x86-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/linux-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-x86-shared/libalphaskia.so') " />
+        <None Include="$(DistDirectory)libalphaskia-linux-arm-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/linux-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-arm-shared/libalphaskia.so') " />
+        <None Include="$(DistDirectory)libalphaskia-linux-arm64-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/linux-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-arm64-shared/libalphaskia.so') " />
         <None Update="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 </Project>
