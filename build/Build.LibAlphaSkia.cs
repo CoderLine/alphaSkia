@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.IO;
 
@@ -80,8 +78,7 @@ partial class Build
                       "OpenGL.framework",
                       
                       "Metal.framework",
-                      "Foundation.framework",
-
+                      "Foundation.framework"
                     ]   
                   }
                   if (is_ios) {
@@ -94,7 +91,7 @@ partial class Build
                       "MobileCoreServices.framework",
 
                       "Metal.framework",
-                      "UIKit.framework",
+                      "UIKit.framework"
                     ]
                   }
 
@@ -107,6 +104,10 @@ partial class Build
                   public_configs = [ ":alphaskia_public" ]
                   configs += [ ":alphaskia_public" ]
                   sources = alphaskia_wrapper_sources
+                  libs = [ "skia" ]
+                  if( is_win) {
+                    libs += [ "user32", "OpenGL32" ]
+                  }
                 }
                 alphaskia_build("libalphaskiajni") {
                   public_configs = [ ":alphaskia_public" ]
@@ -118,6 +119,10 @@ partial class Build
                     "../../lib/java/jni/src/AlphaSkiaImage.cpp",
                     "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
                   ]
+                  libs = [ "skia" ]
+                  if( is_win) {
+                    libs += [ "user32", "OpenGL32" ]
+                  }
                 }
                 alphaskia_build("libalphaskianode") {
                   public_configs = [ ":alphaskia_public" ]
@@ -128,8 +133,10 @@ partial class Build
                   sources += [
                     "../../lib/node/addon/addon.cpp"
                   ]
+                  libs = [ "skia" ]
                   if( is_win ) {
                     sources += [ "../../lib/node/addon/win_delay_load_hook.cpp"]
+                    libs += [ "user32", "OpenGL32" ]
                   }
                 }
             """;
@@ -241,11 +248,11 @@ partial class Build
         {
             // TODO: check if clang-cl also works with the linux flags
             AppendToFlagList(gnArgs, "extra_ldflags",
-                $"'/LIBPATH:{staticLibPath}', 'skia.lib', 'user32.lib', 'OpenGL32.lib'");
+                $"'/LIBPATH:{staticLibPath}'");
         }
         else
         {
-            AppendToFlagList(gnArgs, "extra_ldflags", $"'{staticLibPath / "libskia.a" }'");
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'-L{staticLibPath}'");
         }
 
         var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
