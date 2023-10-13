@@ -8,10 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../../dist/libalphaskia-android-x64-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-x64/native" Condition=" Exists('../../../dist/libalphaskia-android-x64-shared/libalphaskia.so') " />
-        <None Include="../../../dist/libalphaskia-android-x86-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-x86/native" Condition=" Exists('../../../dist/libalphaskia-android-x86-shared/libalphaskia.so') " />
-        <None Include="../../../dist/libalphaskia-android-arm-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-arm/native" Condition=" Exists('../../../dist/libalphaskia-android-arm-shared/libalphaskia.so') " />
-        <None Include="../../../dist/libalphaskia-android-arm64-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-arm64/native" Condition=" Exists('../../../dist/libalphaskia-android-arm64-shared/libalphaskia.so') " />
+        <None Include="../../../dist/libalphaskia-android-x64-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-android-x64-shared/libalphaskia.so') " />
+        <None Include="../../../dist/libalphaskia-android-x86-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-x86/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-android-x86-shared/libalphaskia.so') " />
+        <None Include="../../../dist/libalphaskia-android-arm-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-arm/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-android-arm-shared/libalphaskia.so') " />
+        <None Include="../../../dist/libalphaskia-android-arm64-shared/libalphaskia.so" Pack="True" PackagePath="runtimes/android-arm64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-android-arm64-shared/libalphaskia.so') " />
         <None Update="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 </Project>

@@ -231,6 +231,11 @@ partial class Build
                 // and as the node binary has them built-in
                 AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
             } 
+            else if(OperatingSystem.IsLinux() && TargetOs == TargetOperatingSystem.Linux)
+            {
+                // export all symbols.
+                AppendToFlagList(gnArgs, "extra_ldflags", "'-Wl,-export_dynamic'");
+            }
         }
         else
         {

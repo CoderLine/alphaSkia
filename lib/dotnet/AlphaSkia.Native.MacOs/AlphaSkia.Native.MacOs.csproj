@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../../dist/libalphaskia-macos-x64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/osx-x64/native" Condition=" Exists('../../../dist/libalphaskia-macos-x64-shared/libalphaskia.dylib') " />
-        <None Include="../../../dist/libalphaskia-macos-arm64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/osx-arm64/native" Condition=" Exists('../../../dist/libalphaskia-macos-arm64-shared/libalphaskia.dylib') " />
+        <None Include="../../../dist/libalphaskia-macos-x64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/osx-x64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-macos-x64-shared/libalphaskia.dylib') " />
+        <None Include="../../../dist/libalphaskia-macos-arm64-shared/libalphaskia.dylib" Pack="True" PackagePath="runtimes/osx-arm64/native" Condition=" '$(LibsMustExist)' == 'true' OR Exists('../../../dist/libalphaskia-macos-arm64-shared/libalphaskia.dylib') " />
         <None Update="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 </Project>
