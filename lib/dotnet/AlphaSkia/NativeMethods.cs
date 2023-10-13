@@ -7,7 +7,7 @@ namespace AlphaSkia;
 
 internal static partial class NativeMethods
 {
-    public const string AlphaSkiaNativeLibName = "libAlphaSkia";
+    public const string AlphaSkiaNativeLibName = "libalphaskia";
 
     [LibraryImport(AlphaSkiaNativeLibName)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
