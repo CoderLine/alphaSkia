@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist/lib.test",
+    "declarationDir": "dist/types.test"
+  },
+  "include": [
+    "src",
+    "test"
+  ]
+}

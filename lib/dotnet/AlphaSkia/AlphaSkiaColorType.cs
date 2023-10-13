@@ -11,10 +11,10 @@ public enum AlphaSkiaColorType
     /// <summary>
     /// pixel with 8 bits for red, green, blue, alpha; in 32-bit word
     /// </summary>
-    RGBA_8888 = 4,
+    Rgba888 = 4,
 
     /// <summary>
     /// pixel with 8 bits for blue, green, red, alpha; in 32-bit word
     /// </summary>
-    BGRA_8888 = 6,
+    Bgra888 = 6
 }

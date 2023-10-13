@@ -1,0 +1,8 @@
+{
+    "mochaExplorer.files": "test/**/*.test.ts",
+    "mochaExplorer.nodeArgv": [
+        "--experimental-specifier-resolution=node",
+        "--loader=tsx"
+    ],
+    "mochaExplorer.logpanel": true
+}

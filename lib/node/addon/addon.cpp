@@ -25,28 +25,28 @@ static const napi_type_tag alphaskia_canvas_t_tag = {0xaa77c76772a34052, 0x88ac8
     return undefined;                             \
   }
 
-#define CHECK_ARGUMENT_TYPE(index, expected)               \
-  {                                                        \
-    napi_valuetype actual;                                 \
-    status = napi_typeof(env, node_argv[index], &actual);  \
-    ASSERT_STATUS();                                       \
-    if (actual != expected)                                \
-    {                                                      \
-      napi_throw_type_error(env, NULL, "Wrong arguments"); \
-      return nullptr;                                      \
-    }                                                      \
+#define CHECK_ARGUMENT_TYPE(index, expected)                                                                                     \
+  {                                                                                                                              \
+    napi_valuetype actual;                                                                                                       \
+    status = napi_typeof(env, node_argv[index], &actual);                                                                        \
+    ASSERT_STATUS();                                                                                                             \
+    if (actual != expected)                                                                                                      \
+    {                                                                                                                            \
+      napi_throw_type_error(env, NULL, "Wrong argument type at index " STRINGIFY(index) ", expected type " STRINGIFY(expected)); \
+      return nullptr;                                                                                                            \
+    }                                                                                                                            \
   }
 
-#define CHECK_ARGUMENT_IS_ARRAYBUFFER(index)                         \
-  {                                                                  \
-    bool is_buffer(false);                                           \
-    status = napi_is_arraybuffer(env, node_argv[index], &is_buffer); \
-    ASSERT_STATUS();                                                 \
-    if (!is_buffer)                                                  \
-    {                                                                \
-      napi_throw_type_error(env, NULL, "Wrong arguments");           \
-      return nullptr;                                                \
-    }                                                                \
+#define CHECK_ARGUMENT_IS_ARRAYBUFFER(index)                                                                       \
+  {                                                                                                                \
+    bool is_buffer(false);                                                                                         \
+    status = napi_is_arraybuffer(env, node_argv[index], &is_buffer);                                               \
+    ASSERT_STATUS();                                                                                               \
+    if (!is_buffer)                                                                                                \
+    {                                                                                                              \
+      napi_throw_type_error(env, NULL, "Wrong argument type at index " STRINGIFY(index) ", expected ArrayBuffer"); \
+      return nullptr;                                                                                              \
+    }                                                                                                              \
   }
 
 #define CHECK_ARGS(count)                                                        \
@@ -60,37 +60,45 @@ static const napi_type_tag alphaskia_canvas_t_tag = {0xaa77c76772a34052, 0x88ac8
     return nullptr;                                                              \
   }
 
-#define WRAP_HANDLE(type, name, value)                             \
-  napi_value name;                                                 \
-  status = napi_create_object(env, &name);                         \
-  ASSERT_STATUS();                                                 \
-  status = napi_type_tag_object(env, name, &CONCAT(type, _tag));   \
-  ASSERT_STATUS();                                                 \
-  status = napi_wrap(env, name, value, nullptr, nullptr, nullptr); \
-  ASSERT_STATUS();
+#define WRAP_HANDLE(type, name, value)                               \
+  napi_value name;                                                   \
+  if (value)                                                         \
+  {                                                                  \
+    status = napi_create_object(env, &name);                         \
+    ASSERT_STATUS();                                                 \
+    status = napi_type_tag_object(env, name, &CONCAT(type, _tag));   \
+    ASSERT_STATUS();                                                 \
+    status = napi_wrap(env, name, value, nullptr, nullptr, nullptr); \
+    ASSERT_STATUS();                                                 \
+  }                                                                  \
+  else                                                               \
+  {                                                                  \
+    status = napi_get_undefined(env, &name);                         \
+    ASSERT_STATUS();                                                 \
+  }
 
-#define GET_ARGUMENT_HANDLE(index, type, name)               \
-  type name;                                                 \
-  {                                                          \
-    bool is_handle(false);                                   \
-    status = napi_check_object_type_tag(env,                 \
-                                        node_argv[index],    \
-                                        &CONCAT(type, _tag), \
-                                        &is_handle);         \
-    ASSERT_STATUS();                                         \
-    if (!is_handle)                                          \
-    {                                                        \
-      napi_throw_type_error(env, NULL, "Wrong arguments");   \
-      return nullptr;                                        \
-    }                                                        \
-    status = napi_unwrap(env, node_argv[index], &name);      \
-    ASSERT_STATUS();                                         \
+#define GET_ARGUMENT_HANDLE(index, type, name)                                                                             \
+  type name;                                                                                                               \
+  {                                                                                                                        \
+    bool is_handle(false);                                                                                                 \
+    status = napi_check_object_type_tag(env,                                                                               \
+                                        node_argv[index],                                                                  \
+                                        &CONCAT(type, _tag),                                                               \
+                                        &is_handle);                                                                       \
+    ASSERT_STATUS();                                                                                                       \
+    if (!is_handle)                                                                                                        \
+    {                                                                                                                      \
+      napi_throw_type_error(env, NULL, "Wrong argument type at index " STRINGIFY(index) ", expected handle of type TODO"); \
+      return nullptr;                                                                                                      \
+    }                                                                                                                      \
+    status = napi_unwrap(env, node_argv[index], &name);                                                                    \
+    ASSERT_STATUS();                                                                                                       \
   }
 
 #define GET_ARGUMENT_UTF8_STRING(index, name)                                                        \
   std::string name;                                                                                  \
   {                                                                                                  \
-    CHECK_ARGUMENT_TYPE(0, napi_string);                                                             \
+    CHECK_ARGUMENT_TYPE(index, napi_string);                                                         \
     size_t name_size;                                                                                \
     status = napi_get_value_string_utf8(env, node_argv[index], nullptr, 0, &name_size);              \
     ASSERT_STATUS();                                                                                 \
@@ -102,7 +110,7 @@ static const napi_type_tag alphaskia_canvas_t_tag = {0xaa77c76772a34052, 0x88ac8
 #define GET_ARGUMENT_UTF16_STRING(index, name)                                                        \
   std::u16string name;                                                                                \
   {                                                                                                   \
-    CHECK_ARGUMENT_TYPE(0, napi_string);                                                              \
+    CHECK_ARGUMENT_TYPE(index, napi_string);                                                          \
     size_t name_size;                                                                                 \
     status = napi_get_value_string_utf16(env, node_argv[index], nullptr, 0, &name_size);              \
     ASSERT_STATUS();                                                                                  \
@@ -245,7 +253,7 @@ static napi_value node_alphaskia_typeface_make_from_name(napi_env env, napi_call
   GET_ARGUMENT_BOOL(1, bold);
   GET_ARGUMENT_BOOL(2, italic);
 
-  alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(name.c_str(), bold, italic);
+  alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(name.c_str(), bold ? 1 : 0, italic ? 1 : 0);
 
   WRAP_HANDLE(alphaskia_typeface_t, wrapped, typeface);
   return wrapped;
@@ -420,6 +428,7 @@ static napi_value node_alphaskia_canvas_get_line_width(napi_env env, napi_callba
   return line_width_node;
 }
 
+#include <iostream>
 static napi_value node_alphaskia_canvas_begin_render(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
