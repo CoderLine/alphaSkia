@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
 		<LibsMustExist Condition=" '$(LibsMustExist)' == '' AND '$(GITHUB_ACTIONS)' == 'true' ">true</LibsMustExist>
-		<DistDirectory>$(MSBuildThisFileDirectory)/../../dist/</LibsMustExist>
+		<DistDirectory>$(MSBuildThisFileDirectory)/../../dist/</DistDirectory>
 	</PropertyGroup>
 </Project>
