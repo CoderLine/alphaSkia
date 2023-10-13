@@ -171,4 +171,55 @@ public class AlphaSkiaUnitTestGenerator
 
         return sourceCode.ToString();
     }
+
+    public static string GenerateTypeScript()
+    {
+        var settings = new Settings
+        {
+            Core =
+            {
+                Engine = "TypeScriptTestCode"
+            }
+        };
+        var sourceCode = new TypeScriptSourceBuilder();
+        AlphaTab.Environment.RenderEngines.Set(
+            settings.Core.Engine,
+            new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode))
+        );
+
+        sourceCode.Resume();
+        
+        sourceCode.WriteLine("import { MusicSheetRenderTest } from './MusicSheetRenderTest'; ");
+        sourceCode.WriteLine("import { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaCanvas, AlphaSkiaImage } from 'src/alphaskia'; ");
+        sourceCode.WriteLine();
+
+        sourceCode.Write("describe('AlphaTabGeneratedRenderTest', function() ");
+        sourceCode.BeginBlock();
+        sourceCode.WriteLine("const test = new MusicSheetRenderTest();");
+        sourceCode.WriteLine("before(function () { test.before(); })");
+        sourceCode.WriteLine();
+        sourceCode.Suspend();
+
+        var result = GenerateTestCode(settings);
+
+        sourceCode.Resume();
+        sourceCode.WriteLine("test.partPositions = [");
+        sourceCode.WriteLine("    " + string.Join(", ",
+                    result.partialPositions.Select(p => "[" + string.Join(", ", p) + "]")));
+        sourceCode.WriteLine("];");
+        sourceCode.WriteLine($"test.totalWidth = {result.totalWidth};");
+        sourceCode.WriteLine($"test.totalHeight = {result.totalHeight};");
+        sourceCode.WriteLine($"test.allParts = [");
+        var parts = result.partialPositions.Select((_, i) => $"drawMusicSheetPart{i + 1}");
+        sourceCode.WriteLine(string.Join(", ", parts));
+        sourceCode.WriteLine("];");
+        sourceCode.WriteLine();
+        sourceCode.WriteLine("it('render', function() { test.render('AlphaTabGeneratedRenderTest') } )");
+        sourceCode.EndBlock();
+        sourceCode.WriteLine(");");
+        sourceCode.Suspend();
+
+        return sourceCode.ToString();
+    }
+    
 }

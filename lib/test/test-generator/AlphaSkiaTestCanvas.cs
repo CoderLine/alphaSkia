@@ -33,7 +33,7 @@ class AlphaSkiaTestCanvas : ICanvas
             }
             _source.WriteSetCanvasProperty("Color",
                 _source.MakeCallStaticMethod("AlphaSkiaCanvas", "RgbaToColor",
-                    $"(byte){(byte)value.R}, (byte){(byte)value.G}, (byte){(byte)value.B}, (byte){(byte)value.A}",
+                    $"{_source.MakeCastToByte(value.R)}, {_source.MakeCastToByte(value.G)}, {_source.MakeCastToByte(value.B)}, {_source.MakeCastToByte(value.A)}",
                     false
                 )
             );
@@ -46,7 +46,7 @@ class AlphaSkiaTestCanvas : ICanvas
         get => _lineWidth;
         set
         {
-            _source.WriteSetCanvasProperty("LineWidth", $"(float){value}");
+            _source.WriteSetCanvasProperty("LineWidth", $"{_source.MakeCastToFloat(value)}");
             _lineWidth = value;
         }
     }
@@ -60,7 +60,7 @@ class AlphaSkiaTestCanvas : ICanvas
                 $"\"{value.Families[0]}\", {(value.IsBold ? "true" : "false")}, {(value.IsItalic ? "true" : "false")}",
                 false
             ));
-            _source.WriteSetProperty("FontSize", $"(float){value.Size}");
+            _source.WriteSetProperty("FontSize", $"{_source.MakeCastToFloat(value.Size)}");
             _font = value;
         }
     }
@@ -87,22 +87,22 @@ class AlphaSkiaTestCanvas : ICanvas
 
     public void FillRect(double x, double y, double w, double h)
     {
-        _source.WriteCallCanvasMethod("FillRect", $"(float){x}, (float){y}, (float){w}, (float){h}");
+        _source.WriteCallCanvasMethod("FillRect", $"{_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}, {_source.MakeCastToFloat(w)}, {_source.MakeCastToFloat(h)}");
     }
 
     public void StrokeRect(double x, double y, double w, double h)
     {
-        _source.WriteCallCanvasMethod("StrokeRect", $"(float){x}, (float){y}, (float){w}, (float){h}");
+        _source.WriteCallCanvasMethod("StrokeRect", $"{_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}, {_source.MakeCastToFloat(w)}, {_source.MakeCastToFloat(h)}");
     }
 
     public void FillCircle(double x, double y, double radius)
     {
-        _source.WriteCallCanvasMethod("FillCircle", $"(float){x}, (float){y}, (float){radius}");
+        _source.WriteCallCanvasMethod("FillCircle", $"{_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}, {_source.MakeCastToFloat(radius)}");
     }
 
     public void StrokeCircle(double x, double y, double radius)
     {
-        _source.WriteCallCanvasMethod("StrokeCircle", $"(float){x}, (float){y}, (float){radius}");
+        _source.WriteCallCanvasMethod("StrokeCircle", $"{_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}, {_source.MakeCastToFloat(radius)}");
     }
 
     public void BeginGroup(string identifier)
@@ -116,7 +116,7 @@ class AlphaSkiaTestCanvas : ICanvas
     public void FillText(string text, double x, double y)
     {
         _source.WriteCallCanvasMethod("FillText",
-            $"{_source.EncodeString(text)}, {_source.MakeGetProperty("Typeface")}, {_source.MakeGetProperty("FontSize")}, (float){x}, (float){y}, {_source.MakeGetProperty("TextAlign")}, {_source.MakeGetProperty("TextBaseline")}");
+            $"{_source.EncodeString(text)}, {_source.MakeGetProperty("Typeface")}, {_source.MakeGetProperty("FontSize")}, {_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}, {_source.MakeGetProperty("TextAlign")}, {_source.MakeGetProperty("TextBaseline")}");
     }
 
     public double MeasureText(string text)
@@ -142,23 +142,36 @@ class AlphaSkiaTestCanvas : ICanvas
         var textAlign = centerAtPosition
             ? _source.MakeEnumAccess("AlphaSkiaTextAlign", "Center")
             : _source.MakeEnumAccess("AlphaSkiaTextAlign", "Left");
+        
         _source.WriteCallCanvasMethod("FillText",
-            $"{text}, {_source.MakeGetProperty("MusicTypeface")}, (float)({_source.MakeGetProperty("MusicFontSize")} * {scale}), (float){x}, (float){y}, {textAlign}, {_source.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
+            $"{text}, {_source.MakeGetProperty("MusicTypeface")}, {MakeGetMusicFontSize(scale)}, {_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}, {textAlign}, {_source.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
+    }
+
+    private string MakeGetMusicFontSize(double? scale = null) 
+    {
+        if(scale == null)
+        {
+            return _source.MakeCastToFloat(_source.MakeGetProperty("MusicFontSize"));
+        }
+        else
+        {
+            return _source.MakeCastToFloat($"{_source.MakeGetProperty("MusicFontSize")} * {scale}");
+        }
     }
 
     public void BeginRender(double width, double height)
     {
         _source.Resume();
-        var methodName = _source.MakeMethodAccess("DrawMusicSheetPart" + _partialCounter++);
-        _source.WriteLine($"private AlphaSkiaImage {methodName}(AlphaSkiaCanvas canvas)");
+        var methodName = "DrawMusicSheetPart" + _partialCounter++;
+        _source.WriteMethodDeclaration("private", "AlphaSkiaImage", methodName, new[] { ("AlphaSkiaCanvas", "canvas" ) });
         _source.BeginBlock();
-        _source.WriteCallCanvasMethod("BeginRender", $"(int){width}, (int){height}, (float){_source.MakeGetProperty("RenderScale")}");
+        _source.WriteCallCanvasMethod("BeginRender", $"{(int)width}, {(int)height}, {_source.MakeCastToFloat(_source.MakeGetProperty("RenderScale"))}");
     }
 
     public object? EndRender()
     {
         _source.WriteLine(
-            $"return {_source.MakeCallMethod(_source.MakeMethodAccess("canvas", "EndRender"))}");
+            $"return {_source.MakeCallMethod(_source.MakeMethodAccess("canvas", "EndRender"), notNull: true)}");
         _source.EndBlock();
         _source.Suspend();
         return _source;
@@ -171,7 +184,7 @@ class AlphaSkiaTestCanvas : ICanvas
 
     public void BeginRotate(double centerX, double centerY, double angle)
     {
-        _source.WriteCallCanvasMethod("BeginRotate", $"(float){centerX}, (float){centerY}, (float){angle}");
+        _source.WriteCallCanvasMethod("BeginRotate", $"{_source.MakeCastToFloat(centerX)}, {_source.MakeCastToFloat(centerY)}, {_source.MakeCastToFloat(angle)}");
     }
 
     public void EndRotate()
@@ -201,22 +214,22 @@ class AlphaSkiaTestCanvas : ICanvas
 
     public void MoveTo(double x, double y)
     {
-        _source.WriteCallCanvasMethod("MoveTo", $"(float){x}, (float){y}");
+        _source.WriteCallCanvasMethod("MoveTo", $"{_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}");
     }
 
     public void LineTo(double x, double y)
     {
-        _source.WriteCallCanvasMethod("LineTo", $"(float){x}, (float){y}");
+        _source.WriteCallCanvasMethod("LineTo", $"{_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}");
     }
 
     public void BezierCurveTo(double cp1X, double cp1Y, double cp2X, double cp2Y, double x, double y)
     {
         _source.WriteCallCanvasMethod("BezierCurveTo",
-            $"(float){cp1X}, (float){cp1Y}, (float){cp2X}, (float){cp2Y}, (float){x}, (float){y}");
+            $"{_source.MakeCastToFloat(cp1X)}, {_source.MakeCastToFloat(cp1Y)}, {_source.MakeCastToFloat(cp2X)}, {_source.MakeCastToFloat(cp2Y)}, {_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}");
     }
 
     public void QuadraticCurveTo(double cpx, double cpy, double x, double y)
     {
-        _source.WriteCallCanvasMethod("QuadraticCurveTo", $"(float){cpx}, (float){cpy}, (float){x}, (float){y}");
+        _source.WriteCallCanvasMethod("QuadraticCurveTo", $"{_source.MakeCastToFloat(cpx)}, {_source.MakeCastToFloat(cpy)}, {_source.MakeCastToFloat(x)}, {_source.MakeCastToFloat(y)}");
     }
 }

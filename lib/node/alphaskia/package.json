@@ -1,0 +1,58 @@
+{
+  "name": "@coderline/alphaskia",
+  "version": "1.0.0",
+  "description": "A Skia based rendering backend for alphaTab.",
+  "module": "dist/alphaskia.mjs",
+  "typings": "dist/alphaskia.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/alphaskia.mjs"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsc --project tsconfig.build.json && rollup -c rollup.config.js",
+    "start": "npm run build && concurrently --kill-others \"tsc --project tsconfig.build.json --watch\" \"rollup -c rollup.config.js -w\"",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CoderLine/alphaSkia.git"
+  },
+  "author": "Daniel Kuschny",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/CoderLine/alphaSkia/issues"
+  },
+  "homepage": "https://github.com/CoderLine/alphaSkia#readme",
+  "optionalDependencies": {
+    "@coderline/alphaskia-linux": "^1.0.0",
+    "@coderline/alphaskia-macos": "^1.0.0",
+    "@coderline/alphaskia-windows": "^1.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/chai": "^4.3.8",
+    "@types/mocha": "^10.0.2",
+    "@types/node": "^20.8.5",
+    "assert": "^2.1.0",
+    "chai": "^4.3.10",
+    "concurrently": "^8.2.1",
+    "mocha": "^10.2.0",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.0.2",
+    "rollup-plugin-dts": "^6.1.0",
+    "tsx": "^3.13.0",
+    "typescript": "^5.2.2"
+  },
+  "files": [
+    "/dist/alphaskia.js",
+    "/dist/alphaskia.mjs",
+    "/dist/alphaskia.min.js",
+    "/dist/alphaskia.min.mjs",
+    "/dist/alphaskia.d.ts"
+  ]
+}

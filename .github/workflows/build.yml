@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm64]
-        variant: [shared, jni]
+        variant: [shared, jni, node]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,7 +63,7 @@ jobs:
       fail-fast: false
       matrix:
         architecture: [x64, x86, arm, arm64]
-        variant: [shared, jni]
+        variant: [shared, jni, node]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -130,7 +130,7 @@ jobs:
       fail-fast: false
       matrix:
         architecture: [x64, arm64]
-        variant: [shared, jni]
+        variant: [shared, jni, node]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -190,7 +190,7 @@ jobs:
 #
 # Libraries
   dotnet:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia, ios-alphaskia]
     steps:
     - uses: actions/checkout@v3
@@ -219,3 +219,18 @@ jobs:
         name: Jars
         path: |
           lib/java/*/build/libs/*.jar
+  
+  node:
+    runs-on: ubuntu-latest
+    needs: [windows-alphaskia, linux-alphaskia, macos-alphaskia]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist
+    - run: ./build.cmd Node
+    - uses: actions/upload-artifact@v3
+      with:
+        name: NodeTars
+        path: |
+          lib/node/*/*.tgz

@@ -25,8 +25,9 @@ public static class AlphaSkiaPlatform
             return;
         }
 
+        var rid = BuildKnownRid(out var libExtension);
         throw new PlatformNotSupportedException(
-            "Could not load AlphaSkia native library, install AlphaSkia.Native.<Platform> to enable platform support");
+            $"Could not load AlphaSkia native library, install AlphaSkia.Native.<Platform> to enable platform support. (rid: {rid}, libext: {libExtension})");
     }
 
     private static bool TryLoadManually()

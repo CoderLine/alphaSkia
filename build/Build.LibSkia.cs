@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -106,7 +107,7 @@ partial class Build
     void BuildSkia()
     {
         var gnArgs = PrepareNativeBuild(Variant.Static);
-        
+        var gnFlags = new Dictionary<string, string>();
         var libDir = GetLibDirectory("libskia", TargetOs, Architecture, Variant.Static);
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
         var distPath = DistBasePath / libDir;
@@ -145,7 +146,7 @@ partial class Build
         gnArgs["skia_enable_ganesh"] = "true";
         gnArgs["skia_use_vulkan"] = "true";
 
-        GnNinja($"out/{libDir}", "skia", gnArgs, SkiaPath);
+        GnNinja($"out/{libDir}", "skia", gnArgs, gnFlags, SkiaPath);
 
         void CopyBuildOutputTo(AbsolutePath path)
         {

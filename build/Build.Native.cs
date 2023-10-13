@@ -34,6 +34,7 @@ partial class Build
     [Parameter] readonly bool ParallelGitClone = GetVariable<bool?>("GIT_CLONE_PARALLEL") ?? true;
 
     [Parameter] readonly string GitExe = GetVariable<string>("GIT_EXE") ?? "git";
+
     Tool GitTool
     {
         get
@@ -217,7 +218,9 @@ partial class Build
             );
         });
 
-    void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs, AbsolutePath workingDirectory)
+    void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs,
+        Dictionary<string, string> gnFlags,
+        AbsolutePath workingDirectory)
     {
         gnArgs["skia_enable_tools"] = "false";
         gnArgs["is_official_build"] = "true";
@@ -245,11 +248,12 @@ partial class Build
             return $"{innerQuote}{value}{innerQuote}";
         }
 
-        var allArgs = string.Join(" ", gnArgs.Select(o => $"{o.Key}={QuoteValue(o.Value)}"));
-
+        gnFlags["script-executable"] = PythonExe;
+        gnFlags["args"] = string.Join(" ", gnArgs.Select(o => $"{o.Key}={QuoteValue(o.Value)}"));
+        var gnFlagsString = string.Join(" ", gnFlags.Select(kvp => $"--{kvp.Key}={quote}{kvp.Value}{quote}"));
         // not inlined to avoid it being treated as FormattedString
         var gnToolArgs =
-            $"gen {outDir} --script-executable={quote}{PythonExe}{quote} --args={quote}{allArgs}{quote}";
+            $"gen {outDir} {gnFlagsString}";
         var argument = new ArgumentStringHandler(gnToolArgs.Length, 0, out _);
         argument.AppendLiteral(gnToolArgs);
         GnTool(
@@ -300,25 +304,30 @@ partial class Build
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;
         gnArgs["target_cpu"] = Architecture;
         gnArgs["is_shared_alphaskia"] = variant.IsShared.ToString().ToLowerInvariant();
-        
+
         return gnArgs;
     }
 
     string GetLibExtension(Variant variant)
     {
+        if (variant == Variant.Node)
+        {
+            return ".node";
+        }
+
         if (TargetOs == TargetOperatingSystem.Windows)
         {
             return variant.IsShared ? ".dll" : ".lib";
         }
 
-        if (TargetOs == TargetOperatingSystem.Linux || 
+        if (TargetOs == TargetOperatingSystem.Linux ||
             TargetOs == TargetOperatingSystem.Android)
         {
             return variant.IsShared ? ".so" : ".a";
         }
 
 
-        if (TargetOs == TargetOperatingSystem.MacOs || 
+        if (TargetOs == TargetOperatingSystem.MacOs ||
             TargetOs == TargetOperatingSystem.iOS ||
             TargetOs == TargetOperatingSystem.iOSSimulator)
         {

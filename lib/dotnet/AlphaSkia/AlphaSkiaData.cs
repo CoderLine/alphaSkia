@@ -9,13 +9,9 @@ internal sealed class AlphaSkiaData : AlphaSkiaNative
     {
     }
 
-    public byte[]? ToArray()
+    public byte[] ToArray()
     {
-        if (Native == IntPtr.Zero)
-        {
-            return null;
-        }
-
+        CheckDisposed();
         var dataLength = NativeMethods.alphaskia_data_get_length(Native);
         var data = new byte[dataLength];
         var dataPtr = NativeMethods.alphaskia_data_get_data(Native);

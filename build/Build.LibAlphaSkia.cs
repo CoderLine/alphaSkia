@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -69,7 +70,27 @@ partial class Build
                 config("alphaskia_public") {
                   defines = [ "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING", "ALPHASKIA_IMPLEMENTATION=1" ]
                   include_dirs = [ "." ]
+                  
+
+                  if (is_shared_alphaskia) {
+                    defines += [ "ALPHASKIA_DLL" ]
+                  }
+                  
+                  if (is_win) {
+                    libs = [ "skia.lib", "user32.lib", "OpenGL32.lib" ]
+                  }
+                  
+                  if (is_linux) {
+                    libs = [ "skia", "fontconfig" ]
+                  }
+                  
+                  if (is_android) {
+                    libs = [ "skia" ]
+                  }
+                  
                   if (is_mac) {
+                    libs = [ "skia" ]
+                      
                     frameworks = [
                       "AppKit.framework",
                       "ApplicationServices.framework",
@@ -77,11 +98,13 @@ partial class Build
                       "OpenGL.framework",
                       
                       "Metal.framework",
-                      "Foundation.framework",
-
+                      "Foundation.framework"
                     ]   
                   }
+                  
                   if (is_ios) {
+                    libs = [ "skia" ]
+                      
                     frameworks = [
                       "Foundation.framework",
                       "CoreFoundation.framework",
@@ -91,12 +114,8 @@ partial class Build
                       "MobileCoreServices.framework",
 
                       "Metal.framework",
-                      "UIKit.framework",
+                      "UIKit.framework"
                     ]
-                  }
-
-                  if (is_shared_alphaskia) {
-                    defines += [ "ALPHASKIA_DLL" ]
                   }
                 }
 
@@ -116,12 +135,25 @@ partial class Build
                     "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
                   ]
                 }
+                alphaskia_build("libalphaskianode") {
+                  public_configs = [ ":alphaskia_public" ]
+                  configs += [ ":alphaskia_public" ]
+                  defines = [ "NODE_GYP_MODULE_NAME=libalphaskianode", "USING_UV_SHARED=1", "USING_V8_SHARED=1", "V8_DEPRECATION_WARNINGS=1", "BUILDING_NODE_EXTENSION" ]
+                  sources = alphaskia_wrapper_sources
+                  output_extension = "node"
+                  sources += [
+                    "../../lib/node/addon/addon.cpp"
+                  ]
+                  if( is_win ) {
+                    sources += [ "../../lib/node/addon/win_delay_load_hook.cpp"]
+                  }
+                }
             """;
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew);
             PatchSkiaToolchain();
         });
 
-    
+
     void PatchSkiaFile(AbsolutePath file, string newText)
     {
         var existingText = file.ReadAllText();
@@ -160,7 +192,8 @@ partial class Build
     {
         var gnArgs = PrepareNativeBuild(Variant);
         var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
-
+        var gnFlags = new Dictionary<string, string>();
+        
         string buildTarget;
         if (Variant == Variant.Static)
         {
@@ -194,7 +227,26 @@ partial class Build
                 throw new PlatformNotSupportedException();
             }
 
-            AppendToFlagList(gnArgs, "extra_cflags", $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
+            AppendToFlagList(gnArgs, "extra_cflags",
+                $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
+        }
+        else if (Variant == Variant.Node)
+        {
+            buildTarget = "libalphaskianode";
+
+            if (OperatingSystem.IsWindows())
+            {
+                // windows requires a lib to link against, fetch it from the node downloads
+                var nodeLibPath = DownloadNodeLib();
+                AppendToFlagList(gnArgs, "extra_ldflags",
+                    $"'/DELAYLOAD:node.exe', '/LIBPATH:{nodeLibPath}', 'node.lib', 'DelayImp.lib'");
+            }
+            else if(OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
+            {
+                // disable need of a libnode.dylib dependencies are resolve dynamically during runtime 
+                // and as the node binary has them built-in
+                AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
+            }
         }
         else
         {
@@ -205,15 +257,11 @@ partial class Build
         {
             // TODO: check if clang-cl also works with the linux flags
             AppendToFlagList(gnArgs, "extra_ldflags",
-                $"'/LIBPATH:{staticLibPath}', 'skia.lib', 'user32.lib', 'OpenGL32.lib'");
-        }
-        else if(TargetOs == TargetOperatingSystem.Linux)
-        {
-            AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia', '-lGL'");
+                $"'/LIBPATH:{staticLibPath}'");
         }
         else
         {
-            AppendToFlagList(gnArgs, "extra_ldflags", $" '-L{staticLibPath}', '-lskia'");
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'-L{staticLibPath}'");
         }
 
         var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
@@ -222,7 +270,7 @@ partial class Build
         var outDir = SkiaPath / "out" / libDir;
         var libExtension = GetLibExtension(Variant);
 
-        GnNinja($"out/{libDir}", buildTarget, gnArgs, SkiaPath);
+        GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath);
 
         try
         {
@@ -248,5 +296,23 @@ partial class Build
                 File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
             throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
         }
+    }
+
+    AbsolutePath DownloadNodeLib()
+    {
+        if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
+        {
+            // libs are available at urls like: 
+            // https://nodejs.org/dist/latest/win-x64/node.lib
+            // https://nodejs.org/dist/latest/win-x86/node.lib
+            // https://nodejs.org/dist/latest/win-arm64/node.lib
+            var url = $"https://nodejs.org/dist/latest/{TargetOs.RuntimeIdentifier}-{Architecture}/node.lib";
+            var libDir = TemporaryDirectory / $"libnode-{TargetOs.RuntimeIdentifier}-{Architecture}";
+            HttpTasks.HttpDownloadFile(url,
+                libDir / "node.lib");
+            return libDir;
+        }
+
+        return null;
     }
 }

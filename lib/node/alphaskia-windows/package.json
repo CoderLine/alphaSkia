@@ -1,0 +1,23 @@
+{
+  "name": "@coderline/alphaskia-windows",
+  "version": "1.0.0",
+  "description": "The node addon for alphaSkia enabling it to run on Windows",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CoderLine/alphaSkia.git"
+  },
+  "author": "Daniel Kuschny",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/CoderLine/alphaSkia/issues"
+  },
+  "homepage": "https://github.com/CoderLine/alphaSkia#readme",
+  "files": [
+    "/lib/libalphaskianode-win-x64-node/libalphaskianode.node",
+    "/lib/libalphaskianode-win-x86-node/libalphaskianode.node",
+    "/lib/libalphaskianode-win-arm64-node/libalphaskianode.node"
+  ]
+}

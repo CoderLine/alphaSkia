@@ -714,3 +714,5 @@ fabric.properties
 !/build
 !/lib
 /lib/java/**/test-outputs
+/lib/node/**/test-outputs
+/lib/node/*.tgz

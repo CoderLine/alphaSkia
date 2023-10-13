@@ -63,7 +63,7 @@ public abstract class MusicSheetRenderTest {
         };
 
         AlphaSkiaPlatform.loadLibrary(new String[]{
-                Path.of(System.getProperty("alphaskia.library.path"), "libalphaskiajni-" + target + "-" + arch + "-shared", libName).toAbsolutePath().toString()
+                Path.of(System.getProperty("alphaskia.library.path"), "libalphaskiajni-" + target + "-" + arch + "-jni", libName).toAbsolutePath().toString()
         });
 
         var bravura = readFont("font/bravura/Bravura.ttf");

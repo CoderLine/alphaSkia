@@ -7,8 +7,6 @@
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
-        
-        <RootDirectory>../../../</RootDirectory>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,26 +27,35 @@
 
     <ItemGroup>
         <!-- https://github.com/dotnet/sdk/issues/24708 -->
-        <None Include="$(RootDirectory)dist/libalphaskia-linux-x64-shared/libalphaskia.so" LinkBase="runtimes/linux-x64/native"
-              Condition=" Exists('$(RootDirectory)dist/libalphaskia-linux-x64-shared/libalphaskia.so') "
+        <None Include="$(DistDirectory)libalphaskia-linux-x64-shared/libalphaskia.so" LinkBase="runtimes/linux-x64/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-x64-shared/libalphaskia.so') "
+              CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="$(DistDirectory)libalphaskia-linux-x86-shared/libalphaskia.so" LinkBase="runtimes/linux-x86/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-x86-shared/libalphaskia.so') "
+              CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="$(DistDirectory)libalphaskia-linux-arm-shared/libalphaskia.so" LinkBase="runtimes/linux-arm/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-arm-shared/libalphaskia.so') "
+              CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="$(DistDirectory)libalphaskia-linux-arm64-shared/libalphaskia.so" LinkBase="runtimes/linux-arm64/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-linux-arm64-shared/libalphaskia.so') "
               CopyToOutputDirectory="PreserveNewest"/>
         
-        <None Include="$(RootDirectory)dist/libalphaskia-win-x64-shared/libalphaskia.dll" LinkBase="runtimes/win-x64/native"
-              Condition=" Exists('$(RootDirectory)dist/libalphaskia-win-x64-shared/libalphaskia.dll') "
+        <None Include="$(DistDirectory)libalphaskia-win-x64-shared/libalphaskia.dll" LinkBase="runtimes/win-x64/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-win-x64-shared/libalphaskia.dll') "
               CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="$(RootDirectory)dist/libalphaskia-win-x86-shared/libalphaskia.dll" LinkBase="runtimes/win-x86/native"
-              Condition=" Exists('$(RootDirectory)dist/libalphaskia-win-x86-shared/libalphaskia.dll') "
+        <None Include="$(DistDirectory)libalphaskia-win-x86-shared/libalphaskia.dll" LinkBase="runtimes/win-x86/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-win-x86-shared/libalphaskia.dll') "
               CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="$(RootDirectory)dist/libalphaskia-win-arm64-shared/libalphaskia.dll" LinkBase="runtimes/win-arm/native"
-              Condition=" Exists('$(RootDirectory)dist/libalphaskia-win-arm64-shared/libalphaskia.dll') "
+        <None Include="$(DistDirectory)libalphaskia-win-arm64-shared/libalphaskia.dll" LinkBase="runtimes/win-arm/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-win-arm64-shared/libalphaskia.dll') "
               CopyToOutputDirectory="PreserveNewest"/>
 
 
-        <None Include="$(RootDirectory)dist/libalphaskia-macos-x64-shared/libalphaskia.dylib" LinkBase="runtimes/osx-x64/native"
-              Condition=" Exists('$(RootDirectory)dist/libalphaskia-macos-x64-shared/libalphaskia.dylib') "
+        <None Include="$(DistDirectory)libalphaskia-macos-x64-shared/libalphaskia.dylib" LinkBase="runtimes/osx-x64/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-macos-x64-shared/libalphaskia.dylib') "
               CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="$(RootDirectory)dist/libalphaskia-macos-arm64-shared/libalphaskia.dylib" LinkBase="runtimes/osx-arm64/native"
-              Condition=" Exists('$(RootDirectory)dist/libalphaskia-macos-arm64-shared/libalphaskia.dylib') "
+        <None Include="$(DistDirectory)libalphaskia-macos-arm64-shared/libalphaskia.dylib" LinkBase="runtimes/osx-arm64/native"
+              Condition=" '$(LibsMustExist)' == 'true' OR Exists('$(DistDirectory)libalphaskia-macos-arm64-shared/libalphaskia.dylib') "
               CopyToOutputDirectory="PreserveNewest"/>
 
     </ItemGroup>
