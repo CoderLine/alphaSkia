@@ -70,7 +70,27 @@ partial class Build
                 config("alphaskia_public") {
                   defines = [ "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING", "ALPHASKIA_IMPLEMENTATION=1" ]
                   include_dirs = [ "." ]
+                  
+
+                  if (is_shared_alphaskia) {
+                    defines += [ "ALPHASKIA_DLL" ]
+                  }
+                  
+                  if (is_win) {
+                    libs = [ "skia.lib", "user32.lib", "OpenGL32.lib" ]
+                  }
+                  
+                  if (is_linux) {
+                    libs = [ "skia", "fontconfig" ]
+                  }
+                  
+                  if (is_android) {
+                    libs = [ "skia" ]
+                  }
+                  
                   if (is_mac) {
+                    libs = [ "skia" ]
+                      
                     frameworks = [
                       "AppKit.framework",
                       "ApplicationServices.framework",
@@ -81,7 +101,10 @@ partial class Build
                       "Foundation.framework"
                     ]   
                   }
+                  
                   if (is_ios) {
+                    libs = [ "skia" ]
+                      
                     frameworks = [
                       "Foundation.framework",
                       "CoreFoundation.framework",
@@ -93,16 +116,6 @@ partial class Build
                       "Metal.framework",
                       "UIKit.framework"
                     ]
-                  }
-
-                  if (is_shared_alphaskia) {
-                    defines += [ "ALPHASKIA_DLL" ]
-                  }
-                  if( is_win) {
-                    libs = [ "skia.lib", "user32.lib", "OpenGL32.lib" ]
-                  } 
-                  else {
-                    libs = [ "skia" ]
                   }
                 }
 

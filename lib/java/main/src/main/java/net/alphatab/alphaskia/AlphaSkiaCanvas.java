@@ -38,13 +38,8 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param a The alpha channel of the color.
      */
     public static int rgbaToColor(byte r, byte g, byte b, byte a) {
-        return switch (getColorType()) {
-            case BGRA_8888 -> (((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) |
+        return (((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) |
                     ((b & 0xFF) << 0));
-            case RGBA_8888 -> (((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((g & 0xFF) << 8) |
-                    ((r & 0xFF) << 0));
-            default -> throw new IllegalStateException("Unknown color type");
-        };
     }
 
     /**

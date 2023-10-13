@@ -58,14 +58,8 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// <exception cref="ArgumentOutOfRangeException">If an unknown <see cref="ColorType"/> was detected</exception>
     public static uint RgbaToColor(byte r, byte g, byte b, byte a)
     {
-        return ColorType switch
-        {
-            AlphaSkiaColorType.Rgba888 => (uint)(((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((g & 0xFF) << 8) |
-                                                 ((r & 0xFF) << 0)),
-            AlphaSkiaColorType.Bgra888 => (uint)(((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) |
-                                                 ((b & 0xFF) << 0)),
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        return (uint)(((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) |
+                                                 ((b & 0xFF) << 0));
     }
 
     /// <summary>

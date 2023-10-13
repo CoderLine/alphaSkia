@@ -14,10 +14,21 @@ partial class Build
     Tool GradlewTool => ToolResolver.GetTool(GradlewExe);
 
     public Target Java => _ => _
-        .DependsOn(PrepareGitHubArtifacts)
+        .DependsOn(JavaPack);
+    
+    public Target JavaPack => _ => _
+        .DependsOn(JavaBuild)
         .Executes(() =>
         {
             GradlewTool("assemble",
+                workingDirectory: RootDirectory / "lib" / "java");
+        });
+    
+        
+    public Target JavaBuild => _ => _
+        .Executes(() =>
+        {
+            GradlewTool("build",
                 workingDirectory: RootDirectory / "lib" / "java");
         });
 }

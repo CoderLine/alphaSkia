@@ -24,14 +24,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
     }
 
     public static rgbaToColor(r: number, g: number, b: number, a: number) {
-        switch (AlphaSkiaCanvas.colorType) {
-            case AlphaSkiaColorType.Rgba888:
-                return ((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((g & 0xFF) << 8) | ((r & 0xFF) << 0);
-            case AlphaSkiaColorType.Bgra888:
-                return ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF) << 0)
-            default:
-                throw new TypeError("Unknown color type");
-        }
+        return ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF) << 0);
     }
 
     public get lineWidth(): number {
