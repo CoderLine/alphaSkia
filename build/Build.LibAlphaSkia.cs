@@ -98,16 +98,18 @@ partial class Build
                   if (is_shared_alphaskia) {
                     defines += [ "ALPHASKIA_DLL" ]
                   }
+                  if( is_win) {
+                    libs = [ "skia.lib", "user32.lib", "OpenGL32.lib" ]
+                  } 
+                  else {
+                    libs = [ "skia" ]
+                  }
                 }
 
                 alphaskia_build("libalphaskia") {
                   public_configs = [ ":alphaskia_public" ]
                   configs += [ ":alphaskia_public" ]
                   sources = alphaskia_wrapper_sources
-                  libs = [ "skia" ]
-                  if( is_win) {
-                    libs += [ "user32", "OpenGL32" ]
-                  }
                 }
                 alphaskia_build("libalphaskiajni") {
                   public_configs = [ ":alphaskia_public" ]
@@ -119,10 +121,6 @@ partial class Build
                     "../../lib/java/jni/src/AlphaSkiaImage.cpp",
                     "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
                   ]
-                  libs = [ "skia" ]
-                  if( is_win) {
-                    libs += [ "user32", "OpenGL32" ]
-                  }
                 }
                 alphaskia_build("libalphaskianode") {
                   public_configs = [ ":alphaskia_public" ]
@@ -133,10 +131,8 @@ partial class Build
                   sources += [
                     "../../lib/node/addon/addon.cpp"
                   ]
-                  libs = [ "skia" ]
                   if( is_win ) {
                     sources += [ "../../lib/node/addon/win_delay_load_hook.cpp"]
-                    libs += [ "user32", "OpenGL32" ]
                   }
                 }
             """;
