@@ -31,7 +31,7 @@ public final class AlphaSkiaPlatform {
         try {
             String[] libraries = (String[]) platformInfo.getDeclaredField("libraries").get(null);
 
-            Path tmpDir = Files.createTempDirectory("alphaSkia");
+            Path tmpDir = Files.createTempDirectory("alphaskia");
             for (String library : libraries) {
                 URL resource = platformInfo.getResource(library);
                 if (resource == null) {

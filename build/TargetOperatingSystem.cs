@@ -61,7 +61,7 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_system_freetype2"] = "false",
             ["skia_use_metal"] = "true"
         },
-        RuntimeIdentifier = "macos"
+        RuntimeIdentifier = "ios"
     };
 
     // ReSharper disable once InconsistentNaming
