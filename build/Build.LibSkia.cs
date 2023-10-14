@@ -112,7 +112,7 @@ partial class Build
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
         var distPath = DistBasePath / libDir;
         var outDir = SkiaPath / "out" / libDir;
-        var libExtension = GetLibExtension(Variant.Static);
+        var libExtension = new HashSet<string>(GetLibExtensions(Variant.Static), StringComparer.OrdinalIgnoreCase);
 
         // disable features we don't need
         gnArgs["skia_use_icu"] = "false";
@@ -152,7 +152,7 @@ partial class Build
         {
             // libs
             FileSystemTasks.CopyDirectoryRecursively(outDir, path, DirectoryExistsPolicy.Merge,
-                FileExistsPolicy.OverwriteIfNewer, null, file => file.Extension != libExtension);
+                FileExistsPolicy.OverwriteIfNewer, null, file => !libExtension.Contains(file.Extension));
         }
 
         CopyBuildOutputTo(distPath);

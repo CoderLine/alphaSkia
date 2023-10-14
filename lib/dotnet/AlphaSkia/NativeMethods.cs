@@ -47,7 +47,15 @@ internal static partial class NativeMethods
     [LibraryImport(AlphaSkiaNativeLibName)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial void alphaskia_image_free(alphaskia_image_t result);
+    
+    [LibraryImport(AlphaSkiaNativeLibName)]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial alphaskia_image_t alphaskia_image_decode(byte[] data, ulong length);
 
+    [LibraryImport(AlphaSkiaNativeLibName)]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial alphaskia_image_t alphaskia_image_from_pixels(int width, int height, byte[] pixels);
+    
     [LibraryImport(AlphaSkiaNativeLibName)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial int alphaskia_image_get_width(alphaskia_image_t image);

@@ -413,3 +413,13 @@ void AlphaSkiaCanvas::draw_image(sk_sp<SkImage> image, float x, float y, float w
     SkSamplingOptions sampling;
     surface_->getCanvas()->drawImageRect(image, SkRect::MakeXYWH(x, y, w, h), sampling);
 }
+
+void AlphaSkiaCanvas::draw_pixels(const uint8_t *pixels, uint64_t size)
+{
+    SkPixmap pixmap;
+    if (!surface_->getCanvas()->peekPixels(&pixmap))
+    {
+        return;
+    }
+    memcpy(pixmap.writable_addr(), pixels, size);
+}

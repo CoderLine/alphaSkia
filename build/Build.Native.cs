@@ -222,7 +222,7 @@ partial class Build
 
     void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs,
         Dictionary<string, string> gnFlags,
-        AbsolutePath workingDirectory, 
+        AbsolutePath workingDirectory,
         Action beforeCompile = null)
     {
         gnArgs["skia_enable_tools"] = "false";
@@ -257,14 +257,15 @@ partial class Build
         {
             gnFlags["-v"] = "";
         }
-        
-        var gnFlagsString = string.Join(" ", gnFlags.Select(kvp => kvp.Value.Length > 0 ? $"--{kvp.Key}={quote}{kvp.Value}{quote}" : $"--{kvp.Key}"));
+
+        var gnFlagsString = string.Join(" ",
+            gnFlags.Select(kvp => kvp.Value.Length > 0 ? $"--{kvp.Key}={quote}{kvp.Value}{quote}" : $"--{kvp.Key}"));
 
         if (Rebuild)
         {
             (SkiaPath / outDir).DeleteDirectory();
         }
-        
+
         // not inlined to avoid it being treated as FormattedString
         var gnToolArgs =
             $"gen {outDir} {gnFlagsString}";
@@ -276,12 +277,13 @@ partial class Build
         );
 
         beforeCompile?.Invoke();
-        
+
         var ninjaArgs = $"-d keeprsp -C {outDir} {target}";
         if (NinjaVerbose)
         {
             ninjaArgs = "-v " + ninjaArgs;
         }
+
         argument = new ArgumentStringHandler(ninjaArgs.Length, 0, out _);
         argument.AppendLiteral(ninjaArgs);
         NinjaTool(
@@ -328,22 +330,22 @@ partial class Build
         return gnArgs;
     }
 
-    string GetLibExtension(Variant variant)
+    string[] GetLibExtensions(Variant variant)
     {
         if (variant == Variant.Node)
         {
-            return ".node";
+            return new[] { ".node" };
         }
 
         if (TargetOs == TargetOperatingSystem.Windows)
         {
-            return variant.IsShared ? ".dll" : ".lib";
+            return variant.IsShared ? new[] { ".dll", ".lib" } : new[] { ".lib" };
         }
 
         if (TargetOs == TargetOperatingSystem.Linux ||
             TargetOs == TargetOperatingSystem.Android)
         {
-            return variant.IsShared ? ".so" : ".a";
+            return variant.IsShared ? new[] { ".so" } : new[] { ".a" };
         }
 
 
@@ -351,10 +353,21 @@ partial class Build
             TargetOs == TargetOperatingSystem.iOS ||
             TargetOs == TargetOperatingSystem.iOSSimulator)
         {
-            return variant.IsShared ? ".dylib" : ".a";
+            return variant.IsShared ? new[] { ".dylib" } : new[] { ".a" };
         }
 
         throw new InvalidOperationException("Unhandled TargetOS: " + TargetOs);
+    }
+    string GetExeExtension()
+    {
+        if (TargetOs == TargetOperatingSystem.Windows)
+        {
+            return ".exe";
+        }
+        else
+        {
+            return "";
+        }
     }
 
     bool HasCachedFiles(string buildTarget, Variant variant)

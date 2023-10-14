@@ -1,5 +1,7 @@
-﻿using AlphaTab;
+﻿using System.Diagnostics.Tracing;
+using AlphaTab;
 using AlphaTab.Importer;
+using AlphaTab.Model;
 using AlphaTab.Rendering;
 
 namespace TestGenerator;
@@ -12,6 +14,7 @@ public class AlphaSkiaUnitTestGenerator
         settings.Core.UseWorkers = false;
         settings.Core.EnableLazyLoading = false;
 
+        // custom fonts
         settings.Display.Resources.CopyrightFont.Families = new[] { "Roboto" };
         settings.Display.Resources.TitleFont.Families = new[] { "PT Serif" };
         settings.Display.Resources.SubTitleFont.Families = new[] { "PT Serif" };
@@ -23,6 +26,10 @@ public class AlphaSkiaUnitTestGenerator
         settings.Display.Resources.BarNumberFont.Families = new[] { "Roboto" };
         settings.Display.Resources.FingeringFont.Families = new[] { "PT Serif" };
         settings.Display.Resources.MarkerFont.Families = new[] { "PT Serif" };
+
+        // add some colors to ensure we test this as well
+        settings.Display.Resources.ScoreInfoColor = new Color(153, 204, 30);
+        settings.Display.Resources.BarSeparatorColor = new Color(153, 51, 204, 100);
 
         var scoreRenderer = new ScoreRenderer(settings)
         {
@@ -47,7 +54,7 @@ public class AlphaSkiaUnitTestGenerator
             {
                 totalWidth = e.TotalWidth;
                 totalHeight = e.TotalHeight;
-                partialPositions.Add(new[] { e.X, e.Y });
+                partialPositions.Add(new[] { e.X, e.Y, e.Width, e.Height });
             }
         }
 
@@ -72,7 +79,7 @@ public class AlphaSkiaUnitTestGenerator
                 Engine = "CSharpTestCode"
             }
         };
-        var sourceCode = new CSharpSourceBuilder();
+        var sourceCode = new CSharpTestSourceBuilder();
         AlphaTab.Environment.RenderEngines.Set(
             settings.Core.Engine,
             new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode))
@@ -118,7 +125,7 @@ public class AlphaSkiaUnitTestGenerator
                 Engine = "JavaTestCode"
             }
         };
-        var sourceCode = new JavaSourceBuilder();
+        var sourceCode = new JavaTestSourceBuilder();
         AlphaTab.Environment.RenderEngines.Set(
             settings.Core.Engine,
             new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode))
@@ -181,16 +188,17 @@ public class AlphaSkiaUnitTestGenerator
                 Engine = "TypeScriptTestCode"
             }
         };
-        var sourceCode = new TypeScriptSourceBuilder();
+        var sourceCode = new TypeScriptTestSourceBuilder();
         AlphaTab.Environment.RenderEngines.Set(
             settings.Core.Engine,
             new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode))
         );
 
         sourceCode.Resume();
-        
+
         sourceCode.WriteLine("import { MusicSheetRenderTest } from './MusicSheetRenderTest'; ");
-        sourceCode.WriteLine("import { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaCanvas, AlphaSkiaImage } from 'src/alphaskia'; ");
+        sourceCode.WriteLine(
+            "import { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaCanvas, AlphaSkiaImage } from 'src/alphaskia'; ");
         sourceCode.WriteLine();
 
         sourceCode.Write("describe('AlphaTabGeneratedRenderTest', function() ");
@@ -205,7 +213,7 @@ public class AlphaSkiaUnitTestGenerator
         sourceCode.Resume();
         sourceCode.WriteLine("test.partPositions = [");
         sourceCode.WriteLine("    " + string.Join(", ",
-                    result.partialPositions.Select(p => "[" + string.Join(", ", p) + "]")));
+            result.partialPositions.Select(p => "[" + string.Join(", ", p) + "]")));
         sourceCode.WriteLine("];");
         sourceCode.WriteLine($"test.totalWidth = {result.totalWidth};");
         sourceCode.WriteLine($"test.totalHeight = {result.totalHeight};");
@@ -221,5 +229,65 @@ public class AlphaSkiaUnitTestGenerator
 
         return sourceCode.ToString();
     }
-    
+
+    public static string GenerateCppSource(out string headerSourceCode)
+    {
+        var settings = new Settings
+        {
+            Core =
+            {
+                Engine = "CppTestCode"
+            }
+        };
+        var sourceCode = new CppTestSourceBuilder();
+        AlphaTab.Environment.RenderEngines.Set(
+            settings.Core.Engine,
+            new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode))
+        );
+
+        sourceCode.Resume();
+
+        sourceCode.WriteLine("#include \"../include/AlphaTabGeneratedTest.h\"");
+        sourceCode.WriteLine();
+        sourceCode.Suspend();
+
+        var result = GenerateTestCode(settings);
+
+        sourceCode.Resume();
+        sourceCode.WriteLine($"std::array<std::array<float, 4>, {result.partialPositions.Count}> part_positions = ");
+        sourceCode.Write("{");
+        sourceCode.BeginBlock();
+
+        sourceCode.WriteLine("    " + string.Join(", ",
+            result.partialPositions.Select(
+                p => "{" + string.Join(", ", p.Select(d => $"static_cast<float>({d})")) + "}")));
+
+        sourceCode.Write("}");
+        sourceCode.EndBlock(true);
+
+        sourceCode.WriteLine($"int32_t total_width  = {(int)result.totalWidth};");
+        sourceCode.WriteLine($"int32_t total_height  = {(int)result.totalHeight};");
+
+        sourceCode.WriteLine($"std::array<render_function_t, {result.partialPositions.Count}> all_parts = ");
+        sourceCode.BeginBlock();
+        var parts = result.partialPositions.Select((_, i) => $"&draw_music_sheet_part_{i + 1}");
+        sourceCode.WriteLine(string.Join(", ", parts));
+        sourceCode.EndBlock(true);
+
+        sourceCode.Suspend();
+
+        var headerSourceCodeBuilder = new CppTestSourceBuilder();
+        headerSourceCodeBuilder.Resume();
+
+        headerSourceCodeBuilder.WriteLine("#pragma once");
+        headerSourceCodeBuilder.WriteLine("#include \"AlphaSkiaTestBridge.h\"");
+        headerSourceCodeBuilder.WriteLine();
+        headerSourceCodeBuilder.WriteLine(
+            $"extern std::array<std::array<float, 4>, {result.partialPositions.Count}> part_positions;");
+        headerSourceCodeBuilder.WriteLine(
+            $"extern std::array<render_function_t, {result.partialPositions.Count}> all_parts;");
+        headerSourceCode = headerSourceCodeBuilder.ToString();
+
+        return sourceCode.ToString();
+    }
 }

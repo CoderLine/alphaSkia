@@ -109,7 +109,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
     /**
      * Ends the rendering session and provides the rendered result.
      *
-     * @return The rendered result or {@code null} if something went wrong.
+     * @return The rendered result or {@code undefined} if something went wrong.
      */
     public endRender(): AlphaSkiaImage | undefined {
         this.checkDisposed();

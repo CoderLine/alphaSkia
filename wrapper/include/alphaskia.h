@@ -38,6 +38,8 @@ extern "C"
     AS_API int32_t alphaskia_image_get_height(alphaskia_image_t image);
     AS_API uint8_t alphaskia_image_read_pixels(alphaskia_image_t image, uint8_t *pixels, uint64_t row_bytes);
     AS_API alphaskia_data_t alphaskia_image_encode_png(alphaskia_image_t image);
+    AS_API alphaskia_image_t alphaskia_image_decode(const uint8_t *data, uint64_t length);
+    AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels);
     AS_API void alphaskia_image_free(alphaskia_image_t image);
 
     typedef AS_API void *alphaskia_canvas_t;

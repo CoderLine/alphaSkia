@@ -1,3 +1,4 @@
+import { loadavg } from 'os';
 import { AlphaSkiaNative } from './AlphaSkiaNative';
 import { AlphaSkiaImageHandle, loadAddon } from './addon';
 
@@ -50,5 +51,15 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
     public toPng(): ArrayBuffer | undefined {
         this.checkDisposed();
         return loadAddon().alphaskia_image_encode_png(this.handle!);
+    }
+
+    /**
+     * Decodes the given bytes into an image using supported image formats like PNG.
+     * @param bytes The raw iamge bytes.
+     * @return The decoded image or {@code undefined} if the image could not be decoded.
+     */
+    public static decode(bytes: ArrayBuffer): AlphaSkiaImage | undefined {
+        const handle = loadAddon().alphaskia_image_decode(bytes);
+        return !handle ? undefined : new AlphaSkiaImage(handle);
     }
 }

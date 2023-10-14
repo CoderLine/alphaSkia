@@ -1,8 +1,10 @@
 #include "../include/alphaskia.h"
 #include "../../externals/skia/include/core/SkImage.h"
+#include "../../externals/skia/include/core/SkBitmap.h"
 #include "../../externals/skia/include/core/SkPixmap.h"
 #include "../../externals/skia/include/core/SkStream.h"
 #include "../../externals/skia/include/encode/SkPngEncoder.h"
+#include "../../externals/skia/include/codec/SkPngDecoder.h"
 
 extern "C"
 {
@@ -40,11 +42,26 @@ extern "C"
 
         sk_sp<SkImage> raster = (*internal)->makeRasterImage();
         SkPixmap pixmap;
-        if(!(*internal)->peekPixels(&pixmap))
+        if (!(*internal)->peekPixels(&pixmap))
         {
             return nullptr;
         }
-        SkPngEncoder::Encode(static_cast<SkWStream*>(&stream), pixmap, options);
+        SkPngEncoder::Encode(static_cast<SkWStream *>(&stream), pixmap, options);
         return reinterpret_cast<alphaskia_data_t>(new sk_sp<SkData>(stream.detachAsData()));
+    }
+
+    AS_API alphaskia_image_t alphaskia_image_decode(const uint8_t *data, uint64_t length)
+    {
+        sk_sp<SkData> wrapped_data = SkData::MakeWithCopy(data, length);
+        sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(wrapped_data, SkAlphaType::kPremul_SkAlphaType);
+        return reinterpret_cast<alphaskia_image_t>(new sk_sp<SkImage>(image));
+    }
+
+    AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels)
+    {
+        SkPixmap pixmap(SkImageInfo::Make(width, height, kN32_SkColorType, kPremul_SkAlphaType),
+                        pixels, sizeof(uint32_t) * width);
+        sk_sp<SkImage> image = SkImages::RasterFromPixmapCopy(pixmap);
+        return reinterpret_cast<alphaskia_image_t>(new sk_sp<SkImage>(image));
     }
 }

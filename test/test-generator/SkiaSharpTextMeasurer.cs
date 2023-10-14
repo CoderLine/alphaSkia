@@ -40,20 +40,22 @@ class SkiaSharpTextMeasurer
     static SkiaSharpTextMeasurer()
     {
         var repositoryRoot = PathUtils.RepositoryRoot;
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "bravura", "Bravura.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "bravura", "Bravura.ttf"));
 
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "roboto", "Roboto-Regular.ttf"));
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "roboto", "Roboto-Bold.ttf"));
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "roboto", "Roboto-Italic.ttf"));
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "roboto", "Roboto-BoldItalic.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "roboto", "Roboto-Regular.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "roboto", "Roboto-Bold.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "roboto", "Roboto-Italic.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "roboto",
+            "Roboto-BoldItalic.ttf"));
 
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "ptserif", "PTSerif-Regular.ttf"));
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "ptserif", "PTSerif-Bold.ttf"));
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "ptserif", "PTSerif-Italic.ttf"));
-        RegisterCustomFont(Path.Combine(repositoryRoot, "lib", "test", "font", "ptserif", "PTSerif-BoldItalic.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "ptserif", "PTSerif-Regular.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "ptserif", "PTSerif-Bold.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "ptserif", "PTSerif-Italic.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "ptserif",
+            "PTSerif-BoldItalic.ttf"));
     }
 
-   
+
     public static double MeasureText(Font font, string text)
     {
         if (string.IsNullOrEmpty(text))

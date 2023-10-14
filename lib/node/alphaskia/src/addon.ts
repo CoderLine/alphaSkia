@@ -83,6 +83,8 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_image_get_height(image: AlphaSkiaImageHandle): number;
     alphaskia_image_read_pixels(image: AlphaSkiaImageHandle): ArrayBuffer | undefined;
     alphaskia_image_encode_png(image: AlphaSkiaImageHandle): ArrayBuffer;
+    alphaskia_image_from_pixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImageHandle;
+    alphaskia_image_decode(pixels: ArrayBuffer): AlphaSkiaImageHandle;
     alphaskia_image_free(image: AlphaSkiaImageHandle): void;
 
     alphaskia_canvas_new(): AlphaSkiaCanvasHandle | undefined;
@@ -109,7 +111,7 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_canvas_fill(canvas: AlphaSkiaCanvasHandle): void;
     alphaskia_canvas_stroke(canvas: AlphaSkiaCanvasHandle): void;
     alphaskia_canvas_draw_image(canvas: AlphaSkiaCanvasHandle, image: AlphaSkiaImageHandle, x: number, y: number, w: number, h: number): void;
-
+    
     alphaskia_canvas_fill_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number, x: number, y: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void;
     alphaskia_canvas_measure_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number): number;
     alphaskia_canvas_begin_rotate(canvas: AlphaSkiaCanvasHandle, center_x: number, center_y: number, angle: number): void;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Nuke.Common.Tooling;
 
@@ -78,6 +79,28 @@ public class TargetOperatingSystem : Enumeration
         RuntimeIdentifier = "iossimulator"
     };
 
+    public static TargetOperatingSystem Current
+    {
+        get
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return Windows;
+            }
+            if (OperatingSystem.IsLinux())
+            {
+                return Linux;
+            }
+
+            if (OperatingSystem.IsMacOS())
+            {
+                return MacOs;
+            }
+
+            throw new PlatformNotSupportedException("Need Windows, Linux or MacOS");
+        }        
+    }
+    
     public string SkiaTargetOs { get; private init; }
     public Dictionary<string, string> SkiaGnArgs { get; } = new();
 

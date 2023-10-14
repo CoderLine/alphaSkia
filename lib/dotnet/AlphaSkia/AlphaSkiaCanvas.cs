@@ -38,12 +38,12 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
         get
         {
             CheckDisposed();
-            return NativeMethods.alphaskia_canvas_get_color(Native);
+            return NativeMethods.alphaskia_canvas_get_color(Handle);
         }
         set
         {
             CheckDisposed();
-            NativeMethods.alphaskia_canvas_set_color(Native, value);
+            NativeMethods.alphaskia_canvas_set_color(Handle, value);
         }
     }
 
@@ -70,12 +70,12 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
         get
         {
             CheckDisposed();
-            return NativeMethods.alphaskia_canvas_get_line_width(Native);
+            return NativeMethods.alphaskia_canvas_get_line_width(Handle);
         }
         set
         {
             CheckDisposed();
-            NativeMethods.alphaskia_canvas_set_line_width(Native, value);
+            NativeMethods.alphaskia_canvas_set_line_width(Handle, value);
         }
     }
 
@@ -88,7 +88,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void BeginRender(int width, int height, float renderScale = 1)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_begin_render(Native, width, height, renderScale);
+        NativeMethods.alphaskia_canvas_begin_render(Handle, width, height, renderScale);
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void DrawImage(AlphaSkiaImage image, float x, float y, float w, float h)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_draw_image(Native, image.Native, x, y, w, h);
+        NativeMethods.alphaskia_canvas_draw_image(Handle, image.Handle, x, y, w, h);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public AlphaSkiaImage? EndRender()
     {
         CheckDisposed();
-        var image = NativeMethods.alphaskia_canvas_end_render(Native);
+        var image = NativeMethods.alphaskia_canvas_end_render(Handle);
         if (image == IntPtr.Zero)
         {
             return null;
@@ -131,7 +131,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void FillRect(float x, float y, float width, float height)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_rect(Native, x, y, width, height);
+        NativeMethods.alphaskia_canvas_fill_rect(Handle, x, y, width, height);
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void StrokeRect(float x, float y, float width, float height)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_stroke_rect(Native, x, y, width, height);
+        NativeMethods.alphaskia_canvas_stroke_rect(Handle, x, y, width, height);
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void BeginPath()
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_begin_path(Native);
+        NativeMethods.alphaskia_canvas_begin_path(Handle);
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void ClosePath()
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_close_path(Native);
+        NativeMethods.alphaskia_canvas_close_path(Handle);
     }
 
     /// <summary>
@@ -173,7 +173,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void MoveTo(float x, float y)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_move_to(Native, x, y);
+        NativeMethods.alphaskia_canvas_move_to(Handle, x, y);
     }
 
     /// <summary>
@@ -184,7 +184,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void LineTo(float x, float y)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_line_to(Native, x, y);
+        NativeMethods.alphaskia_canvas_line_to(Handle, x, y);
     }
 
     /// <summary>
@@ -197,7 +197,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void QuadraticCurveTo(float cpx, float cpy, float x, float y)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_quadratic_curve_to(Native, cpx, cpy, x, y);
+        NativeMethods.alphaskia_canvas_quadratic_curve_to(Handle, cpx, cpy, x, y);
     }
 
     /// <summary>
@@ -212,7 +212,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void BezierCurveTo(float cp1X, float cp1Y, float cp2X, float cp2Y, float x, float y)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_bezier_curve_to(Native, cp1X, cp1Y, cp2X, cp2Y, x, y);
+        NativeMethods.alphaskia_canvas_bezier_curve_to(Handle, cp1X, cp1Y, cp2X, cp2Y, x, y);
     }
 
     /// <summary>
@@ -224,7 +224,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void FillCircle(float x, float y, float radius)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_circle(Native, x, y, radius);
+        NativeMethods.alphaskia_canvas_fill_circle(Handle, x, y, radius);
     }
 
     /// <summary>
@@ -236,7 +236,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void StrokeCircle(float x, float y, float radius)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_circle(Native, x, y, radius);
+        NativeMethods.alphaskia_canvas_fill_circle(Handle, x, y, radius);
     }
 
     /// <summary>
@@ -245,7 +245,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void Fill()
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill(Native);
+        NativeMethods.alphaskia_canvas_fill(Handle);
     }
 
     /// <summary>
@@ -254,7 +254,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void Stroke()
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_stroke(Native);
+        NativeMethods.alphaskia_canvas_stroke(Handle);
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
         AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_text(Native, text, typeface.Native, fontSize, x, y, textAlign, baseline);
+        NativeMethods.alphaskia_canvas_fill_text(Handle, text, typeface.Handle, fontSize, x, y, textAlign, baseline);
     }
 
     /// <summary>
@@ -285,7 +285,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public float MeasureText(string text, AlphaSkiaTypeface typeface, float fontSize)
     {
         CheckDisposed();
-        return NativeMethods.alphaskia_canvas_measure_text(Native, text, typeface.Native, fontSize);
+        return NativeMethods.alphaskia_canvas_measure_text(Handle, text, typeface.Handle, fontSize);
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void BeginRotate(float centerX, float centerY, float angle)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_begin_rotate(Native, centerX, centerY, angle);
+        NativeMethods.alphaskia_canvas_begin_rotate(Handle, centerX, centerY, angle);
     }
 
     /// <summary>
@@ -306,6 +306,6 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void EndRotate()
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_end_rotate(Native);
+        NativeMethods.alphaskia_canvas_end_rotate(Handle);
     }
 }
