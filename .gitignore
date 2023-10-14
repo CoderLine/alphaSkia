@@ -713,6 +713,9 @@ fabric.properties
 
 !/build
 !/lib
+/wrapper/include/generated
 /lib/java/**/test-outputs
+/lib/java/local.properties
 /lib/node/**/test-outputs
-/lib/node/*.tgz
+/lib/node/*/*.tgz
+/lib/dotnet/Version.props

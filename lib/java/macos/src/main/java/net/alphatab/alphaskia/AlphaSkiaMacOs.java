@@ -1,8 +1,14 @@
 package net.alphatab.alphaskia;
 
-public class AlphaSkiaMacOs {
+/**
+ * This class contains the information about the macOS runtime dependencies to use with AlphaSkiaPlatform.
+ */
+public final class AlphaSkiaMacOs {
+    /**
+     * The native libraries needed to run alphaSkia.
+     */
     public static final String[] libraries = {
-            "native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.so"
+            "native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.dylib"
     };
 
     private static String getCurrentArchitecture() {
@@ -15,4 +21,6 @@ public class AlphaSkiaMacOs {
             default -> jarch;
         };
     }
+
+    private AlphaSkiaMacOs() {}
 }

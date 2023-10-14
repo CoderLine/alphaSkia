@@ -22,7 +22,6 @@ public enum AlphaSkiaTextBaseline {
      */
     BOTTOM(3);
 
-
     private final int value;
 
     int getValue() {

@@ -20,7 +20,7 @@ partial class Build
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
-            GradlewTool("assemble",
+            GradlewTool("publishAllPublicationsToDistPathRepository",
                 workingDirectory: RootDirectory / "lib" / "java");
         });
     
@@ -29,7 +29,48 @@ partial class Build
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
+            JavaWriteVersionInfoProperties();
+
+            if (Rebuild)
+            {
+                GradlewTool("clean",
+                    workingDirectory: RootDirectory / "lib" / "java");
+            }
+            
             GradlewTool("build",
                 workingDirectory: RootDirectory / "lib" / "java");
         });
+    
+    void JavaWriteVersionInfoProperties()
+    {
+        string semVer;
+        if (IsLocalBuild)
+        {
+            semVer = $"{VersionInfo.FileVersion.ToString(3)}-LOCAL";
+        }
+        else if (!IsReleaseBuild)
+        {
+            semVer = $"{VersionInfo.FileVersion.ToString(3)}-SNAPSHOT";
+        }
+        else
+        {
+            semVer = $"{VersionInfo.FileVersion.ToString(3)}";
+        }
+        
+        var props = $"""
+            alphaskiaDescription={VersionInfo.Description}
+            alphaskiaAuthorId={VersionInfo.AuthorId}
+            alphaskiaAuthorName={VersionInfo.AuthorName}
+            alphaskiaOrgUrl={VersionInfo.OrgUrl}
+            alphaskiaCompany={VersionInfo.Company}
+            alphaskiaVersion={semVer}
+            alphaskiaProjectUrl={VersionInfo.ProjectUrl}
+            alphaskiaGitUrlHttp={VersionInfo.GitUrlHttp}
+            alphaskiaGitUrlGit"={VersionInfo.GitUrlGit}
+            alphaskiaLicenseSpdx={VersionInfo.LicenseSpdx}
+            alphaskiaLicenseUrl={VersionInfo.LicenseUrl}
+            alphaskiaIssuesUrl={VersionInfo.IssuesUrl}
+        """;
+        (RootDirectory / "lib" / "java" / "local.properties").WriteAllText(props);
+    }
 }

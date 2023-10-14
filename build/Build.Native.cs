@@ -53,6 +53,8 @@ partial class Build
     [Parameter] readonly TargetOperatingSystem TargetOs;
     [Parameter] readonly Architecture Architecture;
     [Parameter] readonly Variant Variant;
+    [Parameter] readonly bool GnVerbose;
+    [Parameter] readonly bool NinjaVerbose;
 
     [Parameter(Name = "use-cache")] readonly string UseCacheParam;
     bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
@@ -220,7 +222,8 @@ partial class Build
 
     void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs,
         Dictionary<string, string> gnFlags,
-        AbsolutePath workingDirectory)
+        AbsolutePath workingDirectory, 
+        Action beforeCompile = null)
     {
         gnArgs["skia_enable_tools"] = "false";
         gnArgs["is_official_build"] = "true";
@@ -250,7 +253,18 @@ partial class Build
 
         gnFlags["script-executable"] = PythonExe;
         gnFlags["args"] = string.Join(" ", gnArgs.Select(o => $"{o.Key}={QuoteValue(o.Value)}"));
-        var gnFlagsString = string.Join(" ", gnFlags.Select(kvp => $"--{kvp.Key}={quote}{kvp.Value}{quote}"));
+        if (GnVerbose)
+        {
+            gnFlags["-v"] = "";
+        }
+        
+        var gnFlagsString = string.Join(" ", gnFlags.Select(kvp => kvp.Value.Length > 0 ? $"--{kvp.Key}={quote}{kvp.Value}{quote}" : $"--{kvp.Key}"));
+
+        if (Rebuild)
+        {
+            (SkiaPath / outDir).DeleteDirectory();
+        }
+        
         // not inlined to avoid it being treated as FormattedString
         var gnToolArgs =
             $"gen {outDir} {gnFlagsString}";
@@ -261,7 +275,13 @@ partial class Build
             workingDirectory: workingDirectory
         );
 
-        var ninjaArgs = $"-C {outDir} {target}";
+        beforeCompile?.Invoke();
+        
+        var ninjaArgs = $"-d keeprsp -C {outDir} {target}";
+        if (NinjaVerbose)
+        {
+            ninjaArgs = "-v " + ninjaArgs;
+        }
         argument = new ArgumentStringHandler(ninjaArgs.Length, 0, out _);
         argument.AppendLiteral(ninjaArgs);
         NinjaTool(

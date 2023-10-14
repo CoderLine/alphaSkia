@@ -10,9 +10,9 @@ public abstract class AlphaSkiaNative implements AutoCloseable {
         }
     }
 
-    protected long handle;
+    long handle;
 
-    protected AlphaSkiaNative(long handle) {
+    AlphaSkiaNative(long handle) {
         this.handle = handle;
     }
 

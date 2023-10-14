@@ -1,3 +1,3 @@
-﻿# AlphaSkia Android Runtime Dependencies
+﻿# alphaSkia Android Runtime Dependencies
 
-This package contains the AlphaSkia runtime dependencies for Android.
+This package contains the alphaSkia runtime dependencies for Android.

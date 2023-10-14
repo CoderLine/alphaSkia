@@ -1,6 +1,12 @@
 package net.alphatab.alphaskia;
 
+/**
+ * This class contains the information about the Linux runtime dependencies to use with AlphaSkiaPlatform.
+ */
 public class AlphaSkiaLinux {
+    /**
+     * The native libraries needed to run alphaSkia.
+     */
     public static final String[] libraries = {
             "native/linux-" + getCurrentArchitecture() + "/libalphaskiajni.so"
     };

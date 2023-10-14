@@ -6,8 +6,10 @@ on:
         description: Use Skia Binary from cache
         default: false
 
-jobs:
+env:
+  ALPHASKIA_VERSION: 1.0.0.${{ github.run_number }}
 
+jobs:
 #
 # Windows
   windows-skia:
@@ -216,9 +218,9 @@ jobs:
     - run: ./build.cmd Java
     - uses: actions/upload-artifact@v3
       with:
-        name: Jars
+        name: Maven
         path: |
-          lib/java/*/build/libs/*.jar
+          lib/java/dist/**/*.*
   
   node:
     runs-on: ubuntu-latest

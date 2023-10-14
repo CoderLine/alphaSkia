@@ -1,3 +1,3 @@
-﻿# AlphaSkia Windows Runtime Dependencies
+﻿# alphaSkia Windows Runtime Dependencies
 
-This package contains the AlphaSkia runtime dependencies for Windows
+This package contains the alphaSkia runtime dependencies for Windows

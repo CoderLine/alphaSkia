@@ -4,7 +4,7 @@ namespace AlphaSkia;
 
 /// <summary>
 /// This class provides a manual way of resolving and loading the native libraries required
-/// by AlphaSkia. If AlphaSkia is installed via NuGet it should automatically resolve the
+/// by alphaSkia. If alphaSkia is installed via NuGet it should automatically resolve the
 /// DLLs, but if this fails developers can call <see cref="LoadLibrary"/> to activate the manual loading procedure.
 /// </summary>
 public static class AlphaSkiaPlatform

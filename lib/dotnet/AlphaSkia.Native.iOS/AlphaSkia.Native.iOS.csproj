@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <IsPackable>true</IsPackable>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <NoWarn>$(NoWarn);NU5128</NoWarn>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Description>$(ProductDescription) This package contains the AlphaSkia runtime dependencies for iOS.</Description>
     </PropertyGroup>
 
     <ItemGroup>
