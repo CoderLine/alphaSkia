@@ -20,7 +20,7 @@ partial class Build
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
-            GradlewTool("assemble",
+            GradlewTool("publishAllPublicationsToDistPathRepository",
                 workingDirectory: RootDirectory / "lib" / "java");
         });
     
