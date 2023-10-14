@@ -7,14 +7,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CoderLine/alphaSkia.git"
+    "url": "https://github.com/CoderLine/alphaSkia.git",
+    "directory": "lib/node/alphaskia-macos"
   },
-  "author": "Daniel Kuschny",
+  "author": {
+    "name": "Daniel Kuschny"
+  },
   "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/CoderLine/alphaSkia/issues"
   },
-  "homepage": "https://github.com/CoderLine/alphaSkia#readme",
+  "homepage": "https://github.com/CoderLine/alphaSkia",
   "files": [
     "/lib/libalphaskianode-macos-x64-node/libalphaskianode.node",
     "/lib/libalphaskianode-macos-arm64-node/libalphaskianode.node"

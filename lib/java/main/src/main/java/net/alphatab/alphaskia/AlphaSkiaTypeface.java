@@ -1,5 +1,8 @@
 package net.alphatab.alphaskia;
 
+/**
+ * Represents a typeface to draw text.
+ */
 public class AlphaSkiaTypeface extends AlphaSkiaNative {
     private final AlphaSkiaData data;
 
@@ -20,6 +23,11 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
 
     private native void release(long handle);
 
+    /**
+     * Register a new custom font from the given binary data containing the data of a font compatible with Skia (e.g. TTF).
+     * @param data The raw binary data of the font.
+     * @return The loaded typeface to use for text rendering or {@code null} if the loading failed.
+     */
     public static AlphaSkiaTypeface register(byte[] data) {
         var nativeData = new AlphaSkiaData(data);
         var typeface = register(nativeData.handle);
@@ -32,6 +40,13 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
 
     private static native long register(long handle);
 
+    /**
+     * Creates a typeface using the provided information.
+     * @param name The name of the typeface.
+     * @param bold Whether the bold version of the typeface should be loaded.
+     * @param italic Whether the italic version of the typeface should be loaded.
+     * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code null}.
+     */
     public static AlphaSkiaTypeface create(String name, boolean bold, boolean italic) {
         var typeface = makeFromName(name, bold, italic);
         if (typeface == 0) {

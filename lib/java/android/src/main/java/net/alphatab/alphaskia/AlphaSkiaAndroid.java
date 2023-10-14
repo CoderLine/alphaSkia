@@ -1,6 +1,12 @@
 package net.alphatab.alphaskia;
 
-public class AlphaSkiaAndroid {
+/**
+ * This class contains the information about the Android runtime dependencies to use with AlphaSkiaPlatform.
+ */
+public final class AlphaSkiaAndroid {
+    /**
+     * The native libraries needed to run alphaSkia.
+     */
     public static final String[] libraries = {
             "native/android-" + getCurrentArchitecture() + "/libalphaskiajni.so"
     };
@@ -15,4 +21,6 @@ public class AlphaSkiaAndroid {
             default -> jarch;
         };
     }
+
+    private AlphaSkiaAndroid() {}
 }

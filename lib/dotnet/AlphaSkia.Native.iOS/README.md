@@ -1,3 +1,3 @@
-﻿# AlphaSkia iOS Runtime Dependencies
+﻿# alphaSkia iOS Runtime Dependencies
 
-This package contains the AlphaSkia runtime dependencies for iOS
+This package contains the alphaSkia runtime dependencies for iOS

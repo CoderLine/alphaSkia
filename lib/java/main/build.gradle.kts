@@ -1,15 +1,19 @@
 plugins {
     id("java-library")
+    `maven-publish`
+    signing
 }
 
 java {
-    toolchain{
-        languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
     }
+    withSourcesJar()
+    withJavadocJar()
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.headerOutputDirectory.set(rootProject.projectDir.resolve("jni/include"))
+    options.headerOutputDirectory = rootProject.projectDir.resolve("jni/include")
 }
 
 dependencies {

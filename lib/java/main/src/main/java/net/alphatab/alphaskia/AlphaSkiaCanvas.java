@@ -7,8 +7,9 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
     private static AlphaSkiaColorType colorType;
 
     /**
-     * Gets or sets the {@link AlphaSkiaColorType} used when generating images.
+     * Gets the {@link AlphaSkiaColorType} used when generating images.
      * AlphaSkia tries to use the native color tpe of the system but this can vary based on OS.
+     * @return The {@link AlphaSkiaColorType} used when generating images
      */
     public static AlphaSkiaColorType getColorType() {
         if (colorType == null) {
@@ -19,13 +20,15 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
 
     /**
      * Gets the color to use for drawing operations in the native canvas.
-     * See also @{link rgbaToColor}
+     * See also {@link #rgbaToColor}
+     * @return The color to use for drawing operations in the native canvas
      */
     public native int getColor();
 
     /**
      * Sets the color to use for drawing operations in the native canvas.
-     * See also @{link rgbaToColor}
+     * See also {@link #rgbaToColor}
+     * @param color The color to use for drawing operations in the native canvas.
      */
     public native void setColor(int color);
 
@@ -36,22 +39,28 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param g The green component of the color.
      * @param b The blue component of the color.
      * @param a The alpha channel of the color.
+     * @return The encoded color.
      */
     public static int rgbaToColor(byte r, byte g, byte b, byte a) {
         return (((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) |
-                    ((b & 0xFF) << 0));
+                    (b & 0xFF));
     }
 
     /**
      * Gets the line width to use when drawing strokes and lines.
+     * @return The line width to use when drawing strokes and lines.
      */
     public native float getLineWidth();
 
     /**
      * Sets the line width to use when drawing strokes and lines.
+     * @param lineWidth The line width to use when drawing strokes and lines
      */
     public native void setLineWidth(float lineWidth);
 
+    /**
+     * Initializes a new empty canvas to use for drawing.
+     */
     public AlphaSkiaCanvas() {
         super(alphaskiaCanvasAllocate());
     }
@@ -75,7 +84,7 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      *
      * @param width  The width of the image to produce.
      * @param height The height of the image to produce.
-     * @param scaleFactor The scale factor for the image (e.g. for high DPI rendering with keeping cooridnatess).
+     * @param scaleFactor The scale factor for the image (e.g. for high DPI rendering with keeping coordinates).
      */
     public native void beginRender(int width, int height, float scaleFactor);
 
@@ -93,7 +102,7 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
     /**
      * Ends the rendering session and provides the rendered result.
      *
-     * @return The rendered result or <code>null</code> if something went wrong.
+     * @return The rendered result or {@code null} if something went wrong.
      */
     public native AlphaSkiaImage endRender();
 
@@ -154,7 +163,7 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
     public native void quadraticCurveTo(float cpx, float cpy, float x, float y);
 
     /**
-     * Draws a bezier curve from the current path position to the given position.
+     * Draws a Bézier curve from the current path position to the given position.
      *
      * @param cp1X The X-position of the first control point.
      * @param cp1Y The Y-position of the first control point.
@@ -228,7 +237,7 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
     public native void beginRotate(float centerX, float centerY, float angle);
 
     /**
-     * Restores the previous rotation state after <see cref="BeginRotate"/> was called.
+     * Restores the previous rotation state after {@link #beginRotate} was called.
      */
     public native void endRotate();
 

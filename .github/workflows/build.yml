@@ -216,9 +216,9 @@ jobs:
     - run: ./build.cmd Java
     - uses: actions/upload-artifact@v3
       with:
-        name: Jars
+        name: Maven
         path: |
-          lib/java/*/build/libs/*.jar
+          lib/dist/**/*.*
   
   node:
     runs-on: ubuntu-latest

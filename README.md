@@ -1,11 +1,11 @@
-# AlphaSkia
+# alphaSkia
 
 > ℹ️ This library is still work in progress and not yet available. 
 
-AlphaSkia is a special cross platform [Skia](https://skia.org/) wrapper used in [AlphaTab](https://github.com/CoderLine/alphaTab) it aims to provide a HTML5 Canvas like API to alphaTab providing a consistent rendering experience across the alphaTab flavours like web, .net and Kotlin. Differences across operating systems might still apply.
+alphaSkia is a special cross platform [Skia](https://skia.org/) wrapper used in [alphaTab](https://github.com/CoderLine/alphaTab) it aims to provide a HTML5 Canvas like API to alphaTab providing a consistent rendering experience across the alphaTab flavours like web, .net and Kotlin. Differences across operating systems might still apply.
 
-A big **Thank you** to the following projects giving me good insights on how to build Skia in a cross platform fashion. These projects influenced heavily
-how the pipelines of AlphaSkia are organized.
+## Credits
+A big _"Thank you"_ to the following projects giving me good insights on how to build Skia in a cross platform fashion. These projects influenced heavily how the pipelines of alphaSkia are organized.
 
 * [SkiaSharp](https://github.com/mono/SkiaSharp/)
 * [Skija](https://github.com/HumbleUI/Skija/)

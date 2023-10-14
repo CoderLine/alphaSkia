@@ -8,6 +8,8 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>10</LangVersion>
+		<Description>$(ProductDescription)</Description>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

@@ -13,6 +13,7 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
         _nativeData = nativeData;
     }
 
+    /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -22,6 +23,11 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
         }
     }
 
+    /// <summary>
+    /// Register a new custom font from the given binary data containing the data of a font compatible with Skia (e.g. TTF).
+    /// </summary>
+    /// <param name="data">The raw binary data of the font.</param>
+    /// <returns>The loaded typeface to use for text rendering or <code>null</code> if the loading failed.</returns>
     public static AlphaSkiaTypeface? Register(byte[] data)
     {
         var nativeData = NativeMethods.alphaskia_data_new_copy(data, (ulong)data.LongLength);
@@ -34,7 +40,14 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
 
         return new AlphaSkiaTypeface(typeface, new AlphaSkiaData(nativeData));
     }
-
+    
+    /// <summary>
+    /// Creates a typeface using the provided information.
+    /// </summary>
+    /// <param name="name">The name of the typeface.</param>
+    /// <param name="bold">Whether the bold version of the typeface should be loaded.</param>
+    /// <param name="italic">Whether the italic version of the typeface should be loaded.</param>
+    /// <returns>The typeface if it can be found in the already loaded fonts or the system fonts, otherwise <code>null</code>.</returns>
     public static AlphaSkiaTypeface? Create(string name, bool bold, bool italic)
     {
         var typeface =

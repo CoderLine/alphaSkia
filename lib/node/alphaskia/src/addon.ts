@@ -7,16 +7,43 @@ export interface AlphaSkiaTypefaceHandle { }
 export interface AlphaSkiaImageHandle { }
 export interface AlphaSkiaCanvasHandle { }
 
+/**
+ * Lists all text alignments which can be used to draw text.
+ */
 export enum AlphaSkiaTextAlign {
+    /**
+     * The text is drawn left aligned to the provided position.
+     */
     Left = 0,
+    /**
+     * The text is drawn centered to the provided position.
+     */
     Center = 1,
+    /**
+     * The text is drawn right aligned to the provided position.
+     */
     Right = 2
 }
 
+/**
+ * Lists all vertical text baseline alignments which can be used to draw text.
+ */
 export enum AlphaSkiaTextBaseline {
+    /**
+     * The text is drawn using the alphabetic baseline.
+     */
     Alphabetic = 0,
+    /**
+     * The text is top-aligned to the provided position.
+     */
     Top = 1,
+    /**
+     * The test is middle-aligned (vertically centered) to the provided position.
+     */
     Middle = 2,
+    /**
+     * The text is bottom-aligned to the provided position.
+     */
     Bottom = 3
 }
 
@@ -38,6 +65,9 @@ export enum AlphaSkiaColorType {
     Bgra888 = 6
 }
 
+/**
+ * @internal
+ */
 export interface AlphaSkiaNodeAddon {
     alphaskia_get_color_type(): AlphaSkiaColorType;
 
@@ -87,7 +117,11 @@ export interface AlphaSkiaNodeAddon {
 }
 
 const require = createRequire(import.meta.url);
-let addonInstance: AlphaSkiaNodeAddon | undefined = undefined;
+let addonInstance: AlphaSkiaNodeAddon | undefined = undefined
+
+/**
+ * @internal
+ */
 export function loadAddon() {
     if (!addonInstance) {
         const addonPath = findAddonPath();

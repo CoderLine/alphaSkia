@@ -1,3 +1,3 @@
-﻿# AlphaSkia Linux Runtime Dependencies
+﻿# alphaSkia Linux Runtime Dependencies
 
-This package contains the AlphaSkia runtime dependencies for Linux
+This package contains the alphaSkia runtime dependencies for Linux

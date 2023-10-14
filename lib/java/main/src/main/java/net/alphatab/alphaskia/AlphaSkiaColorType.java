@@ -27,7 +27,7 @@ public enum AlphaSkiaColorType {
         this.value = value;
     }
 
-    public static AlphaSkiaColorType fromValue(int value) {
+    static AlphaSkiaColorType fromValue(int value) {
         if (value == RGBA_8888.getValue()) {
             return RGBA_8888;
         } else if (value == BGRA_8888.getValue()) {

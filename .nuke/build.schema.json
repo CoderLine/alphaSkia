@@ -28,6 +28,9 @@
         "GnExe": {
           "type": "string"
         },
+        "GnVerbose": {
+          "type": "boolean"
+        },
         "GradlewExe": {
           "type": "string"
         },
@@ -56,6 +59,9 @@
             "VSCode"
           ]
         },
+        "IsReleaseBuild": {
+          "type": "boolean"
+        },
         "JavaHome": {
           "type": "string"
         },
@@ -67,6 +73,9 @@
         },
         "NinjaExe": {
           "type": "string"
+        },
+        "NinjaVerbose": {
+          "type": "boolean"
         },
         "NoLogo": {
           "type": "boolean",
@@ -92,6 +101,9 @@
         },
         "PythonExe": {
           "type": "string"
+        },
+        "Rebuild": {
+          "type": "boolean"
         },
         "Root": {
           "type": "string",

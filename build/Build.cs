@@ -5,6 +5,24 @@ using Nuke.Common.IO;
 using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 
+static class VersionInfo
+{
+    public const string Company = "CoderLine";
+    public const string Description = "A Skia based rendering backend for alphaTab.";
+    public static readonly Version FileVersion = GetVariable<Version>("VERSION") ?? new Version(1, 0, 0, 0);
+    public static readonly string Copyright = $"Copyright © {DateTime.Now.Year}, Daniel Kuschny";
+    public const string AuthorId = "danielku15";
+    public const string AuthorName = "Daniel Kuschny";
+    public const string ProductName = "alphaSkia";
+    public const string ProjectUrl = "https://github.com/CoderLine/alphaSkia";
+    public const string GitUrlHttp = "https://github.com/CoderLine/alphaSkia.git";
+    public const string GitUrlGit = "git://github.com/CoderLine/alphaSkia.git";
+    public const string IssuesUrl = "https://github.com/CoderLine/alphaSkia/issues";
+    public const string LicenseSpdx = "BSD-3-Clause";
+    public const string LicenseUrl = "https://opensource.org/license/bsd-3-clause";
+    public const string OrgUrl = "https://github.com/CoderLine";
+}
+
 partial class Build : NukeBuild
 {
     // Path handling
@@ -13,7 +31,10 @@ partial class Build : NukeBuild
     static readonly bool IsGitHubActions = GetVariable<bool>("GITHUB_ACTIONS");
     static readonly AbsolutePath DistBasePath = RootDirectory / "dist";
     static readonly AbsolutePath ArtifactBasePath = RootDirectory / "artifacts";
-
+    
+    [Parameter] readonly bool IsReleaseBuild = GetVariable<bool?>("IS_RELEASE_BUILD") ?? false;
+    [Parameter] readonly bool Rebuild;
+    
     public static int Main() => Execute<Build>();
 
     static void AppendToFlagList(

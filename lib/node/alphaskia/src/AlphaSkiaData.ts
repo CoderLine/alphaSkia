@@ -1,10 +1,10 @@
 import { AlphaSkiaNative } from './AlphaSkiaNative';
 import { AlphaSkiaDataHandle, loadAddon } from './addon';
 
+/**
+ * @internal
+ */
 export class AlphaSkiaData extends AlphaSkiaNative<AlphaSkiaDataHandle> {
-    /**
-     * @internal
-     */
     public constructor(handle: AlphaSkiaDataHandle) {
         super(handle, loadAddon().alphaskia_data_free);
     }

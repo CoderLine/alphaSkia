@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Nuke.Common;
 using Nuke.Common.IO;
+using Nuke.Common.Tooling;
 
 partial class Build
 {
@@ -67,6 +68,9 @@ partial class Build
                     "../../wrapper/src/alphaskia_typeface.cpp",
                     "../../wrapper/src/alphaskia_data.cpp"
                 ]
+                if (is_win) {
+                    alphaskia_wrapper_sources += [ "../../wrapper/src/alphaskia.rc" ]
+                }
                 config("alphaskia_public") {
                   defines = [ "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING", "ALPHASKIA_IMPLEMENTATION=1" ]
                   include_dirs = [ "." ]
@@ -77,7 +81,7 @@ partial class Build
                   }
                   
                   if (is_win) {
-                    libs = [ "skia.lib", "user32.lib", "OpenGL32.lib" ]
+                    libs = [ "skia.lib", "user32.lib", "OpenGL32.lib", "alphaskia.rc.obj" ]
                   }
                   
                   if (is_linux) {
@@ -256,8 +260,8 @@ partial class Build
         if (TargetOs == TargetOperatingSystem.Windows)
         {
             // TODO: check if clang-cl also works with the linux flags
-            AppendToFlagList(gnArgs, "extra_ldflags",
-                $"'/LIBPATH:{staticLibPath}'");
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'/LIBPATH:{staticLibPath}'");
+            NativeWriteVersionInfoHeader();
         }
         else
         {
@@ -270,7 +274,32 @@ partial class Build
         var outDir = SkiaPath / "out" / libDir;
         var libExtension = GetLibExtension(Variant);
 
-        GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath);
+        AbsolutePath rcOutputDir = null;
+        if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
+        {
+            rcOutputDir = outDir / "obj" / "alphaskia_wrapper";
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'/LIBPATH:{rcOutputDir}'");
+        }
+
+        GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath,
+            () =>
+            {
+                if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
+                {
+                    // compile resource file. Is is added as "library" in the BUILD.gn as input
+                    // "llvm-rc.exe" /FO alphaskia.rc.obj alphaskia.rc /D RC_INVOKED /C 65001
+                    
+                    var input = RootDirectory / "wrapper" / "src" / "alphaskia.rc";
+                    rcOutputDir.CreateDirectory();
+                    var output = rcOutputDir / "alphaskia.rc.obj";
+                    
+                    const int utf8CodePage = 65001;
+                    ToolResolver.GetTool((AbsolutePath)LlvmHome / "bin" / "llvm-rc.exe")(
+                        $"/FO {output} {input} /D RC_INVOKED /C {utf8CodePage}",
+                        workingDirectory: SkiaPath);
+                    
+                }
+            });
 
         try
         {
@@ -296,6 +325,61 @@ partial class Build
                 File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
             throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
         }
+    }
+
+    void NativeWriteVersionInfoHeader()
+    {
+        var libExtension = GetLibExtension(Variant);
+
+        var versionInfo = new StringBuilder();
+        versionInfo.AppendLine("#pragma once");
+        versionInfo.AppendLine("");
+        versionInfo.AppendLine(
+            $"#define VER_FILEVERSION {VersionInfo.FileVersion.Major},{VersionInfo.FileVersion.Minor},{VersionInfo.FileVersion.Build},{VersionInfo.FileVersion.Revision}");
+        versionInfo.AppendLine(
+            $"#define VER_FILEVERSION_STR \"{VersionInfo.FileVersion.Major}.{VersionInfo.FileVersion.Minor}.{VersionInfo.FileVersion.Build}.{VersionInfo.FileVersion.Revision}\\0\"");
+
+        versionInfo.AppendLine(
+            $"#define VER_PRODUCTVERSION {VersionInfo.FileVersion.Major},{VersionInfo.FileVersion.Minor},0,0");
+        versionInfo.AppendLine(
+            $"#define VER_PRODUCTVERSION_STR \"{VersionInfo.FileVersion.Major}.{VersionInfo.FileVersion.Minor}\\0\"");
+        if (IsLocalBuild)
+        {
+            versionInfo.AppendLine("#define IS_LOCAL_BUILD 1");
+        }
+        else if (IsReleaseBuild)
+        {
+            versionInfo.AppendLine("#define IS_RELEASE_BUILD 1");
+        }
+
+        versionInfo.AppendLine($"#define VER_COMPANY_STR \"{VersionInfo.Company}\"");
+        versionInfo.AppendLine($"#define VER_FILE_DESCRIPTION_STR \"{VersionInfo.Description}\"");
+
+        if (Variant == Variant.Shared)
+        {
+            versionInfo.AppendLine("#define VER_INTERNALNAME_STR \"libalphaskia\"");
+            versionInfo.AppendLine($"#define VER_ORIGINALFILENAME_STR \"libalphaskia{libExtension}\"");
+        }
+        else if (Variant == Variant.Jni)
+        {
+            versionInfo.AppendLine("#define VER_INTERNALNAME_STR \"libalphaskiajni\"");
+            versionInfo.AppendLine($"#define VER_ORIGINALFILENAME_STR \"libalphaskiajni{libExtension}\"");
+        }
+        else if (Variant == Variant.Node)
+        {
+            versionInfo.AppendLine("#define VER_INTERNALNAME_STR \"libalphaskianode\"");
+            versionInfo.AppendLine($"#define VER_ORIGINALFILENAME_STR \"libalphaskianode{libExtension}\"");
+        }
+
+        versionInfo.AppendLine($"#define VER_LEGALCOPYRIGHT_STR \"{VersionInfo.Copyright}\"");
+        versionInfo.AppendLine("#define VER_LEGALTRADEMARKS1_STR \"\"");
+        versionInfo.AppendLine("#define VER_LEGALTRADEMARKS2_STR \"\"");
+        versionInfo.AppendLine($"#define VER_PRODUCTNAME_STR \"{VersionInfo.Copyright}\"");
+
+        var dir = RootDirectory / "wrapper" / "include" / "generated";
+        dir.CreateDirectory();
+        // NOTE: need guaranteed UTF-8 code page in this file
+        (dir / "version_info.h").WriteAllBytes(Encoding.UTF8.GetBytes(versionInfo.ToString()));
     }
 
     AbsolutePath DownloadNodeLib()

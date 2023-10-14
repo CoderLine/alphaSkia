@@ -84,7 +84,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// </summary>
     /// <param name="width">The width of the image to produce.</param>
     /// <param name="height">The height of the image to produce.</param>
-    /// <param name="renderScale">The scale factor for the image (e.g. for high DPI rendering with keeping cooridnatess).</param>
+    /// <param name="renderScale">The scale factor for the image (e.g. for high DPI rendering with keeping coordinates).</param>
     public void BeginRender(int width, int height, float renderScale = 1)
     {
         CheckDisposed();
@@ -201,7 +201,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     }
 
     /// <summary>
-    /// Draws a bezier curve from the current path position to the given position.
+    /// Draws a Bézier curve from the current path position to the given position.
     /// </summary>
     /// <param name="cp1X">The X-position of the first control point.</param>
     /// <param name="cp1Y">The Y-position of the first control point.</param>

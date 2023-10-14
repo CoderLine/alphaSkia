@@ -1,6 +1,12 @@
 package net.alphatab.alphaskia;
 
-public class AlphaSkiaWindows {
+/**
+ * This class contains the information about the Windows runtime dependencies to use with AlphaSkiaPlatform.
+ */
+public final class AlphaSkiaWindows {
+    /**
+     * The native libraries needed to run alphaSkia.
+     */
     public static final String[] libraries = {
             "native/windows-" + getCurrentArchitecture() + "/libalphaskiajni.dll"
     };
@@ -15,4 +21,6 @@ public class AlphaSkiaWindows {
             default -> jarch;
         };
     }
+
+    private AlphaSkiaWindows() {}
 }

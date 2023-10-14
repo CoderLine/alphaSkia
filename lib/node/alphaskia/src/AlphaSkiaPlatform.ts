@@ -23,10 +23,24 @@ if (nodeModulesIndex > 0) {
     searchPaths.push(path.join(__dirname.substring(0, nodeModulesIndex), 'node_modules', '@coderline', `alphaskia-${platform}`, 'lib'))
 }
 
+/**
+ * Adds custom search paths which should be considered when loading the native addon of alphaSkia.
+ * @param paths The paths to add.
+ */
 export function addSearchPaths(...paths: string[]) {
     searchPaths.push(...paths);
 }
 
+/**
+ * Attempts to resolve the native node addon for alphaSkia which is typically placed in an operating system platform
+ * and architecture specific folder starting from certain search paths.
+ * 
+ * By default the following paths are considered
+ * * <working directory>/lib
+ * * <path-to-alphaskia-script>/lib
+ * * node_modules/@coderline/alphaskia-<operating system>/lib (if we detect that the alphaSkia script file is below node_modules).
+ * @returns The resolved path to the native node addon to load for this platform or undefined if it could not be found.
+ */
 export function findAddonPath(): string | undefined {
     const libDirectory = `libalphaskianode-${platform}-${arch}-node`;
     for (const searchPath of searchPaths) {
