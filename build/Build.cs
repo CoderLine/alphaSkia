@@ -9,7 +9,7 @@ static class VersionInfo
 {
     public const string Company = "CoderLine";
     public const string Description = "A Skia based rendering backend for alphaTab.";
-    public static readonly Version FileVersion = GetVariable<Version>("VERSION") ?? new Version(1, 0, 0, 0);
+    public static readonly Version FileVersion = GetVariable<Version>("ALPHASKIA_VERSION") ?? new Version(1, 0, 0, 0);
     public static readonly string Copyright = $"Copyright © {DateTime.Now.Year}, Daniel Kuschny";
     public const string AuthorId = "danielku15";
     public const string AuthorName = "Daniel Kuschny";
