@@ -33,6 +33,7 @@ partial class Build
 
     public Target LibAlphaSkiaTest => _ => _
         .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles)
+        .After(LibAlphaSkia)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
         .Executes(BuildAlphaSkiaTest);
