@@ -178,7 +178,7 @@ partial class Build
                     libs = [ "libalphaskia.dll.lib" ]
                   }
                   else {
-                    libs = [ "libalphaskia" ]
+                    libs = [ "alphaskia" ]
                   }
                 }
             """;
@@ -361,6 +361,12 @@ partial class Build
         var sharedLibPath = DistBasePath / GetLibDirectory("libalphaskia", variant: Variant.Shared);
         var gnFlags = new Dictionary<string, string>();
 
+        if (!sharedLibPath.DirectoryExists())
+        {
+            throw new IOException(sharedLibPath + " is fully missing, needed for linking!");
+        }
+
+        Log.Debug("Available libs for linking: " + string.Join(", ", sharedLibPath.GetFiles().Select(f => f.Name)));
         AppendToFlagList(gnArgs, "extra_cflags", $"'-DALPHASKIA_RID={TargetOs.RuntimeIdentifier}-{Architecture}'");
 
         if (TargetOs == TargetOperatingSystem.Windows)
