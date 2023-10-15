@@ -21,7 +21,7 @@ std::filesystem::path find_repository_root(std::filesystem::path current)
 
     if (!current.has_parent_path())
     {
-        throw std::exception("Could not find repository root");
+        throw std::logic_error("Could not find repository root");
     }
 
     return find_repository_root(current.parent_path());
@@ -63,7 +63,7 @@ void write_data_to_file_and_free(alphaskia_data_t data, std::string path)
     if (!stream)
     {
         alphaskia_data_free(data);
-        throw std::exception(("Could not open file " + path).c_str());
+        throw std::logic_error("Could not open file " + path);
     }
 
     uint8_t *data_raw = alphaskia_data_get_data(data);
@@ -111,7 +111,7 @@ int main()
         alphaskia_data_t png_data = alphaskia_image_encode_png(actual_image);
         if (!png_data)
         {
-            throw std::exception("Failed to encode final image to png");
+            throw std::logic_error("Failed to encode final image to png");
         }
         write_data_to_file_and_free(png_data, test_output_file.generic_string());
         std::cout << "Image saved to " << test_output_file.generic_string() << std::endl;
@@ -124,7 +124,7 @@ int main()
         alphaskia_image_t expected_image = alphaskia_image_decode(test_reference_data.data(), test_reference_data.size());
         if (!expected_image)
         {
-            throw std::exception("Failed to decode reference image");
+            throw std::logic_error("Failed to decode reference image");
         }
         std::cout << "Reference image loaded" << std::endl;
 
@@ -183,7 +183,7 @@ int main()
         std::cout << "Images match. Total Pixels: " << compare_result.total_pixels << ", Transparent Pixels: " << compare_result.transparent_pixels << ", Percent difference:" << percentDifference << "%" << std::endl;
         return 0;
     }
-    catch (std::exception &e)
+    catch (const std::exception &e)
     {
         std::cerr << "Failed to run test: " << e.what() << std::endl;
         return 1;

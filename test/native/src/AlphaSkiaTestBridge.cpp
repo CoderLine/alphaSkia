@@ -26,7 +26,7 @@ alphaskia_typeface_t alphaskia_get_typeface(const char *name, bool is_bold, bool
     auto it = custom_type_faces.find(key);
     if (it == custom_type_faces.end())
     {
-        throw std::exception(("Unknown font requested: " + key).c_str());
+        throw std::logic_error("Unknown font requested: " + key);
     }
     return it->second;
 }
@@ -36,7 +36,7 @@ void read_file(std::string file_path, std::vector<uint8_t> &data)
     std::ifstream in(file_path, std::ios::binary | std::ios::ate);
     if (!in)
     {
-        throw std::exception(("Could not open file " + file_path).c_str());
+        throw std::logic_error("Could not open file " + file_path);
     }
 
     std::streampos size = in.tellg();
@@ -55,7 +55,7 @@ alphaskia_typeface_t alphaskia_load_typeface(const char *name, bool is_bold, boo
     alphaskia_data_t font_data = alphaskia_data_new_copy(data.data(), data.size());
     if (!font_data)
     {
-        throw std::exception(("Could allocate typeface data " + file_path).c_str());
+        throw std::logic_error("Could allocate typeface data " + file_path);
     }
 
     std::cout << "Read " << data.size() << " bytes from file, decoding typeface" << std::endl;
@@ -63,7 +63,7 @@ alphaskia_typeface_t alphaskia_load_typeface(const char *name, bool is_bold, boo
     if (!typeface)
     {
         alphaskia_data_free(font_data);
-        throw std::exception("Could not create typeface from data");
+        throw std::logic_error("Could not create typeface from data");
     }
     std::cout << "Typeface " << key << " loaded and registered" << std::endl;
     custom_type_faces[key] = typeface;

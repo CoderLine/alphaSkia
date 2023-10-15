@@ -2,6 +2,7 @@
 
 #include "../../../wrapper/include/alphaskia.h"
 
+#include <stdexcept>
 #include <functional>
 #include <memory>
 #include <cstdint>

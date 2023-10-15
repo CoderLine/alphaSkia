@@ -212,12 +212,12 @@ pixel_match_result_t pixel_match(const std::vector<uint8_t> &img1,
 {
     if (img1.size() != img2.size() || diff_pixels.size() != img1.size())
     {
-        throw std::exception("Image sizes do not match");
+        throw std::logic_error("Image sizes do not match");
     }
 
     if (img1.size() != width * height * sizeof(uint32_t))
     {
-        throw std::exception("Image data size does not match width/height.");
+        throw std::logic_error("Image data size does not match width/height.");
     }
 
     // check if images are identical
