@@ -35,6 +35,12 @@ dependencies {
     implementation("net.alphatab:net.alphatab.alphaskia.android:$alphaSkiaVersion")
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 val generatedSourcesPath = projectDir.resolve("src/main/generated")
 java.sourceSets["main"].java.srcDir(generatedSourcesPath)
 idea {

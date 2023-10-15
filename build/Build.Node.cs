@@ -33,12 +33,12 @@ partial class Build
                     .GetFiles("*.tgz", int.MaxValue)
                     .DeleteFiles();
             }
-            
+
             foreach (var nodePackage in AllNodePackages)
             {
                 NpmTasks.Npm("pack", nodePackage);
             }
-            
+
             if (IsLocalBuild)
             {
                 if (Rebuild)
@@ -52,6 +52,7 @@ partial class Build
                         RootDirectory / "dist" / "NodeTars" / tgz.Name,
                         FileExistsPolicy.OverwriteIfNewer);
                 }
+
                 PrepareTgzForTest();
             }
         });
@@ -72,9 +73,8 @@ partial class Build
             Log.Information("Folder flattened to: " + string.Join(", ",
                 (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz", 3).Select(f => f.Name)));
         }
-      
 
-        
+
         Log.Information("Preparing TGZ files for test by creating copy without version");
         var files = new List<string>();
         foreach (var tgz in (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz"))
@@ -94,9 +94,10 @@ partial class Build
 
     public Target NodeBuild => _ => _
         .Unlisted()
-        .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
+            PrepareNodeModuleStructure();
+
             NodeWritePackageJson();
 
             if (Rebuild)
@@ -105,19 +106,35 @@ partial class Build
                     .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
                     .SetCommand("clean"));
             }
-            
+
             foreach (var nodePackage in AllNodePackages)
             {
                 NpmTasks.NpmInstall(_ =>
                     _.SetProcessWorkingDirectory(nodePackage));
             }
-            
+
             CopyNodeAddonsToPackages();
 
             NpmTasks.NpmRun(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
                 .SetCommand("build"));
         });
+
+    void PrepareNodeModuleStructure()
+    {
+        if (IsGitHubActions)
+        {
+            // flatten <artifactname>/<node-rid-folder>/libalphaskianode.node 
+            // to <node-rid-folder>/libalphaskianode.node
+            foreach (var subdir in DistBasePath.GetDirectories().Where(d => d.Name.EndsWith("-node")))
+            {
+                if ((subdir / "libalphaskia.node").FileExists())
+                {
+                    FileSystemTasks.MoveDirectoryToDirectory(subdir, DistBasePath);
+                }
+            }
+        }
+    }
 
     void NodeWritePackageJson()
     {
@@ -163,7 +180,7 @@ partial class Build
                 ["url"] = VersionInfo.GitUrlHttp,
                 ["directory"] = RootDirectory.GetRelativePathTo(jsonPath.Parent).ToUnixRelativePath().ToString()
             };
-            
+
             jsonPath.WriteAllText(jsonContent.ToJsonString(new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -176,11 +193,11 @@ partial class Build
         .Executes(() =>
         {
             PrepareTgzForTest();
-            
+
             // need to delete package-lock.json due to tgz hash mismatch
             Log.Information("Deleting package-lock.json to avoid integrity checks failing");
             (RootDirectory / "test" / "node" / "package-lock.json").DeleteFile();
-            
+
             NpmTasks.NpmInstall(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetForce(true));
