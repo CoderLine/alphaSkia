@@ -53,7 +53,12 @@ extern "C"
     AS_API alphaskia_image_t alphaskia_image_decode(const uint8_t *data, uint64_t length)
     {
         sk_sp<SkData> wrapped_data = SkData::MakeWithCopy(data, length);
-        sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(wrapped_data, SkAlphaType::kPremul_SkAlphaType);
+        std::unique_ptr<SkCodec> codec = SkCodec::MakeFromData(wrapped_data);
+
+        // create desired color type
+        SkImageInfo info = codec->getInfo().makeColorType(kN32_SkColorType).makeAlphaType(kPremul_SkAlphaType);
+        sk_sp<SkImage> image = std::get<0>(codec->getImage(info));
+
         return reinterpret_cast<alphaskia_image_t>(new sk_sp<SkImage>(image));
     }
 
