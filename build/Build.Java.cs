@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
@@ -57,24 +58,17 @@ partial class Build
     public Target JavaTest => _ => _
         .Executes(() =>
         {
-            GradlewTool("run", workingDirectory: RootDirectory / "test" / "java");
+            GradlewTool("run",
+                environmentVariables: new Dictionary<string, string>
+                {
+                    ["ALPHASKIA_TEST_VERSION"] = JavaVersion
+                },
+                workingDirectory: RootDirectory / "test" / "java");
         });
 
     void JavaWriteVersionInfoProperties()
     {
-        string semVer;
-        if (IsLocalBuild)
-        {
-            semVer = $"{VersionInfo.FileVersion.ToString(3)}-LOCAL";
-        }
-        else if (!IsReleaseBuild)
-        {
-            semVer = $"{VersionInfo.FileVersion.ToString(3)}-SNAPSHOT";
-        }
-        else
-        {
-            semVer = $"{VersionInfo.FileVersion.ToString(3)}";
-        }
+        var semVer = JavaVersion;
 
         var props = $"""
             alphaskiaDescription={VersionInfo.Description}
@@ -91,5 +85,27 @@ partial class Build
             alphaskiaIssuesUrl={VersionInfo.IssuesUrl}
         """;
         (RootDirectory / "lib" / "java" / "local.properties").WriteAllText(props);
+    }
+
+    string JavaVersion
+    {
+        get
+        {
+            string semVer;
+            if (IsLocalBuild)
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}-LOCAL";
+            }
+            else if (!IsReleaseBuild)
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}-SNAPSHOT";
+            }
+            else
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}";
+            }
+
+            return semVer;
+        }
     }
 }

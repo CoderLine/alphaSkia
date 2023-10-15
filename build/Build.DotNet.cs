@@ -98,7 +98,7 @@ partial class Build
         .Executes(() =>
         {
             DotNetTasks.DotNetRun(_ => _
-                .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet")
+                .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
                 .SetRuntime(TargetOperatingSystem.Current.RuntimeIdentifier + "-" +
                             (Architecture ?? Architecture.Current))
                 .AddProcessEnvironmentVariable("NUGET_PACKAGES", TemporaryDirectory / "packages")

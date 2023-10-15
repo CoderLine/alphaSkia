@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -6,6 +7,7 @@ using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Npm;
+using Serilog;
 
 partial class Build
 {
@@ -56,6 +58,25 @@ partial class Build
 
     void PrepareTgzForTest()
     {
+        if (IsGitHubActions)
+        {
+            // flatten tar directory first 
+            Log.Information("Flattening TGZ files from github");
+            foreach (var tgz in (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz", 3))
+            {
+                FileSystemTasks.MoveFile(tgz,
+                    RootDirectory / "dist" / "NodeTars" / tgz.Name,
+                    FileExistsPolicy.OverwriteIfNewer);
+            }
+
+            Log.Information("Folder flattened to: " + string.Join(", ",
+                (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz", 3).Select(f => f.Name)));
+        }
+      
+
+        
+        Log.Information("Preparing TGZ files for test by creating copy without version");
+        var files = new List<string>();
         foreach (var tgz in (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz"))
         {
             // coderline-alphaskia-1.0.0-local.0.tgz
@@ -65,7 +86,10 @@ partial class Build
             FileSystemTasks.CopyFile(tgz,
                 RootDirectory / "dist" / "NodeTars" / nameWithoutVersion,
                 FileExistsPolicy.OverwriteIfNewer);
+            files.Add(nameWithoutVersion);
         }
+
+        Log.Information("Preparing TGZ files done {Files}", string.Join(", ", files));
     }
 
     public Target NodeBuild => _ => _
@@ -152,8 +176,11 @@ partial class Build
         .Executes(() =>
         {
             PrepareTgzForTest();
+            
             // need to delete package-lock.json due to tgz hash mismatch
+            Log.Information("Deleting package-lock.json to avoid integrity checks failing");
             (RootDirectory / "test" / "node" / "package-lock.json").DeleteFile();
+            
             NpmTasks.NpmInstall(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetForce(true));

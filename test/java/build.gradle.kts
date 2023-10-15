@@ -10,7 +10,7 @@ version = "1.0.0-LOCAL"
 var alphaSkiaVersion = version
 
 // Override with value from CI
-val versionEnv = providers.environmentVariable("ALPHASKIA_VERSION")
+val versionEnv = providers.environmentVariable("ALPHASKIA_TEST_VERSION")
 if (versionEnv.isPresent) {
     version = versionEnv.get()
     alphaSkiaVersion = versionEnv.get()
