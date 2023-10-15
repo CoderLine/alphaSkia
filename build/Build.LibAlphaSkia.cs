@@ -35,6 +35,7 @@ partial class Build
         .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .After(LibAlphaSkia)
         .Requires(() => Architecture)
+        .OnlyWhenStatic(() => Variant == Variant.Shared)
         .Requires(() => TargetOs)
         .Executes(BuildAlphaSkiaTest);
 
@@ -357,8 +358,14 @@ partial class Build
 
     void BuildAlphaSkiaTest()
     {
-        var gnArgs = PrepareNativeBuild(Variant.Shared);
-        var sharedLibPath = DistBasePath / GetLibDirectory("libalphaskia", variant: Variant.Shared);
+        if (Variant != Variant.Shared)
+        {
+            Log.Information("Skipping build of BuildAlphaSkiaTest, not relevant for variant {Variant}", Variant);
+            return;
+        }
+        
+        var gnArgs = PrepareNativeBuild(Variant);
+        var sharedLibPath = DistBasePath / GetLibDirectory("libalphaskia", variant: Variant);
         var gnFlags = new Dictionary<string, string>();
 
         if (!sharedLibPath.DirectoryExists())
@@ -380,7 +387,7 @@ partial class Build
         }
 
         var buildTarget = "libalphaskiatest";
-        var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant.Shared);
+        var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
         var outDir = SkiaPath / "out" / libDir;
         var exeExtension = GetExeExtension();
 
@@ -392,7 +399,7 @@ partial class Build
         FileSystemTasks.CopyFile(exePath, distPath / exePath.Name, FileExistsPolicy.OverwriteIfNewer);
 
         // copy shared lib beside executable
-        var libExtensions = new HashSet<string>(GetLibExtensions(Variant.Shared), StringComparer.OrdinalIgnoreCase);
+        var libExtensions = new HashSet<string>(GetLibExtensions(Variant), StringComparer.OrdinalIgnoreCase);
         foreach (var file in sharedLibPath.GetFiles().Where(f => libExtensions.Contains(f.Extension)))
         {
             FileSystemTasks.CopyFile(file, outDir / file.Name, FileExistsPolicy.OverwriteIfNewer);
