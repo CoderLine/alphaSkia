@@ -12,7 +12,7 @@
 #define STRINGIFY(s) _STRINGIFY(s)
 #define _STRINGIFY(s) #s
 
-std::filesystem::path find_repository_root(std::filesystem::path current)
+std::filesystem::path find_repository_root(std::filesystem::path current, bool &success)
 {
     if (std::filesystem::exists(current / ".nuke"))
     {
@@ -21,10 +21,12 @@ std::filesystem::path find_repository_root(std::filesystem::path current)
 
     if (!current.has_parent_path())
     {
-        throw std::logic_error("Could not find repository root");
+        std::cerr << "Could not find repository root" << std::endl;
+        success = false;
+        return std::filesystem::path();
     }
 
-    return find_repository_root(current.parent_path());
+    return find_repository_root(current.parent_path(), success);
 }
 
 alphaskia_image_t render_full_image()
@@ -57,13 +59,14 @@ alphaskia_image_t render_full_image()
     return full_image;
 }
 
-void write_data_to_file_and_free(alphaskia_data_t data, std::string path)
+bool write_data_to_file_and_free(alphaskia_data_t data, std::string path)
 {
     std::ofstream stream(path, std::ios::binary);
     if (!stream)
     {
         alphaskia_data_free(data);
-        throw std::logic_error("Could not open file " + path);
+        std::cerr << "Could not open file " << path << std::endl;
+        return false;
     }
 
     uint8_t *data_raw = alphaskia_data_get_data(data);
@@ -73,6 +76,7 @@ void write_data_to_file_and_free(alphaskia_data_t data, std::string path)
     stream.close();
 
     alphaskia_data_free(data);
+    return true;
 }
 
 int main()
@@ -80,7 +84,12 @@ int main()
     const double tolerance_percent = 1;
     try
     {
-        std::filesystem::path repository_root = find_repository_root(std::filesystem::current_path());
+        bool found(false);
+        std::filesystem::path repository_root = find_repository_root(std::filesystem::current_path(), found);
+        if (!found)
+        {
+            return 1;
+        }
 
         // Load all fonts for rendering
         std::cout << "Loading fonts" << std::endl;
@@ -111,7 +120,8 @@ int main()
         alphaskia_data_t png_data = alphaskia_image_encode_png(actual_image);
         if (!png_data)
         {
-            throw std::logic_error("Failed to encode final image to png");
+            std::cerr << "Failed to encode final image to png" << std::endl;
+            return 1;
         }
         write_data_to_file_and_free(png_data, test_output_file.generic_string());
         std::cout << "Image saved to " << test_output_file.generic_string() << std::endl;
@@ -124,7 +134,8 @@ int main()
         alphaskia_image_t expected_image = alphaskia_image_decode(test_reference_data.data(), test_reference_data.size());
         if (!expected_image)
         {
-            throw std::logic_error("Failed to decode reference image");
+            std::cerr << "Failed to decode reference image" << std::endl;
+            return 1;
         }
         std::cout << "Reference image loaded" << std::endl;
 
