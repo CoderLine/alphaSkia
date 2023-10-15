@@ -118,6 +118,7 @@ partial class Build
             }
 
             PatchSkiaToolchain();
+            PatchSkiaMacOsVersion();
         });
 
     void BuildSkia()
