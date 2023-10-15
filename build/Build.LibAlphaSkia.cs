@@ -374,7 +374,7 @@ partial class Build
         }
 
         Log.Debug("Available libs for linking: " + string.Join(", ", sharedLibPath.GetFiles().Select(f => f.Name)));
-        AppendToFlagList(gnArgs, "extra_cflags", $"'-DALPHASKIA_RID={TargetOs.RuntimeIdentifier}-{Architecture}'");
+        AppendToFlagList(gnArgs, "extra_cflags", $"'-DALPHASKIA_TEST_RID={TargetOs.RuntimeIdentifier}'");
 
         if (TargetOs == TargetOperatingSystem.Windows)
         {

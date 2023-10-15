@@ -89,7 +89,7 @@ public class Program
             var testOutputPath = Path.Combine(repositoryRoot, "test", "test-outputs", "dotnet");
             Directory.CreateDirectory(testOutputPath);
 
-            var testOutputFile = Path.Combine(testOutputPath, AlphaSkiaRid + ".png");
+            var testOutputFile = Path.Combine(testOutputPath, AlphaSkiaTestRid + ".png");
             var pngData = actualImage.ToPng();
             if (pngData == null)
             {
@@ -100,7 +100,7 @@ public class Program
             Console.WriteLine($"Image saved to {testOutputFile}");
 
             // load reference image
-            var testReferencePath = Path.Combine(testDataPath, "reference", AlphaSkiaRid + ".png");
+            var testReferencePath = Path.Combine(testDataPath, "reference", AlphaSkiaTestRid + ".png");
             Console.WriteLine($"Loading reference image {testReferencePath}");
 
             var testReferenceData = File.ReadAllBytes(testReferencePath);
@@ -152,7 +152,7 @@ public class Program
                 using var diffImage = AlphaSkiaImage.FromPixels(actualWidth, actualHeight, diffPixels)!;
                 var diffImagePngData = diffImage.ToPng()!;
 
-                var diffOutputPath = Path.Combine(testOutputPath, AlphaSkiaRid + ".diff.png");
+                var diffOutputPath = Path.Combine(testOutputPath, AlphaSkiaTestRid + ".diff.png");
                 File.WriteAllBytes(diffOutputPath, diffImagePngData);
                 Console.WriteLine($"Error diff image saved to {diffOutputPath}");
                 return 1;
@@ -169,7 +169,7 @@ public class Program
         }
     }
 
-    private static readonly string OperatingSystemRid = OperatingSystem.IsWindows()
+    private static readonly string AlphaSkiaTestRid = OperatingSystem.IsWindows()
         ? "win"
         : OperatingSystem.IsLinux()
             ? "linux"
@@ -180,15 +180,4 @@ public class Program
                     : OperatingSystem.IsIOS()
                         ? "ios"
                         : throw new PlatformNotSupportedException("Unsupported test platform");
-
-    private static readonly string ArchitectureRid = RuntimeInformation.ProcessArchitecture switch
-    {
-        Architecture.X64 => "x64",
-        Architecture.X86 => "x86",
-        Architecture.Arm => "arm",
-        Architecture.Arm64 => "arm64",
-        _ => throw new PlatformNotSupportedException("Unsupported test architecture")
-    };
-
-    private static readonly string AlphaSkiaRid = OperatingSystemRid + "-" + ArchitectureRid;
 }

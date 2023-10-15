@@ -5,8 +5,8 @@
 #include <iostream>
 #include <fstream>
 
-#ifndef ALPHASKIA_RID
-#error "Missing alphaSkia runtime identifier, please specify ALPHASKIA_RID";
+#ifndef ALPHASKIA_TEST_RID
+#error "Missing alphaSkia runtime identifier, please specify ALPHASKIA_TEST_RID";
 #endif
 
 #define STRINGIFY(s) _STRINGIFY(s)
@@ -16,7 +16,7 @@ std::filesystem::path find_repository_root(std::filesystem::path current, bool &
 {
     if (std::filesystem::exists(current / ".nuke"))
     {
-        std::cerr << "Repository root found at " << current << std::endl;
+        std::cout << "Repository root found at " << current << std::endl;
         success = true;
         return current;
     }
@@ -116,7 +116,7 @@ int main()
     std::filesystem::path test_output_path = repository_root / "test" / "test-outputs" / "native";
     std::filesystem::create_directories(test_output_path);
 
-    std::filesystem::path test_output_file = test_output_path / (std::string(STRINGIFY(ALPHASKIA_RID)) + ".png");
+    std::filesystem::path test_output_file = test_output_path / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".png");
     alphaskia_data_t png_data = alphaskia_image_encode_png(actual_image);
     if (!png_data)
     {
@@ -127,7 +127,7 @@ int main()
     std::cout << "Image saved to " << test_output_file.generic_string() << std::endl;
 
     // load reference image
-    std::filesystem::path test_reference_path = test_data_path / "reference" / (std::string(STRINGIFY(ALPHASKIA_RID)) + ".png");
+    std::filesystem::path test_reference_path = test_data_path / "reference" / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".png");
     std::cout << "Loading reference image " << test_reference_path.generic_string() << std::endl;
     std::vector<uint8_t> test_reference_data;
     read_file(test_reference_path.generic_string(), test_reference_data);
@@ -185,7 +185,7 @@ int main()
         alphaskia_data_t diff_image_png_data = alphaskia_image_encode_png(diff_image);
         alphaskia_image_free(diff_image);
 
-        auto diff_output_path = test_output_path / (std::string(STRINGIFY(ALPHASKIA_RID)) + ".diff.png");
+        auto diff_output_path = test_output_path / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".diff.png");
         write_data_to_file_and_free(diff_image_png_data, diff_output_path.generic_string());
         std::cout << "Error diff image saved to " << diff_output_path.generic_string() << std::endl;
         return 1;

@@ -46,41 +46,20 @@ function renderFullImage(): AlphaSkiaImage {
     return fullImage!;
 }
 
-let operatingSystemRid;
+let alphaSkiaTestRid: string;
 switch (os.type()) {
     case "Linux":
-        operatingSystemRid = "linux";
+        alphaSkiaTestRid = "linux";
         break;
     case "Darwin":
-        operatingSystemRid = "macos";
+        alphaSkiaTestRid = "macos";
         break;
     case "Windows_NT":
-        operatingSystemRid = "win";
+        alphaSkiaTestRid = "win";
         break;
     default:
         throw new Error("Unsupported test platform");
 }
-
-let architectureRid;
-switch (process.arch) {
-    case "arm":
-        architectureRid = "arm";
-        break;
-    case "arm64":
-        architectureRid = "arm64";
-        break;
-    case "x64":
-        architectureRid = "x64";
-        break;
-    case "ia32":
-        architectureRid = "x86";
-        break;
-    default:
-        throw new Error("Unsupported test platform");
-        break;
-}
-
-const alphaSkiaRid = operatingSystemRid + "-" + architectureRid;
 
 
 function main(): number {
@@ -122,7 +101,7 @@ function main(): number {
         let testOutputPath = path.join(repositoryRoot, "test", "test-outputs", "dotnet");
         fs.mkdirSync(testOutputPath, { recursive: true })
 
-        let testOutputFile = path.join(testOutputPath, alphaSkiaRid + ".png");
+        let testOutputFile = path.join(testOutputPath, alphaSkiaTestRid + ".png");
         let pngData = actualImage.toPng();
         if (!pngData) {
             throw new Error("Failed to encode final image to png");
@@ -132,7 +111,7 @@ function main(): number {
         console.log(`Image saved to ${testOutputFile}`);
 
         // load reference image
-        let testReferencePath = path.join(testDataPath, "reference", alphaSkiaRid + ".png");
+        let testReferencePath = path.join(testDataPath, "reference", alphaSkiaTestRid + ".png");
         console.log(`Loading reference image ${testReferencePath}`);
 
         let testReferenceData = fs.readFileSync(testReferencePath);
@@ -180,7 +159,7 @@ function main(): number {
             using diffImage = AlphaSkiaImage.fromPixels(actualWidth, actualHeight, diffPixels)!;
             let diffImagePngData = diffImage.toPng()!;
 
-            let diffOutputPath = path.join(testOutputPath, alphaSkiaRid + ".diff.png");
+            let diffOutputPath = path.join(testOutputPath, alphaSkiaTestRid + ".diff.png");
             fs.writeFileSync(diffOutputPath, diffImagePngData);
             console.log(`Error diff image saved to ${diffOutputPath}`);
             return 1;

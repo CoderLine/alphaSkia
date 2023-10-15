@@ -97,7 +97,7 @@ public class Main {
                 //noinspection ResultOfMethodCallIgnored
                 testOutputPath.toFile().mkdirs();
 
-                var testOutputFile = testOutputPath.resolve(getAlphaSkiaRid() + ".png");
+                var testOutputFile = testOutputPath.resolve(getAlphaSkiaTestRid() + ".png");
                 var pngData = actualImage.toPng();
                 if (pngData == null) {
                     throw new IllegalStateException("Failed to encode final image to png");
@@ -107,7 +107,7 @@ public class Main {
                 System.out.println("Image saved to " + testOutputFile);
 
                 // load reference image
-                var testReferencePath = testDataPath.resolve("reference/" + getAlphaSkiaRid() + ".png");
+                var testReferencePath = testDataPath.resolve("reference/" + getAlphaSkiaTestRid() + ".png");
                 System.out.println("Loading reference image " + testReferencePath);
 
                 var testReferenceData = Files.readAllBytes(testReferencePath);
@@ -154,7 +154,7 @@ public class Main {
                         try (var diffImage = AlphaSkiaImage.fromPixels(actualWidth, actualHeight, diffPixels)) {
                             var diffImagePngData = diffImage.toPng();
 
-                            var diffOutputPath = testOutputPath.resolve(getAlphaSkiaRid() + ".diff.png");
+                            var diffOutputPath = testOutputPath.resolve(getAlphaSkiaTestRid() + ".diff.png");
                             Files.write(diffOutputPath, diffImagePngData);
                             System.out.println("Error diff image saved to " + diffOutputPath);
                             return 1;
@@ -209,18 +209,7 @@ public class Main {
         throw new IllegalStateException("Unsupported OS: " + os);
     }
 
-    private static String getArchitectureRid() {
-        var jarch = System.getProperty("os.arch");
-        return switch (jarch) {
-            case "x86", "i368", "i486", "i586", "i686" -> "x86";
-            case "x86_64", "amd64" -> "x64";
-            case "arm" -> "arm";
-            case "aarch64" -> "arm64";
-            default -> throw new IllegalStateException("Unsupported Architecture: " + jarch);
-        };
-    }
-
-    private static String getAlphaSkiaRid() {
-        return getOperatingSystemRid() + "-" + getArchitectureRid();
+    private static String getAlphaSkiaTestRid() {
+        return getOperatingSystemRid();
     }
 }
