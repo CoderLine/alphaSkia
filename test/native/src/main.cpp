@@ -188,6 +188,16 @@ int main()
         auto diff_output_path = test_output_path / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".diff.png");
         write_data_to_file_and_free(diff_image_png_data, diff_output_path.generic_string());
         std::cout << "Error diff image saved to " << diff_output_path.generic_string() << std::endl;
+ 
+        // for the sake of comparing directly, we also store the old image (we had cases where linux detected differences on the exact same file)
+        alphaskia_image_t old_image = alphaskia_image_from_pixels(actual_width, actual_height, expected_pixels.data());
+        alphaskia_data_t old_image_png_data = alphaskia_image_encode_png(old_image);
+        alphaskia_image_free(old_image);
+
+        auto old_output_path = test_output_path / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".old.png");
+        write_data_to_file_and_free(old_image_png_data, old_output_path.generic_string());
+        std::cout << "Error old image saved to " << old_output_path.generic_string() << std::endl;
+
         return 1;
     }
 
