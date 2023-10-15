@@ -16,6 +16,8 @@ std::filesystem::path find_repository_root(std::filesystem::path current, bool &
 {
     if (std::filesystem::exists(current / ".nuke"))
     {
+        std::cerr << "Repository root found at " << current << std::endl;
+        success = true;
         return current;
     }
 
