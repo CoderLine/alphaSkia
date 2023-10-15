@@ -8,7 +8,7 @@ public class AlphaSkiaLinux {
      * The native libraries needed to run alphaSkia.
      */
     public static final String[] libraries = {
-            "native/linux-" + getCurrentArchitecture() + "/libalphaskiajni.so"
+            "/native/linux-" + getCurrentArchitecture() + "/libalphaskiajni.so"
     };
 
     private static String getCurrentArchitecture() {

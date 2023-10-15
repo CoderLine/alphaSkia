@@ -8,7 +8,7 @@ public final class AlphaSkiaMacOs {
      * The native libraries needed to run alphaSkia.
      */
     public static final String[] libraries = {
-            "native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.dylib"
+            "/native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.dylib"
     };
 
     private static String getCurrentArchitecture() {

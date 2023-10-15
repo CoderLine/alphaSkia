@@ -204,8 +204,41 @@ jobs:
       with:
         name: Nupkgs
         path: |
-          lib/dotnet/**/bin/Release/*.nupkg
-          lib/dotnet/**/bin/Release/*.snupkg
+          lib/dotnet/AlphaSkia/bin/Release/*.nupkg
+          lib/dotnet/AlphaTab.Native.Android/bin/Release/*.nupkg
+          lib/dotnet/AlphaTab.Native.iOS/bin/Release/*.nupkg
+          lib/dotnet/AlphaTab.Native.Linux/bin/Release/*.nupkg
+          lib/dotnet/AlphaTab.Native.MacOS/bin/Release/*.nupkg
+          lib/dotnet/AlphaTab.Native.Windows/bin/Release/*.nupkg
+  dotnet-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: 
+          - runs-on: ubuntu-latest
+            architecture: x64
+          - runs-on: ubuntu-latest
+            architecture: x86
+          - runs-on: windows-latest
+            architecture: x64
+          - runs-on: windows-latest
+            architecture: x86
+          - runs-on: macos-latest
+            architecture: x64
+    runs-on: ${{ matrix.runs-on }}
+    needs: [dotnet]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: Nupkgs
+        path: dist/NuPkgs
+    - run: ./build.cmd DotNetTest --architecture ${{ matrix.architecture }}
+    - uses: actions/upload-artifact@v3
+      with:
+        name: DotNet Test Results
+        path: |
+          test/test-outputs/**/*.*
 
   java:
     runs-on: ubuntu-latest
@@ -221,6 +254,29 @@ jobs:
         name: Maven
         path: |
           lib/java/dist/**/*.*
+  java-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: 
+          - runs-on: ubuntu-latest
+          - runs-on: windows-latest
+          - runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
+    needs: [java]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: Maven
+        path: dist/Maven
+    - run: ./build.cmd JavaTest
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Java Test Results
+        path: |
+          test/test-outputs/**/*.*
+
   
   node:
     runs-on: ubuntu-latest
@@ -236,3 +292,29 @@ jobs:
         name: NodeTars
         path: |
           lib/node/*/*.tgz
+  node-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        node: [latest, "lts/*"]
+        architecture: [x64, x86]
+    runs-on: ${{ matrix.runs-on }}
+    needs: [node]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: NodeTars
+        path: dist/NodeTars
+    - uses: actions/setup-node@v3
+      with:
+        node-version:  ${{ matrix.node }}
+        architecture: ${{ matrix.architecture }}
+    - run: node -e "console.log(process)"
+    - run: ./build.cmd NodeTest
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Node Test Results
+        path: |
+          test/test-outputs/**/*.*

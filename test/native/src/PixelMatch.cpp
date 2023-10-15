@@ -1,3 +1,20 @@
+/**
+ * Based on https://github.com/mapbox/pixelmatch
+ * ISC License
+ * Copyright (c) 2019, Mapbox
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ */
 #include "../include/PixelMatch.h"
 #include <vector>
 #include <iostream>
@@ -124,8 +141,8 @@ bool antialiased(const std::vector<uint8_t> &img, int32_t x1, int32_t y1, int32_
     const int32_t y2 = std::min<int32_t>(y1 + distance, height - 1);
     const int32_t pos = (y1 * width + x1) * 4;
     int32_t zeroes = x1 == x0 || x1 == x2 || y1 == y0 || y1 == y2 ? 1 : 0;
-    int32_t min = 0;
-    int32_t max = 0;
+    double min = 0;
+    double max = 0;
     int32_t minX = 0;
     int32_t minY = 0;
     int32_t maxX = 0;

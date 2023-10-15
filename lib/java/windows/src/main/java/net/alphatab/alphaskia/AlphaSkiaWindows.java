@@ -8,7 +8,7 @@ public final class AlphaSkiaWindows {
      * The native libraries needed to run alphaSkia.
      */
     public static final String[] libraries = {
-            "native/windows-" + getCurrentArchitecture() + "/libalphaskiajni.dll"
+            "/native/win-" + getCurrentArchitecture() + "/libalphaskiajni.dll"
     };
 
     private static String getCurrentArchitecture() {

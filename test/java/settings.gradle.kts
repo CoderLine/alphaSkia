@@ -1,7 +1,2 @@
-rootProject.name = "AlphaSkia"
+rootProject.name = "alphaskia.test"
 
-include("main")
-include("linux")
-include("windows")
-include("android")
-include("macos")

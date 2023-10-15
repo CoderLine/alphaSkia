@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Nuke.Common;
+using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
+using Serilog;
 
 partial class Build
 {
@@ -44,6 +46,20 @@ partial class Build
         .Before(SetupDepotTools, LibSkiaPatchSkiaBuildFiles, LibSkiaGitSyncDeps)
         .Executes(() =>
         {
+            if (IsGitHubActions)
+            {
+                var outputsFile = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
+                if (File.Exists(outputsFile))
+                {
+                    File.AppendAllLines(outputsFile,
+                        new[] { $"build-skipped={LibSkiaSkip.Value.ToString().ToLowerInvariant()}\n" });
+                }
+                else
+                {
+                    Log.Warning("Could not set output parameter, GITHUB_OUTPUT not found");
+                }
+            }
+
             if (LibSkiaSkip.Value)
             {
                 FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,

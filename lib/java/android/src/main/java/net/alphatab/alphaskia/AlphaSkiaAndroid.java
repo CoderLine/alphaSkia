@@ -8,7 +8,7 @@ public final class AlphaSkiaAndroid {
      * The native libraries needed to run alphaSkia.
      */
     public static final String[] libraries = {
-            "native/android-" + getCurrentArchitecture() + "/libalphaskiajni.so"
+            "/native/android-" + getCurrentArchitecture() + "/libalphaskiajni.so"
     };
 
     private static String getCurrentArchitecture() {

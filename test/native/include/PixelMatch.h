@@ -36,9 +36,7 @@ typedef struct
 typedef struct
 {
     double threshold;
-    double alpha;
     pixel_match_color_t diff_color;
-    bool diff_mask;
 } pixel_match_options_t;
 
 pixel_match_result_t pixel_match(const std::vector<uint8_t>& actual_pixels,

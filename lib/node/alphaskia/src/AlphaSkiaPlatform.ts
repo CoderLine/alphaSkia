@@ -4,11 +4,17 @@ import * as fs from 'fs';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-const platformMap: any = {
+const ridPlatformMap: any = {
     "win32": "win",
     "darwin": "macos"
 };
-const platform = platformMap[process.platform] || process.platform;
+const ridPlatform = ridPlatformMap[process.platform] || process.platform;
+
+const packagePlatformMap: any = {
+    "win32": "windows",
+    "darwin": "macos"
+};
+const packagePlatform = packagePlatformMap[process.platform] || process.platform;
 const arch = process.arch;
 
 let searchPaths = [
@@ -20,7 +26,7 @@ let searchPaths = [
 
 const nodeModulesIndex = __dirname.indexOf('node_modules');
 if (nodeModulesIndex > 0) {
-    searchPaths.push(path.join(__dirname.substring(0, nodeModulesIndex), 'node_modules', '@coderline', `alphaskia-${platform}`, 'lib'))
+    searchPaths.push(path.join(__dirname.substring(0, nodeModulesIndex), 'node_modules', '@coderline', `alphaskia-${packagePlatform}`, 'lib'))
 }
 
 /**
@@ -42,7 +48,7 @@ export function addSearchPaths(...paths: string[]) {
  * @returns The resolved path to the native node addon to load for this platform or undefined if it could not be found.
  */
 export function findAddonPath(): string | undefined {
-    const libDirectory = `libalphaskianode-${platform}-${arch}-node`;
+    const libDirectory = `libalphaskianode-${ridPlatform}-${arch}-node`;
     for (const searchPath of searchPaths) {
         const addonPath = path.join(searchPath, libDirectory, 'libalphaskianode.node');
         if (fs.existsSync(addonPath)) {

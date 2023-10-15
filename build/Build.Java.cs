@@ -8,23 +8,35 @@ partial class Build
     [Parameter]
     readonly AbsolutePath GradlewExe = GetVariable<string>("GRADLEW_EXE") ??
                                        RootDirectory / "lib" / "java" / $"gradlew{ScriptExtension}";
-    [Parameter]
-    readonly AbsolutePath JavaHome = GetVariable<string>("JAVA_HOME");
+
+    [Parameter] readonly AbsolutePath JavaHome = GetVariable<string>("JAVA_HOME");
 
     Tool GradlewTool => ToolResolver.GetTool(GradlewExe);
 
     public Target Java => _ => _
         .DependsOn(JavaPack);
-    
+
     public Target JavaPack => _ => _
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
             GradlewTool("publishAllPublicationsToDistPathRepository",
                 workingDirectory: RootDirectory / "lib" / "java");
+
+            if (IsLocalBuild)
+            {
+                if (Rebuild)
+                {
+                    (RootDirectory / "dist" / "Maven").DeleteDirectory();
+                }
+
+                FileSystemTasks.CopyDirectoryRecursively(RootDirectory / "lib" / "java" / "dist",
+                    RootDirectory / "dist" / "Maven",
+                    DirectoryExistsPolicy.Merge, FileExistsPolicy.OverwriteIfNewer);
+            }
         });
-    
-        
+
+
     public Target JavaBuild => _ => _
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
@@ -35,12 +47,19 @@ partial class Build
             {
                 GradlewTool("clean",
                     workingDirectory: RootDirectory / "lib" / "java");
+                (RootDirectory / "lib" / "java" / "dist").DeleteDirectory();
             }
-            
+
             GradlewTool("build",
                 workingDirectory: RootDirectory / "lib" / "java");
         });
-    
+
+    public Target JavaTest => _ => _
+        .Executes(() =>
+        {
+            GradlewTool("run", workingDirectory: RootDirectory / "test" / "java");
+        });
+
     void JavaWriteVersionInfoProperties()
     {
         string semVer;
@@ -56,7 +75,7 @@ partial class Build
         {
             semVer = $"{VersionInfo.FileVersion.ToString(3)}";
         }
-        
+
         var props = $"""
             alphaskiaDescription={VersionInfo.Description}
             alphaskiaAuthorId={VersionInfo.AuthorId}

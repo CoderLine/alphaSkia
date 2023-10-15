@@ -68,6 +68,11 @@ internal static partial class NativeMethods
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial int alphaskia_image_read_pixels(alphaskia_image_t image, IntPtr pixels, ulong rowBytes);
 
+    
+    [LibraryImport(AlphaSkiaNativeLibName, EntryPoint = nameof(alphaskia_image_read_pixels))]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static partial int alphaskia_image_read_pixels_bytes(alphaskia_image_t image, byte[] pixels, ulong rowBytes);
+    
     [LibraryImport(AlphaSkiaNativeLibName)]
     [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
     public static partial alphaskia_data_t alphaskia_image_encode_png(alphaskia_image_t image);

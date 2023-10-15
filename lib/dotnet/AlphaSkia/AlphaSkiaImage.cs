@@ -45,6 +45,18 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
         CheckDisposed();
         return NativeMethods.alphaskia_image_read_pixels(Handle, pixels, rowBytes) != 0;
     }
+    
+    /// <summary>
+    /// Reads the raw pixel data of this image into the given target.
+    /// </summary>
+    /// <returns>The pixels from the image.</returns>
+    public byte[]? ReadPixels()
+    {
+        CheckDisposed();
+        var rowBytes = Width * sizeof(int);
+        var pixels = new byte[rowBytes * Height];
+        return NativeMethods.alphaskia_image_read_pixels_bytes(Handle, pixels, (ulong)rowBytes) == 0 ? null : pixels;
+    }
 
     /// <summary>
     /// Encodes the image to a PNG.

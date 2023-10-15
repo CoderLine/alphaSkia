@@ -379,6 +379,11 @@ partial class Build
 
         GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath);
 
+        // copy for artifacts
+        var distPath = DistBasePath / libDir;
+        var exePath = outDir / (buildTarget + exeExtension);
+        FileSystemTasks.CopyFile(exePath, distPath / exePath.Name, FileExistsPolicy.OverwriteIfNewer);
+
         // copy shared lib beside executable
         var libExtensions = new HashSet<string>(GetLibExtensions(Variant.Shared), StringComparer.OrdinalIgnoreCase);
         foreach (var file in sharedLibPath.GetFiles().Where(f => libExtensions.Contains(f.Extension)))
@@ -389,7 +394,7 @@ partial class Build
         // run executable
         if (LibAlphaSkiaCanRunTests)
         {
-            ToolResolver.GetTool(outDir / (buildTarget + exeExtension))(
+            ToolResolver.GetTool(exePath)(
                 "",
                 workingDirectory: outDir
             );

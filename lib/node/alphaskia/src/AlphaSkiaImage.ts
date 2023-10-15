@@ -1,4 +1,3 @@
-import { loadavg } from 'os';
 import { AlphaSkiaNative } from './AlphaSkiaNative';
 import { AlphaSkiaImageHandle, loadAddon } from './addon';
 
@@ -61,5 +60,18 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
     public static decode(bytes: ArrayBuffer): AlphaSkiaImage | undefined {
         const handle = loadAddon().alphaskia_image_decode(bytes);
         return !handle ? undefined : new AlphaSkiaImage(handle);
+    }
+
+
+    /**
+     * Creates an image from the raw pixels assuming the default internal pixel format of alphaSkia.
+     * @param width The width of the image in pixels.
+     * @param height The height of the image in pixels.
+     * @param pixels The raw pixel bytes.
+     * @return The decoded image or {@code undefined} if the creation of the image from the pixels failed.
+     */
+    public static fromPixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImage | undefined {
+        const handle = loadAddon().alphaskia_image_from_pixels(width, height, pixels);
+        return handle == 0 ? undefined : new AlphaSkiaImage(handle);
     }
 }

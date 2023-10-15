@@ -34,11 +34,14 @@ extern "C"
             rowBytes * alphaskia_image_get_height(image));
         jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
 
-        alphaskia_image_read_pixels(image, reinterpret_cast<uint8_t *>(bytes), rowBytes);
+        if ( alphaskia_image_read_pixels(image, reinterpret_cast<uint8_t *>(bytes), rowBytes) == 0)
+        {
+            env->ReleaseByteArrayElements(pixels, bytes, 0);
+            return nullptr;
+        }
 
         env->ReleaseByteArrayElements(pixels, bytes, 0);
-
-        return nullptr;
+        return pixels;
     }
 
     JNIEXPORT jbyteArray JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_toPng(JNIEnv *env, jobject instance)

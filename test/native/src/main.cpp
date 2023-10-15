@@ -122,6 +122,10 @@ int main()
         std::vector<uint8_t> test_reference_data;
         read_file(test_reference_path.generic_string(), test_reference_data);
         alphaskia_image_t expected_image = alphaskia_image_decode(test_reference_data.data(), test_reference_data.size());
+        if (!expected_image)
+        {
+            throw std::exception("Failed to decode reference image");
+        }
         std::cout << "Reference image loaded" << std::endl;
 
         // compare images
@@ -156,8 +160,7 @@ int main()
                                           actual_width,
                                           actual_height,
                                           {/* threshold: */ 0.3,
-                                           /* alpha: */ 1,
-                                           /* diff_color: */ {255, 0, 0}, true});
+                                           /* diff_color: */ {255, 0, 0}});
 
         int32_t totalPixels = compare_result.total_pixels - compare_result.transparent_pixels;
         double percentDifference = ((double)compare_result.different_pixels / totalPixels) * 100;
