@@ -73,7 +73,7 @@ partial class Build
         .Triggers(LibSkia);
 
     public Target LibSkia => _ => _
-        .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
+        .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)

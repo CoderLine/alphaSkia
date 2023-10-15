@@ -25,14 +25,14 @@ partial class Build
         });
 
     public Target LibAlphaSkia => _ => _
-        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles)
+        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
         .Executes(BuildAlphaSkia);
 
     public Target LibAlphaSkiaTest => _ => _
-        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles)
+        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .After(LibAlphaSkia)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)

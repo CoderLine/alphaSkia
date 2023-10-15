@@ -294,11 +294,6 @@ partial class Build
 
     Dictionary<string, string> PrepareNativeBuild(Variant variant)
     {
-        if (OperatingSystem.IsLinux() && IsGitHubActions)
-        {
-            InstallDependenciesLinux();
-        }
-
         var gnArgs = new Dictionary<string, string>(TargetOs.SkiaGnArgs)
         {
             ["cc"] = "clang",
