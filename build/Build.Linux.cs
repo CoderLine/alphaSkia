@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ partial class Build
 {
     Target InstallDependenciesLinux => _ => _
         .Unlisted()
+        .OnlyWhenStatic(()=> OperatingSystem.IsLinux() && IsGitHubActions)
         .After(PrepareGitHubArtifacts,
             LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles,
             LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
