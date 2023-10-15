@@ -96,8 +96,6 @@ partial class Build
         .Unlisted()
         .Executes(() =>
         {
-            PrepareNodeModuleStructure();
-
             NodeWritePackageJson();
 
             if (Rebuild)
@@ -119,23 +117,7 @@ partial class Build
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
                 .SetCommand("build"));
         });
-
-    void PrepareNodeModuleStructure()
-    {
-        if (IsGitHubActions)
-        {
-            // flatten <artifactname>/<node-rid-folder>/libalphaskianode.node 
-            // to <node-rid-folder>/libalphaskianode.node
-            foreach (var subdir in DistBasePath.GetDirectories().Where(d => d.Name.EndsWith("-node")))
-            {
-                if ((subdir / "libalphaskia.node").FileExists())
-                {
-                    FileSystemTasks.MoveDirectoryToDirectory(subdir, DistBasePath);
-                }
-            }
-        }
-    }
-
+    
     void NodeWritePackageJson()
     {
         string semVer;
@@ -223,11 +205,11 @@ partial class Build
             }
             else if (parts[1] == TargetOperatingSystem.Linux.RuntimeIdentifier)
             {
-                packageName = "alphaskia-windows";
+                packageName = "alphaskia-linux";
             }
             else if (parts[1] == TargetOperatingSystem.MacOs.RuntimeIdentifier)
             {
-                packageName = "alphaskia-windows";
+                packageName = "alphaskia-macos";
             }
             else
             {

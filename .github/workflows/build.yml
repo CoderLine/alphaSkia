@@ -204,12 +204,7 @@ jobs:
       with:
         name: Nupkgs
         path: |
-          lib/dotnet/AlphaSkia/bin/Release/*.nupkg
-          lib/dotnet/AlphaTab.Native.Android/bin/Release/*.nupkg
-          lib/dotnet/AlphaTab.Native.iOS/bin/Release/*.nupkg
-          lib/dotnet/AlphaTab.Native.Linux/bin/Release/*.nupkg
-          lib/dotnet/AlphaTab.Native.MacOS/bin/Release/*.nupkg
-          lib/dotnet/AlphaTab.Native.Windows/bin/Release/*.nupkg
+          lib/dotnet/**/*.nupkg
   dotnet-test:
     strategy:
       fail-fast: false
@@ -217,8 +212,6 @@ jobs:
         include: 
           - runs-on: ubuntu-latest
             architecture: x64
-          - runs-on: ubuntu-latest
-            architecture: x86
           - runs-on: windows-latest
             architecture: x64
           - runs-on: windows-latest
@@ -266,6 +259,10 @@ jobs:
     needs: [java]
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
     - uses: actions/download-artifact@v3
       with:
         name: Maven

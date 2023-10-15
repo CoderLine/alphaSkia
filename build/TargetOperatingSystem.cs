@@ -14,7 +14,8 @@ public class TargetOperatingSystem : Enumeration
         {
             ["skia_enable_fontmgr_win_gdi"] = "false"
         },
-        RuntimeIdentifier = "win"
+        RuntimeIdentifier = "win",
+        DotNetRid = "win"
     };
 
     public static readonly TargetOperatingSystem Linux = new()
@@ -25,7 +26,8 @@ public class TargetOperatingSystem : Enumeration
         {
             ["skia_use_system_freetype2"] = "false"
         },
-        RuntimeIdentifier = "linux"
+        RuntimeIdentifier = "linux",
+        DotNetRid = "linux"
     };
 
     public static readonly TargetOperatingSystem Android = new()
@@ -36,7 +38,8 @@ public class TargetOperatingSystem : Enumeration
         {
             ["skia_use_system_freetype2"] = "false"
         },
-        RuntimeIdentifier = "android"
+        RuntimeIdentifier = "android",
+        DotNetRid = "android"
     };
 
     public static readonly TargetOperatingSystem MacOs = new()
@@ -49,7 +52,8 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_fonthost_mac"] = "true",
             ["skia_use_metal"] = "true"
         },
-        RuntimeIdentifier = "macos"
+        RuntimeIdentifier = "macos",
+        DotNetRid = "osx"
     };
 
     // ReSharper disable once InconsistentNaming
@@ -105,4 +109,5 @@ public class TargetOperatingSystem : Enumeration
     public Dictionary<string, string> SkiaGnArgs { get; } = new();
 
     public string RuntimeIdentifier { get; private init; }
+    public object DotNetRid { get; private init; }
 }
