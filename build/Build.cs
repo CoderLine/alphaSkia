@@ -78,23 +78,24 @@ partial class Build : NukeBuild
             }
 
             var directories = dist.GlobDirectories("**").ToArray();
+            Log.Debug("Starting GitHub Artifact Preparation");
 
             foreach (var subDir in directories)
             {
                 // could have been moved recusively
-                if (subDir.DirectoryExists())
+                if (!subDir.DirectoryExists())
                 {
                     continue;
                 }
                 
-                Log.Information("Flattening folder {Folder}", subDir);
+                Log.Debug("Flattening folder {Folder}", subDir);
 
                 // known include path 
                 if (subDir.Name == "include")
                 {
                     FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
                         FileExistsPolicy.OverwriteIfNewer);
-                    Log.Information("   Treated as header include dir");
+                    Log.Debug("   Treated as header include dir");
                 }
                 else
                 {
@@ -108,7 +109,7 @@ partial class Build : NukeBuild
                             FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
                                 FileExistsPolicy.OverwriteIfNewer);
                             moved = true;
-                            Log.Information("   Treated as library dir");
+                            Log.Debug("   Treated as library dir");
                         }
                         else if (file.Extension is ".jar" or ".pom")
                         {
