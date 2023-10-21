@@ -98,15 +98,6 @@ partial class Build
     public Target DotNetTest => _ => _
         .Executes(() =>
         {
-            // flatten tar directory first 
-            Log.Information("Flattening NuPkgs files from github");
-            foreach (var nupkg in (RootDirectory / "dist" / "NuPkgs").GetFiles("*.nupkg", 3))
-            {
-                FileSystemTasks.MoveFile(nupkg,
-                    RootDirectory / "dist" / "NuPkgs" / nupkg.Name,
-                    FileExistsPolicy.OverwriteIfNewer);
-            }
-            
             DotNetTasks.DotNetRun(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
                 .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +

@@ -18,9 +18,12 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: ./.github/actions/setup-java-home
+      if: ${{ matrix.variant == "jni" }}
+      
     - uses: actions/download-artifact@v3
       with:
-        path: dist
+        path: dist/.organize/libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
         name: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
 
     - id: build-info
@@ -49,5 +52,5 @@ runs:
         name: libalphaskiatest-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
         if-no-files-found: ignore
         path: |
-          dist/libalphaskiatest*/**/*.*        
-          test/test-outputs/**/*.*
+          dist/libalphaskiatest-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}/
+          test/test-outputs/

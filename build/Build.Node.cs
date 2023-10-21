@@ -59,22 +59,6 @@ partial class Build
 
     void PrepareTgzForTest()
     {
-        if (IsGitHubActions)
-        {
-            // flatten tar directory first 
-            Log.Information("Flattening TGZ files from github");
-            foreach (var tgz in (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz", 3))
-            {
-                FileSystemTasks.MoveFile(tgz,
-                    RootDirectory / "dist" / "NodeTars" / tgz.Name,
-                    FileExistsPolicy.OverwriteIfNewer);
-            }
-
-            Log.Information("Folder flattened to: " + string.Join(", ",
-                (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz", 3).Select(f => f.Name)));
-        }
-
-
         Log.Information("Preparing TGZ files for test by creating copy without version");
         var files = new List<string>();
         foreach (var tgz in (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz"))
