@@ -19,7 +19,7 @@ runs:
   using: "composite"
   steps:
     - uses: ./.github/actions/setup-java-home
-      if: ${{ matrix.variant == "jni" }}
+      if: ${{ matrix.variant == 'jni' }}
       
     - uses: actions/download-artifact@v3
       with:
