@@ -56,6 +56,7 @@ partial class Build
         });
 
     public Target JavaTest => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             GradlewTool("run",

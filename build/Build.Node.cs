@@ -78,6 +78,7 @@ partial class Build
 
     public Target NodeBuild => _ => _
         .Unlisted()
+        .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             NodeWritePackageJson();
@@ -156,6 +157,7 @@ partial class Build
     }
 
     public Target NodeTest => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             PrepareTgzForTest();

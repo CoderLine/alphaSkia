@@ -96,6 +96,7 @@ partial class Build
     }
 
     public Target DotNetTest => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             DotNetTasks.DotNetRun(_ => _
