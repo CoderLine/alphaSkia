@@ -4,7 +4,7 @@ runs:
   using: "composite"
   steps:
     - run: 
-        if [[ -z "$JAVA_HOME" ]]; then
+        if [ -z "${JAVA_HOME}" ]; then
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
         fi
       shell: bash
