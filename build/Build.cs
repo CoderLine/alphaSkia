@@ -82,73 +82,85 @@ partial class Build : NukeBuild
 
             foreach (var subDir in directories)
             {
-                // could have been moved recusively
-                if (!subDir.DirectoryExists())
-                {
-                    continue;
-                }
-                
-                Log.Debug("Flattening folder {Folder}", subDir);
-
-                // known include path 
-                if (subDir.Name == "include")
-                {
-                    FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
-                        FileExistsPolicy.OverwriteIfNewer);
-                    Log.Debug("   Treated as header include dir");
-                }
-                else
-                {
-                    var moved = false;
-
-                    foreach (var file in subDir.GetFiles())
-                    {
-                        if (AllLibExtensions.Contains(file.Extension) || file.NameWithoutExtension == "libalphaskiatest")
-                        {
-                            // found a library or test executable  dir
-                            FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
-                                FileExistsPolicy.OverwriteIfNewer);
-                            moved = true;
-                            Log.Debug("   Treated as library dir");
-                        }
-                        else if (file.Extension is ".jar" or ".pom")
-                        {
-                            // find maven base. 
-                            // <Maven>/net/alphatab/net.alphatab.alphaskia/<version>/file
-                            var netDir = file / ".." / ".." / ".." / "..";
-                            if (netDir.DirectoryExists() && netDir.Name == "net")
-                            {
-                                FileSystemTasks.MoveDirectoryToDirectory(netDir.Parent, DistBasePath,
-                                    DirectoryExistsPolicy.Merge,
-                                    FileExistsPolicy.OverwriteIfNewer);
-                                moved = true;
-                            }
-                        }
-                        else if (file.Extension is ".nupkg" or ".snupkg")
-                        {
-                            // flatten nugets
-                            FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "NuPkgs",
-                                FileExistsPolicy.OverwriteIfNewer);
-                        }
-                        else if (file.Extension is ".tgz")
-                        {
-                            FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "NodeTars",
-                                FileExistsPolicy.OverwriteIfNewer);
-                        }
-                    }
-
-                    // check if we have remains
-                    if (subDir.DirectoryExists() && subDir.GetFiles().Any() && !moved)
-                    {
-                        Log.Warning(
-                            "Did not handle directory '{Unhandled}' could not identify contents by files {FileList}",
-                            subDir,
-                            string.Join(", ", subDir.GetFiles().Select(f => f.Name))
-                        );
-                    }
-                }
+                FlattenFolder(subDir);
             }
         });
+
+    static void FlattenFolder(AbsolutePath subDir)
+    {
+        // could have been moved recusively
+        if (!subDir.DirectoryExists())
+        {
+            return;
+        }
+
+        Log.Debug("Flattening folder {Folder}", subDir);
+
+        // known include path 
+        if (subDir.Name == "include")
+        {
+            FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
+                FileExistsPolicy.OverwriteIfNewer);
+            Log.Debug("   Treated as header include dir");
+            return;
+        }
+
+        var moved = false;
+
+        var files = subDir.GetFiles().ToArray();
+
+        foreach (var file in files)
+        {
+            if (!file.FileExists())
+            {
+                continue;
+            }
+            
+            if (AllLibExtensions.Contains(file.Extension) || file.NameWithoutExtension == "libalphaskiatest")
+            {
+                // found a library or test executable  dir
+                FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
+                    FileExistsPolicy.OverwriteIfNewer);
+                Log.Debug("   Treated as library dir");
+                return;
+            }
+
+            if (file.Extension is ".jar" or ".pom")
+            {
+                // find maven base. 
+                // <Maven>/net/alphatab/net.alphatab.alphaskia/<version>/file
+                var netDir = file / ".." / ".." / ".." / "..";
+                if (netDir.DirectoryExists() && netDir.Name == "net")
+                {
+                    FileSystemTasks.MoveDirectoryToDirectory(netDir.Parent, DistBasePath,
+                        DirectoryExistsPolicy.Merge,
+                        FileExistsPolicy.OverwriteIfNewer);
+                    return;
+                }
+            }
+            else if (file.Extension is ".nupkg" or ".snupkg")
+            {
+                // flatten nugets
+                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "NuPkgs",
+                    FileExistsPolicy.OverwriteIfNewer);
+            }
+            else if (file.Extension is ".tgz")
+            {
+                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "NodeTars",
+                    FileExistsPolicy.OverwriteIfNewer);
+            }
+        }
+
+        // check if we have remains
+        if (subDir.DirectoryExists() && subDir.GetFiles().Any() && !moved)
+        {
+            Log.Warning(
+                "Did not handle directory '{Unhandled}' could not identify contents by files {FileList}",
+                subDir,
+                string.Join(", ", subDir.GetFiles().Select(f => f.Name))
+            );
+        }
+    }
 
     bool CanUseCachedBinaries(string buildTarget, Variant variant)
     {
