@@ -3,7 +3,7 @@ description: 'Setup JAVA_HOME from the default runner image setup'
 runs:
   using: "composite"
   steps:
-    - run: 
+    - run: |
         if [ -z "${JAVA_HOME}" ]; then
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
         fi
