@@ -77,8 +77,16 @@ partial class Build : NukeBuild
                 return;
             }
 
-            foreach (var subDir in dist.GlobDirectories("**"))
+            var directories = dist.GlobDirectories("**").ToArray();
+
+            foreach (var subDir in directories)
             {
+                // could have been moved recusively
+                if (subDir.DirectoryExists())
+                {
+                    continue;
+                }
+                
                 Log.Information("Flattening folder {Folder}", subDir);
 
                 // known include path 
