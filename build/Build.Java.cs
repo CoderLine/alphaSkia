@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 
 partial class Build
@@ -10,7 +11,7 @@ partial class Build
     readonly AbsolutePath GradlewExe = GetVariable<string>("GRADLEW_EXE") ??
                                        RootDirectory / "lib" / "java" / $"gradlew{ScriptExtension}";
 
-    [Parameter] readonly AbsolutePath JavaHome = GetVariable<string>("JAVA_HOME");
+    [Parameter] readonly AbsolutePath JavaHome = GetVariable<string>("JAVA_HOME") ?? GetVariable<string>("JAVA_HOME_17_X64");
 
     Tool GradlewTool => ToolResolver.GetTool(GradlewExe);
 
@@ -22,6 +23,10 @@ partial class Build
         .Executes(() =>
         {
             GradlewTool("publishAllPublicationsToDistPathRepository",
+                environmentVariables: new Dictionary<string, string>
+                {
+                    ["JAVA_HOME"] = JavaHome
+                },
                 workingDirectory: RootDirectory / "lib" / "java");
 
             if (IsLocalBuild)
@@ -47,11 +52,19 @@ partial class Build
             if (Rebuild)
             {
                 GradlewTool("clean",
+                    environmentVariables: new Dictionary<string, string>
+                    {
+                        ["JAVA_HOME"] = JavaHome
+                    },
                     workingDirectory: RootDirectory / "lib" / "java");
                 (RootDirectory / "lib" / "java" / "dist").DeleteDirectory();
             }
 
             GradlewTool("build",
+                environmentVariables: new Dictionary<string, string>
+                {
+                    ["JAVA_HOME"] = JavaHome
+                },
                 workingDirectory: RootDirectory / "lib" / "java");
         });
 
@@ -59,10 +72,12 @@ partial class Build
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
+            Log.Debug("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion}", JavaHome, JavaVersion);
             GradlewTool("run",
                 environmentVariables: new Dictionary<string, string>
                 {
-                    ["ALPHASKIA_TEST_VERSION"] = JavaVersion
+                    ["ALPHASKIA_TEST_VERSION"] = JavaVersion,
+                    ["JAVA_HOME"] = JavaHome
                 },
                 workingDirectory: RootDirectory / "test" / "java");
         });

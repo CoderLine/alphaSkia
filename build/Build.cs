@@ -106,8 +106,6 @@ partial class Build : NukeBuild
             return;
         }
 
-        var moved = false;
-
         var files = subDir.GetFiles().ToArray();
 
         foreach (var file in files)
@@ -150,16 +148,6 @@ partial class Build : NukeBuild
                 FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "NodeTars",
                     FileExistsPolicy.OverwriteIfNewer);
             }
-        }
-
-        // check if we have remains
-        if (subDir.DirectoryExists() && subDir.GetFiles().Any() && !moved)
-        {
-            Log.Warning(
-                "Did not handle directory '{Unhandled}' could not identify contents by files {FileList}",
-                subDir,
-                string.Join(", ", subDir.GetFiles().Select(f => f.Name))
-            );
         }
     }
 

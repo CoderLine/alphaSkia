@@ -238,7 +238,6 @@ jobs:
     needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia]
     steps:
     - uses: actions/checkout@v3
-    - uses: ./.github/actions/setup-java-home
     - uses: actions/download-artifact@v3
       with:
         path: dist/.organize
@@ -260,7 +259,6 @@ jobs:
     needs: [java]
     steps:
     - uses: actions/checkout@v3
-    - uses: ./.github/actions/setup-java-home
     - uses: actions/download-artifact@v3
       with:
         name: Maven
@@ -293,7 +291,6 @@ jobs:
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macos-latest]
         node: [latest, "lts/*"]
-        architecture: [x64, x86]
     runs-on: ${{ matrix.runs-on }}
     needs: [node]
     steps:
@@ -305,7 +302,6 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version:  ${{ matrix.node }}
-        architecture: ${{ matrix.architecture }}
     - run: node -e "console.log(process)"
     - run: ./build.cmd NodeTest
     - uses: actions/upload-artifact@v3
