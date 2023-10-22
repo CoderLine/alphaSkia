@@ -93,6 +93,22 @@ subprojects {
         withJavadocJar()
     }
 
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+
+    tasks.withType<Test> {
+        defaultCharacterEncoding = "UTF-8"
+    }
+
+    tasks.withType<JavaExec> {
+        defaultCharacterEncoding = "UTF-8"
+    }
+
+    tasks.withType<Javadoc>{
+        options.encoding = "UTF-8"
+    }
+
     configure<PublishingExtension> {
         repositories {
 //                maven {
