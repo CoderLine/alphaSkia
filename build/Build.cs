@@ -60,6 +60,7 @@ partial class Build : NukeBuild
         ".lib",
         ".so",
         ".dylib",
+        ".node",
         ".a",
         ".exe"
     };

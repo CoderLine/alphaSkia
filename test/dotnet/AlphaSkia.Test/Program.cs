@@ -174,7 +174,7 @@ public class Program
         : OperatingSystem.IsLinux()
             ? "linux"
             : OperatingSystem.IsMacOS()
-                ? "maxos"
+                ? "macos"
                 : OperatingSystem.IsAndroid()
                     ? "android"
                     : OperatingSystem.IsIOS()
