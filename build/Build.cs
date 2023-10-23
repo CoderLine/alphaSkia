@@ -131,7 +131,7 @@ partial class Build : NukeBuild
                 var netDir = file / ".." / ".." / ".." / "..";
                 if (netDir.DirectoryExists() && netDir.Name == "net")
                 {
-                    FileSystemTasks.MoveDirectoryToDirectory(netDir.Parent, DistBasePath,
+                    FileSystemTasks.MoveDirectoryToDirectory(netDir, DistBasePath / "Maven",
                         DirectoryExistsPolicy.Merge,
                         FileExistsPolicy.OverwriteIfNewer);
                     return;
