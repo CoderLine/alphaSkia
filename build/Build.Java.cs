@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using Nuke.Common.Utilities.Collections;
 using Serilog;
 using static Nuke.Common.EnvironmentInfo;
 
@@ -23,10 +23,10 @@ partial class Build
         .Executes(() =>
         {
             GradlewTool("publishAllPublicationsToDistPathRepository",
-                environmentVariables: new Dictionary<string, string>
-                {
-                    ["JAVA_HOME"] = JavaHome
-                },
+                environmentVariables: Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .AsReadOnly(),
                 workingDirectory: RootDirectory / "lib" / "java");
 
             if (IsLocalBuild)
@@ -52,19 +52,19 @@ partial class Build
             if (Rebuild)
             {
                 GradlewTool("clean",
-                    environmentVariables: new Dictionary<string, string>
-                    {
-                        ["JAVA_HOME"] = JavaHome
-                    },
+                    environmentVariables: Variables
+                        .ToDictionary(x => x.Key, x => x.Value)
+                        .SetKeyValue("JAVA_HOME", JavaHome)
+                        .AsReadOnly(),
                     workingDirectory: RootDirectory / "lib" / "java");
                 (RootDirectory / "lib" / "java" / "dist").DeleteDirectory();
             }
 
             GradlewTool("build",
-                environmentVariables: new Dictionary<string, string>
-                {
-                    ["JAVA_HOME"] = JavaHome
-                },
+                environmentVariables:  Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .AsReadOnly(),
                 workingDirectory: RootDirectory / "lib" / "java");
         });
 
@@ -74,11 +74,11 @@ partial class Build
         {
             Log.Debug("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion}", JavaHome, JavaVersion);
             GradlewTool("run",
-                environmentVariables: new Dictionary<string, string>
-                {
-                    ["ALPHASKIA_TEST_VERSION"] = JavaVersion,
-                    ["JAVA_HOME"] = JavaHome
-                },
+                environmentVariables:  Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .SetKeyValue("ALPHASKIA_TEST_VERSION", JavaVersion)
+                    .AsReadOnly(),
                 workingDirectory: RootDirectory / "test" / "java");
         });
 
