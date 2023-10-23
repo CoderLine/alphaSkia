@@ -32,13 +32,13 @@ partial class Build
             {
                 if (Rebuild)
                 {
-                    (RootDirectory / "dist" / "NuPkgs").DeleteDirectory();
+                    (RootDirectory / "dist" / "nupkgs").DeleteDirectory();
                 }
 
                 foreach (var nupkg in (RootDirectory / "lib" / "dotnet").GetFiles("*.nupkg", int.MaxValue))
                 {
                     FileSystemTasks.CopyFile(nupkg,
-                        RootDirectory / "dist" / "NuPkgs" / nupkg.Name,
+                        RootDirectory / "dist" / "nupkgs" / nupkg.Name,
                         FileExistsPolicy.OverwriteIfNewer);
                 }
             }

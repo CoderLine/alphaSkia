@@ -19,7 +19,7 @@ if (versionEnv.isPresent) {
 repositories {
     mavenCentral()
     maven {
-        url = projectDir.resolve("../../dist/Maven/").toURI()
+        url = projectDir.resolve("../../dist/maven/").toURI()
 
     }
 }

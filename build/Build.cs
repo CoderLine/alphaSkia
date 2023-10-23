@@ -127,11 +127,11 @@ partial class Build : NukeBuild
             if (file.Extension is ".jar" or ".pom")
             {
                 // find maven base. 
-                // <Maven>/net/alphatab/net.alphatab.alphaskia/<version>/file
+                // <maven>/net/alphatab/net.alphatab.alphaskia/<version>/file
                 var netDir = file / ".." / ".." / ".." / "..";
                 if (netDir.DirectoryExists() && netDir.Name == "net")
                 {
-                    FileSystemTasks.MoveDirectoryToDirectory(netDir, DistBasePath / "Maven",
+                    FileSystemTasks.MoveDirectoryToDirectory(netDir.Parent, DistBasePath,
                         DirectoryExistsPolicy.Merge,
                         FileExistsPolicy.OverwriteIfNewer);
                     return;
@@ -140,12 +140,12 @@ partial class Build : NukeBuild
             else if (file.Extension is ".nupkg" or ".snupkg")
             {
                 // flatten nugets
-                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "NuPkgs",
+                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "nupkgs",
                     FileExistsPolicy.OverwriteIfNewer);
             }
             else if (file.Extension is ".tgz")
             {
-                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "NodeTars",
+                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "nodetars",
                     FileExistsPolicy.OverwriteIfNewer);
             }
         }

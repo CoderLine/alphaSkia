@@ -33,11 +33,11 @@ partial class Build
             {
                 if (Rebuild)
                 {
-                    (RootDirectory / "dist" / "Maven").DeleteDirectory();
+                    (RootDirectory / "dist" / "maven").DeleteDirectory();
                 }
 
                 FileSystemTasks.CopyDirectoryRecursively(RootDirectory / "lib" / "java" / "dist",
-                    RootDirectory / "dist" / "Maven",
+                    RootDirectory / "dist" / "maven",
                     DirectoryExistsPolicy.Merge, FileExistsPolicy.OverwriteIfNewer);
             }
         });

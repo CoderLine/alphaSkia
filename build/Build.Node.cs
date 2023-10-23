@@ -43,13 +43,13 @@ partial class Build
             {
                 if (Rebuild)
                 {
-                    (RootDirectory / "dist" / "NodeTars").DeleteDirectory();
+                    (RootDirectory / "dist" / "nodetars").DeleteDirectory();
                 }
 
                 foreach (var tgz in (RootDirectory / "lib" / "node").GetFiles("*.tgz", int.MaxValue))
                 {
                     FileSystemTasks.CopyFile(tgz,
-                        RootDirectory / "dist" / "NodeTars" / tgz.Name,
+                        RootDirectory / "dist" / "nodetars" / tgz.Name,
                         FileExistsPolicy.OverwriteIfNewer);
                 }
 
@@ -61,14 +61,14 @@ partial class Build
     {
         Log.Information("Preparing TGZ files for test by creating copy without version");
         var files = new List<string>();
-        foreach (var tgz in (RootDirectory / "dist" / "NodeTars").GetFiles("*.tgz"))
+        foreach (var tgz in (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz"))
         {
             // coderline-alphaskia-1.0.0-local.0.tgz
             var nameWithoutVersion = string.Join("-",
                                          tgz.NameWithoutExtension.Split('-').TakeWhile(p => !char.IsDigit(p[0])))
                                      + tgz.Extension;
             FileSystemTasks.CopyFile(tgz,
-                RootDirectory / "dist" / "NodeTars" / nameWithoutVersion,
+                RootDirectory / "dist" / "nodetars" / nameWithoutVersion,
                 FileExistsPolicy.OverwriteIfNewer);
             files.Add(nameWithoutVersion);
         }

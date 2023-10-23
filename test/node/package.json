@@ -6,10 +6,10 @@
     "start": "tsx index.ts"
   },
   "dependencies": {
-    "@coderline/alphaskia": "file:../../dist/NodeTars/coderline-alphaskia.tgz",
-    "@coderline/alphaskia-linux": "file:../../dist/NodeTars/coderline-alphaskia-linux.tgz",
-    "@coderline/alphaskia-macos": "file:../../dist/NodeTars/coderline-alphaskia-macos.tgz",
-    "@coderline/alphaskia-windows": "file:../../dist/NodeTars/coderline-alphaskia-windows.tgz",
+    "@coderline/alphaskia": "file:../../dist/nodetars/coderline-alphaskia.tgz",
+    "@coderline/alphaskia-linux": "file:../../dist/nodetars/coderline-alphaskia-linux.tgz",
+    "@coderline/alphaskia-macos": "file:../../dist/nodetars/coderline-alphaskia-macos.tgz",
+    "@coderline/alphaskia-windows": "file:../../dist/nodetars/coderline-alphaskia-windows.tgz",
     "tsx": "^3.13.0"
   }
 }
