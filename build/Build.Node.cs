@@ -1,11 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Unicode;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Npm;
+using Serilog;
 
 partial class Build
 {
@@ -22,24 +24,57 @@ partial class Build
 
     public Target NodePack => _ => _
         .Unlisted()
-        .DependsOn(NodeTest)
+        .DependsOn(NodeBuild)
         .Executes(() =>
         {
+            if (Rebuild)
+            {
+                (RootDirectory / "lib" / "node")
+                    .GetFiles("*.tgz", int.MaxValue)
+                    .DeleteFiles();
+            }
+
             foreach (var nodePackage in AllNodePackages)
             {
                 NpmTasks.Npm("pack", nodePackage);
             }
+
+            if (IsLocalBuild)
+            {
+                if (Rebuild)
+                {
+                    (RootDirectory / "dist" / "nodetars").DeleteDirectory();
+                }
+
+                foreach (var tgz in (RootDirectory / "lib" / "node").GetFiles("*.tgz", int.MaxValue))
+                {
+                    FileSystemTasks.CopyFile(tgz,
+                        RootDirectory / "dist" / "nodetars" / tgz.Name,
+                        FileExistsPolicy.OverwriteIfNewer);
+                }
+
+                PrepareTgzForTest();
+            }
         });
 
-    public Target NodeTest => _ => _
-        .Unlisted()
-        .DependsOn(NodeBuild)
-        .Executes(() =>
+    void PrepareTgzForTest()
+    {
+        Log.Information("Preparing TGZ files for test by creating copy without version");
+        var files = new List<string>();
+        foreach (var tgz in (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz"))
         {
-            NpmTasks.NpmRun(_ => _
-                .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
-                .SetCommand("test"));
-        });
+            // coderline-alphaskia-1.0.0-local.0.tgz
+            var nameWithoutVersion = string.Join("-",
+                                         tgz.NameWithoutExtension.Split('-').TakeWhile(p => !char.IsDigit(p[0])))
+                                     + tgz.Extension;
+            FileSystemTasks.CopyFile(tgz,
+                RootDirectory / "dist" / "nodetars" / nameWithoutVersion,
+                FileExistsPolicy.OverwriteIfNewer);
+            files.Add(nameWithoutVersion);
+        }
+
+        Log.Information("Preparing TGZ files done {Files}", string.Join(", ", files));
+    }
 
     public Target NodeBuild => _ => _
         .Unlisted()
@@ -50,25 +85,24 @@ partial class Build
 
             if (Rebuild)
             {
-                foreach (var nodePackage in AllNodePackages)
-                {
-                    NpmTasks.Npm("clean", nodePackage);
-                }
+                NpmTasks.NpmRun(_ => _
+                    .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
+                    .SetCommand("clean"));
             }
-            
+
             foreach (var nodePackage in AllNodePackages)
             {
                 NpmTasks.NpmInstall(_ =>
                     _.SetProcessWorkingDirectory(nodePackage));
             }
-            
+
             CopyNodeAddonsToPackages();
 
             NpmTasks.NpmRun(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
                 .SetCommand("build"));
         });
-
+    
     void NodeWritePackageJson()
     {
         string semVer;
@@ -113,7 +147,7 @@ partial class Build
                 ["url"] = VersionInfo.GitUrlHttp,
                 ["directory"] = RootDirectory.GetRelativePathTo(jsonPath.Parent).ToUnixRelativePath().ToString()
             };
-            
+
             jsonPath.WriteAllText(jsonContent.ToJsonString(new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -121,6 +155,24 @@ partial class Build
             }));
         }
     }
+
+    public Target NodeTest => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
+        .Executes(() =>
+        {
+            PrepareTgzForTest();
+
+            // need to delete package-lock.json due to tgz hash mismatch
+            Log.Information("Deleting package-lock.json to avoid integrity checks failing");
+            (RootDirectory / "test" / "node" / "package-lock.json").DeleteFile();
+
+            NpmTasks.NpmInstall(_ => _
+                .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
+                .SetForce(true));
+            NpmTasks.NpmRun(_ => _
+                .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
+                .SetCommand("start"));
+        });
 
     void CopyNodeAddonsToPackages()
     {
@@ -139,11 +191,11 @@ partial class Build
             }
             else if (parts[1] == TargetOperatingSystem.Linux.RuntimeIdentifier)
             {
-                packageName = "alphaskia-windows";
+                packageName = "alphaskia-linux";
             }
             else if (parts[1] == TargetOperatingSystem.MacOs.RuntimeIdentifier)
             {
-                packageName = "alphaskia-windows";
+                packageName = "alphaskia-macos";
             }
             else
             {
@@ -151,7 +203,7 @@ partial class Build
             }
 
             FileSystemTasks.CopyDirectoryRecursively(subDirectory,
-                RootDirectory / "lib" / "node" / packageName / "lib", DirectoryExistsPolicy.Merge,
+                RootDirectory / "lib" / "node" / packageName / "lib" / subDirectory.Name, DirectoryExistsPolicy.Merge,
                 FileExistsPolicy.OverwriteIfNewer, excludeFile: fi => fi.Extension != ".node");
         }
     }

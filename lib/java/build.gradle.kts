@@ -93,14 +93,20 @@ subprojects {
         withJavadocJar()
     }
 
-    tasks.withType<Test>().configureEach {
-        systemProperty("alphaskia.library.path", rootProject.projectDir.resolve("../../dist/"))
-        systemProperty("testdata.path", rootProject.projectDir.resolve("../test/"))
-        systemProperty("testoutput.path", projectDir.resolve("../test-outputs/"))
-        testLogging {
-            exceptionFormat = TestExceptionFormat.FULL
-            showStackTraces = true
-        }
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+
+    tasks.withType<Test> {
+        defaultCharacterEncoding = "UTF-8"
+    }
+
+    tasks.withType<JavaExec> {
+        defaultCharacterEncoding = "UTF-8"
+    }
+
+    tasks.withType<Javadoc>{
+        options.encoding = "UTF-8"
     }
 
     configure<PublishingExtension> {

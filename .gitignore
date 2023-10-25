@@ -719,3 +719,4 @@ fabric.properties
 /lib/node/**/test-outputs
 /lib/node/*/*.tgz
 /lib/dotnet/Version.props
+/test/test-outputs

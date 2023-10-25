@@ -1,40 +1,56 @@
+using System;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
+using Serilog;
 
 partial class Build
 {
     public Target DotNet => _ => _
         .DependsOn(DotNetPack);
-    
+
     public Target DotNetPack => _ => _
-        .Unlisted()
-        .DependsOn(DotNetTest)
-        .Executes(() =>
-        {
-            DotNetTasks.DotNetPack(_ => _
-                .SetProcessWorkingDirectory(RootDirectory / "lib" / "dotnet")
-                .SetConfiguration("Release")
-            );
-        });
-    public Target DotNetTest => _ => _
         .Unlisted()
         .DependsOn(DotNetBuild)
         .Executes(() =>
         {
-            DotNetTasks.DotNetTest(_ => _
+            if (Rebuild)
+            {
+                (TemporaryDirectory / "packages").DeleteDirectory();
+                (RootDirectory / "lib" / "dotnet")
+                    .GetFiles("*.nupkg", int.MaxValue)
+                    .DeleteFiles();
+            }
+
+            DotNetTasks.DotNetPack(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "dotnet")
                 .SetConfiguration("Release")
             );
+
+            if (IsLocalBuild)
+            {
+                if (Rebuild)
+                {
+                    (RootDirectory / "dist" / "nupkgs").DeleteDirectory();
+                }
+
+                foreach (var nupkg in (RootDirectory / "lib" / "dotnet").GetFiles("*.nupkg", int.MaxValue))
+                {
+                    FileSystemTasks.CopyFile(nupkg,
+                        RootDirectory / "dist" / "nupkgs" / nupkg.Name,
+                        FileExistsPolicy.OverwriteIfNewer);
+                }
+            }
         });
+
     public Target DotNetBuild => _ => _
         .Unlisted()
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             DotNetWriteVersionInfoProps();
-            
+
             DotNetTasks.DotNetBuild(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "dotnet")
                 .SetConfiguration("Release")
@@ -57,7 +73,7 @@ partial class Build
         {
             semVer = $"{VersionInfo.FileVersion.ToString(3)}";
         }
-        
+
         var props = $"""
             <Project>
                 <PropertyGroup>
@@ -78,4 +94,16 @@ partial class Build
         """;
         (RootDirectory / "lib" / "dotnet" / "Version.props").WriteAllText(props);
     }
+
+    public Target DotNetTest => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
+        .Executes(() =>
+        {
+            DotNetTasks.DotNetRun(_ => _
+                .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
+                .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
+                            (Architecture ?? Architecture.Current))
+                .AddProcessEnvironmentVariable("NUGET_PACKAGES", TemporaryDirectory / "packages")
+            );
+        });
 }

@@ -20,7 +20,7 @@ runs:
   steps:
     - uses: actions/download-artifact@v3
       with:
-        path: dist
+        path: dist/.organize/libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
         name: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
 
     - id: build-info
@@ -34,10 +34,20 @@ runs:
         fi
       shell: bash
 
-    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkia --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }}
+    - run: ${{ steps.build-info.outputs.script }} LibAlphaSkia LibAlphaSkiaTest --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --variant ${{ inputs.variant }}
       shell: ${{ steps.build-info.outputs.shell }}
 
     - uses: actions/upload-artifact@v3
+      if: ${{ always() }}
       with:
         name: libalphaskia-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
         path: artifacts
+
+    - uses: actions/upload-artifact@v3
+      if: ${{ always() }}
+      with:
+        name: libalphaskiatest-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}
+        if-no-files-found: ignore
+        path: |
+          dist/libalphaskiatest-${{ inputs.target-os }}-${{ inputs.architecture }}-${{ inputs.variant }}/
+          test/test-outputs/

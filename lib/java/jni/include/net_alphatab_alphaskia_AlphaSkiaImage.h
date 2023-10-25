@@ -47,6 +47,22 @@ JNIEXPORT jbyteArray JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_readPixe
 JNIEXPORT jbyteArray JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_toPng
   (JNIEnv *, jobject);
 
+/*
+ * Class:     net_alphatab_alphaskia_AlphaSkiaImage
+ * Method:    allocateDecoded
+ * Signature: ([B)J
+ */
+JNIEXPORT jlong JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_allocateDecoded
+  (JNIEnv *, jclass, jbyteArray);
+
+/*
+ * Class:     net_alphatab_alphaskia_AlphaSkiaImage
+ * Method:    createFromPixels
+ * Signature: (II[B)J
+ */
+JNIEXPORT jlong JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_createFromPixels
+  (JNIEnv *, jclass, jint, jint, jbyteArray);
+
 #ifdef __cplusplus
 }
 #endif

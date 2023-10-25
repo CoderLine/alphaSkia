@@ -27,7 +27,7 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
     /**
      * Register a new custom font from the given binary data containing the data of a font compatible with Skia (e.g. TTF).
      * @param data The raw binary data of the font.
-     * @return The loaded typeface to use for text rendering or {@code null} if the loading failed.
+     * @return The loaded typeface to use for text rendering or {@code undefined} if the loading failed.
      */
     public static register(data: ArrayBuffer): AlphaSkiaTypeface | undefined {
         const nativeData = loadAddon().alphaskia_data_new_copy(data);
@@ -48,7 +48,7 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
      * @param name The name of the typeface.
      * @param bold Whether the bold version of the typeface should be loaded.
      * @param italic Whether the italic version of the typeface should be loaded.
-     * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code null}.
+     * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code undefined}.
      */
     public static create(name: string, bold: boolean, italic: boolean): AlphaSkiaTypeface | undefined {
         const typeface = loadAddon().alphaskia_typeface_make_from_name(name, bold, italic);

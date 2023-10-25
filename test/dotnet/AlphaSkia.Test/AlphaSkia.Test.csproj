@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AlphaSkia" Version="*-*" />
+      <PackageReference Include="AlphaSkia.Native.Android" Version="*-*" />
+      <PackageReference Include="AlphaSkia.Native.iOS" Version="*-*" />
+      <PackageReference Include="AlphaSkia.Native.Linux" Version="*-*" />
+      <PackageReference Include="AlphaSkia.Native.MacOs" Version="*-*" />
+      <PackageReference Include="AlphaSkia.Native.Windows" Version="*-*" />
+    </ItemGroup>
+
+</Project>

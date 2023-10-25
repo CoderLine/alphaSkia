@@ -10,7 +10,12 @@
 #define CONCAT(a, b) a##b
 #define STRINGIFY(s) _STRINGIFY(s)
 #define _STRINGIFY(s) #s
-#define ASSERT_STATUS() if(status != napi_ok) { napi_throw_error(env, "status", "Internal error"); return nullptr; }
+#define ASSERT_STATUS()                                \
+  if (status != napi_ok)                               \
+  {                                                    \
+    napi_throw_error(env, "status", "Internal error"); \
+    return nullptr;                                    \
+  }
 
 static const napi_type_tag alphaskia_data_t_tag = {0x6a960ece6a0c4caf, 0xad61688dc0a28531};
 static const napi_type_tag alphaskia_typeface_t_tag = {0x0068df0314224b96, 0x8048b968915995f1};
@@ -655,6 +660,43 @@ static napi_value node_alphaskia_canvas_draw_image(napi_env env, napi_callback_i
   RETURN_UNDEFINED();
 }
 
+static napi_value node_alphaskia_image_from_pixels(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(3);
+  GET_ARGUMENT_INT32(0, width);
+  GET_ARGUMENT_INT32(1, height);
+
+  CHECK_ARGUMENT_IS_ARRAYBUFFER(2);
+
+  void *node_pixels(nullptr);
+  size_t node_pixels_length(0);
+  status = napi_get_arraybuffer_info(env, node_argv[2], &node_pixels, &node_pixels_length);
+  ASSERT_STATUS();
+
+  alphaskia_image_t image = alphaskia_image_from_pixels(width, height, reinterpret_cast<const uint8_t *>(node_pixels));
+  WRAP_HANDLE(alphaskia_image_t, wrapped, image);
+  return wrapped;
+}
+
+static napi_value node_alphaskia_image_decode(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  CHECK_ARGUMENT_IS_ARRAYBUFFER(0);
+
+  void *node_bytes(nullptr);
+  size_t node_bytes_length(0);
+  status = napi_get_arraybuffer_info(env, node_argv[0], &node_bytes, &node_bytes_length);
+  ASSERT_STATUS();
+
+  alphaskia_image_t image = alphaskia_image_decode(reinterpret_cast<const uint8_t *>(node_bytes), node_bytes_length);
+  WRAP_HANDLE(alphaskia_image_t, wrapped, image);
+  return wrapped;
+}
+
 static napi_value node_alphaskia_canvas_fill_text(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
@@ -745,6 +787,8 @@ napi_value init(napi_env env, napi_value exports)
   EXPORT_NODE_FUNCTION(alphaskia_image_get_height);
   EXPORT_NODE_FUNCTION(alphaskia_image_read_pixels);
   EXPORT_NODE_FUNCTION(alphaskia_image_encode_png);
+  EXPORT_NODE_FUNCTION(alphaskia_image_from_pixels);
+  EXPORT_NODE_FUNCTION(alphaskia_image_decode);
   EXPORT_NODE_FUNCTION(alphaskia_image_free);
 
   EXPORT_NODE_FUNCTION(alphaskia_canvas_new);

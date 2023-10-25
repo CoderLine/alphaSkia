@@ -9,18 +9,18 @@ public class AlphaSkiaNative : IDisposable
 {
     private readonly Action<IntPtr> _release;
 
-    internal IntPtr Native { get; private set; }
+    internal IntPtr Handle { get; private set; }
 
-    internal AlphaSkiaNative(IntPtr native, Action<IntPtr> release)
+    internal AlphaSkiaNative(IntPtr handle, Action<IntPtr> release)
     {
         _release = release;
-        Native = native;
+        Handle = handle;
     }
 
     private void ReleaseUnmanagedResources()
     {
-        _release(Native);
-        Native = IntPtr.Zero;
+        _release(Handle);
+        Handle = IntPtr.Zero;
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class AlphaSkiaNative : IDisposable
     /// <exception cref="ObjectDisposedException">Thrown if this instance was already disposed.</exception>
     protected void CheckDisposed()
     {
-        if (Native == IntPtr.Zero)
+        if (Handle == IntPtr.Zero)
         {
             throw new ObjectDisposedException("this");
         }

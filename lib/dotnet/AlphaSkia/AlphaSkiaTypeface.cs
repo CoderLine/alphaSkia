@@ -7,8 +7,8 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
 {
     private readonly AlphaSkiaData? _nativeData;
 
-    private AlphaSkiaTypeface(IntPtr native, AlphaSkiaData? nativeData = null)
-        : base(native, NativeMethods.alphaskia_typeface_free)
+    private AlphaSkiaTypeface(IntPtr handle, AlphaSkiaData? nativeData = null)
+        : base(handle, NativeMethods.alphaskia_typeface_free)
     {
         _nativeData = nativeData;
     }
@@ -30,15 +30,15 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
     /// <returns>The loaded typeface to use for text rendering or <code>null</code> if the loading failed.</returns>
     public static AlphaSkiaTypeface? Register(byte[] data)
     {
-        var nativeData = NativeMethods.alphaskia_data_new_copy(data, (ulong)data.LongLength);
-        var typeface = NativeMethods.alphaskia_typeface_register(nativeData);
+        var nativeData = new AlphaSkiaData(data);
+        var typeface = NativeMethods.alphaskia_typeface_register(nativeData.Handle);
         if (typeface == IntPtr.Zero)
         {
-            NativeMethods.alphaskia_data_free(nativeData);
+            nativeData.Dispose();
             return null;
         }
 
-        return new AlphaSkiaTypeface(typeface, new AlphaSkiaData(nativeData));
+        return new AlphaSkiaTypeface(typeface, nativeData);
     }
     
     /// <summary>

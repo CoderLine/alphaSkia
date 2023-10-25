@@ -13,7 +13,7 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
         get
         {
             CheckDisposed();
-            return NativeMethods.alphaskia_image_get_width(Native);
+            return NativeMethods.alphaskia_image_get_width(Handle);
         }
     }
 
@@ -25,12 +25,12 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
         get
         {
             CheckDisposed();
-            return NativeMethods.alphaskia_image_get_height(Native);
+            return NativeMethods.alphaskia_image_get_height(Handle);
         }
     }
 
-    internal AlphaSkiaImage(IntPtr native)
-        : base(native, NativeMethods.alphaskia_image_free)
+    internal AlphaSkiaImage(IntPtr handle)
+        : base(handle, NativeMethods.alphaskia_image_free)
     {
     }
 
@@ -43,7 +43,19 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
     public bool ReadPixels(IntPtr pixels, ulong rowBytes)
     {
         CheckDisposed();
-        return NativeMethods.alphaskia_image_read_pixels(Native, pixels, rowBytes) != 0;
+        return NativeMethods.alphaskia_image_read_pixels(Handle, pixels, rowBytes) != 0;
+    }
+    
+    /// <summary>
+    /// Reads the raw pixel data of this image into the given target.
+    /// </summary>
+    /// <returns>The pixels from the image.</returns>
+    public byte[]? ReadPixels()
+    {
+        CheckDisposed();
+        var rowBytes = Width * sizeof(int);
+        var pixels = new byte[rowBytes * Height];
+        return NativeMethods.alphaskia_image_read_pixels_bytes(Handle, pixels, (ulong)rowBytes) == 0 ? null : pixels;
     }
 
     /// <summary>
@@ -53,8 +65,32 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
     public byte[]? ToPng()
     {
         CheckDisposed();
-        var data = NativeMethods.alphaskia_image_encode_png(Native);
+        var data = NativeMethods.alphaskia_image_encode_png(Handle);
         using var wrapper = new AlphaSkiaData(data);
         return wrapper.ToArray();
+    }
+
+    /// <summary>
+    /// Decodes the given bytes into an image using supported image formats like PNG.  
+    /// </summary>
+    /// <param name="bytes">The raw iamge bytes.</param>
+    /// <returns>The decoded image or <code>null</code> if the image could not be decoded.</returns>
+    public static AlphaSkiaImage? Decode(byte[] bytes)
+    {
+        var image = NativeMethods.alphaskia_image_decode(bytes, (ulong)bytes.LongLength);
+        return (image == IntPtr.Zero) ? null : new AlphaSkiaImage(image);
+    }
+
+    /// <summary>
+    /// Creates an image from the raw pixels assuming the default internal pixel format of alphaSkia.
+    /// </summary>
+    /// <param name="width">The width of the image in pixels.</param>
+    /// <param name="height">The height of the image in pixels.</param>
+    /// <param name="pixels">The raw pixel bytes.</param>
+    /// <returns>The decoded image or <code>null</code> if the creation of the image from the pixels failed.</returns>
+    public static AlphaSkiaImage? FromPixels(int width, int height, byte[] pixels)
+    {
+        var image = NativeMethods.alphaskia_image_from_pixels(width, height, pixels);
+        return image == IntPtr.Zero ? null : new AlphaSkiaImage(image);
     }
 }

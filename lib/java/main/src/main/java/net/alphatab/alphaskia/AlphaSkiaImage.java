@@ -38,4 +38,33 @@ public class AlphaSkiaImage extends AlphaSkiaNative {
      * @return The raw PNG bytes for further usage.
      */
     public native byte[] toPng();
+
+    /**
+     * Decodes the given bytes into an image using supported image formats like PNG.
+     * @param bytes The raw iamge bytes.
+     * @return The decoded image or {@code null} if the image could not be decoded.
+     */
+    public static AlphaSkiaImage decode(byte[] bytes)
+    {
+        long handle = allocateDecoded(bytes);
+        return handle == 0 ? null : new AlphaSkiaImage(handle);
+    }
+
+    private static native long allocateDecoded(byte[] bytes);
+
+
+    /**
+     * Creates an image from the raw pixels assuming the default internal pixel format of alphaSkia.
+     * @param width The width of the image in pixels.
+     * @param height The height of the image in pixels.
+     * @param pixels The raw pixel bytes.
+     * @return The decoded image or {@code null} if the creation of the image from the pixels failed.
+     */
+    public static AlphaSkiaImage fromPixels(int width, int height, byte[] pixels)
+    {
+        long handle = createFromPixels(width, height, pixels);
+        return handle == 0 ? null : new AlphaSkiaImage(handle);
+    }
+
+    private static native long createFromPixels(int width, int height, byte[] pixels);
 }

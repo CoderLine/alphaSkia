@@ -118,5 +118,6 @@
         "scoped_allocator": "cpp",
         "typeindex": "cpp",
         "__std_stream": "cpp",
+        "barrier": "cpp"
     }
 }

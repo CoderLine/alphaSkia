@@ -34,6 +34,7 @@ runs:
       shell: bash
 
     - run: ${{ steps.build-info.outputs.script }} LibSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ inputs.architecture }} --use-cache ${{ inputs.use-cache }}
+      id: build
       shell: ${{ steps.build-info.outputs.shell }}
 
     - uses: actions/upload-artifact@v3
@@ -42,6 +43,7 @@ runs:
         path: artifacts
 
     - uses: actions/cache/save@v3
+      if: ${{ steps.build.outputs.build-skipped != 'true' }}
       with:
         path: dist
         key: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static-${{ github.run_id }} 

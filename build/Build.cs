@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Serilog;
@@ -31,10 +32,10 @@ partial class Build : NukeBuild
     static readonly bool IsGitHubActions = GetVariable<bool>("GITHUB_ACTIONS");
     static readonly AbsolutePath DistBasePath = RootDirectory / "dist";
     static readonly AbsolutePath ArtifactBasePath = RootDirectory / "artifacts";
-    
+
     [Parameter] readonly bool IsReleaseBuild = GetVariable<bool?>("IS_RELEASE_BUILD") ?? false;
     [Parameter] readonly bool Rebuild;
-    
+
     public static int Main() => Execute<Build>();
 
     static void AppendToFlagList(
@@ -53,42 +54,103 @@ partial class Build : NukeBuild
         gnArgs[key] = $"[ {flags}{value} ]";
     }
 
+    static readonly HashSet<string> AllLibExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".dll",
+        ".lib",
+        ".so",
+        ".dylib",
+        ".node",
+        ".a",
+        ".exe"
+    };
+
     Target PrepareGitHubArtifacts => _ => _
         .OnlyWhenStatic(() => IsGitHubActions)
         .Executes(() =>
         {
-            // We auto download all artifacts of all dependencies
-            // which results in a nested structure like
-            // dist/<artifactname>/<files>
-            // but we want them at dist/<files>
-            var dist = DistBasePath;
+            // The Github artifact actions are really messy as you can hardly control the folder structure
+            // you end up with, this action tries to consolidate things to our knowledge.
+            var dist = DistBasePath / ".organize";
             if (!dist.DirectoryExists())
             {
-                Log.Debug("Skipping GitHub Artifact preparation, no dependencies");
-
-                // nothing to do
+                Log.Debug("Skipping GitHub Artifact preparation, no dependencies to organize");
                 return;
             }
 
-            var includeDir = dist / "include";
-            if (includeDir.DirectoryExists())
-            {
-                // seems we have a proper structure already
-                return;
-            }
-            
-            foreach (var artifactDir in dist.GetDirectories())
-            {
-                Log.Information("Flattening artifact dir {artifactDir}", artifactDir);
+            var directories = dist.GlobDirectories("**").ToArray();
+            Log.Debug("Starting GitHub Artifact Preparation");
 
-                foreach (var artifactSubDir in artifactDir.GetDirectories())
-                {
-                    FileSystemTasks.MoveDirectoryToDirectory(artifactSubDir, dist, DirectoryExistsPolicy.Merge,
-                        FileExistsPolicy.OverwriteIfNewer);
-                }
+            foreach (var subDir in directories)
+            {
+                FlattenFolder(subDir);
             }
         });
-    
+
+    static void FlattenFolder(AbsolutePath subDir)
+    {
+        // could have been moved recusively
+        if (!subDir.DirectoryExists())
+        {
+            return;
+        }
+
+        Log.Debug("Flattening folder {Folder}", subDir);
+
+        // known include path 
+        if (subDir.Name == "include")
+        {
+            FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
+                FileExistsPolicy.OverwriteIfNewer);
+            Log.Debug("   Treated as header include dir");
+            return;
+        }
+
+        var files = subDir.GetFiles().ToArray();
+
+        foreach (var file in files)
+        {
+            if (!file.FileExists())
+            {
+                continue;
+            }
+            
+            if (AllLibExtensions.Contains(file.Extension) || file.NameWithoutExtension == "libalphaskiatest")
+            {
+                // found a library or test executable  dir
+                FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
+                    FileExistsPolicy.OverwriteIfNewer);
+                Log.Debug("   Treated as library dir");
+                return;
+            }
+
+            if (file.Extension is ".jar" or ".pom")
+            {
+                // find maven base. 
+                // <maven>/net/alphatab/net.alphatab.alphaskia/<version>/file
+                var netDir = file / ".." / ".." / ".." / "..";
+                if (netDir.DirectoryExists() && netDir.Name == "net")
+                {
+                    FileSystemTasks.MoveDirectoryToDirectory(netDir.Parent, DistBasePath,
+                        DirectoryExistsPolicy.Merge,
+                        FileExistsPolicy.OverwriteIfNewer);
+                    return;
+                }
+            }
+            else if (file.Extension is ".nupkg" or ".snupkg")
+            {
+                // flatten nugets
+                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "nupkgs",
+                    FileExistsPolicy.OverwriteIfNewer);
+            }
+            else if (file.Extension is ".tgz")
+            {
+                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "nodetars",
+                    FileExistsPolicy.OverwriteIfNewer);
+            }
+        }
+    }
+
     bool CanUseCachedBinaries(string buildTarget, Variant variant)
     {
         if (!UseCache)
@@ -101,7 +163,7 @@ partial class Build : NukeBuild
         {
             return false;
         }
-        
+
         return true;
     }
 }

@@ -34,11 +34,14 @@ extern "C"
             rowBytes * alphaskia_image_get_height(image));
         jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
 
-        alphaskia_image_read_pixels(image, reinterpret_cast<uint8_t *>(bytes), rowBytes);
+        if ( alphaskia_image_read_pixels(image, reinterpret_cast<uint8_t *>(bytes), rowBytes) == 0)
+        {
+            env->ReleaseByteArrayElements(pixels, bytes, 0);
+            return nullptr;
+        }
 
         env->ReleaseByteArrayElements(pixels, bytes, 0);
-
-        return nullptr;
+        return pixels;
     }
 
     JNIEXPORT jbyteArray JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_toPng(JNIEnv *env, jobject instance)
@@ -58,5 +61,21 @@ extern "C"
         alphaskia_data_free(data);
 
         return png;
+    }
+
+    JNIEXPORT jlong JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_createFromPixels(JNIEnv *env, jclass clz, jint width, jint height, jbyteArray pixels)
+    {
+        jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
+        alphaskia_image_t nativeImage = alphaskia_image_from_pixels(static_cast<int32_t>(width), static_cast<int32_t>(height), reinterpret_cast<const uint8_t *>(bytes));
+        env->ReleaseByteArrayElements(pixels, bytes, 0);
+        return reinterpret_cast<jlong>(nativeImage);
+    }
+
+    JNIEXPORT jlong JNICALL Java_net_alphatab_alphaskia_AlphaSkiaImage_allocateDecoded(JNIEnv *env, jclass clz, jbyteArray bytes)
+    {
+        jbyte *raw = env->GetByteArrayElements(bytes, nullptr);
+        alphaskia_image_t nativeImage = alphaskia_image_decode(reinterpret_cast<const uint8_t *>(raw), env->GetArrayLength(bytes));
+        env->ReleaseByteArrayElements(bytes, raw, 0);
+        return reinterpret_cast<jlong>(nativeImage);
     }
 }

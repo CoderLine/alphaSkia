@@ -7,7 +7,6 @@ extern "C"
     {
         sk_sp<SkData> skData = SkData::MakeWithCopy(data, length);
         return reinterpret_cast<alphaskia_data_t>(new sk_sp<SkData>(skData));
-
     }
 
     AS_API uint8_t * alphaskia_data_get_data(alphaskia_data_t data)

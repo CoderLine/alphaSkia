@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Nuke.Common;
+using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
+using Serilog;
 
 partial class Build
 {
@@ -44,6 +46,20 @@ partial class Build
         .Before(SetupDepotTools, LibSkiaPatchSkiaBuildFiles, LibSkiaGitSyncDeps)
         .Executes(() =>
         {
+            if (IsGitHubActions)
+            {
+                var outputsFile = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
+                if (File.Exists(outputsFile))
+                {
+                    File.AppendAllLines(outputsFile,
+                        new[] { $"build-skipped={LibSkiaSkip.Value.ToString().ToLowerInvariant()}\n" });
+                }
+                else
+                {
+                    Log.Warning("Could not set output parameter, GITHUB_OUTPUT not found");
+                }
+            }
+
             if (LibSkiaSkip.Value)
             {
                 FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
@@ -57,7 +73,7 @@ partial class Build
         .Triggers(LibSkia);
 
     public Target LibSkia => _ => _
-        .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
+        .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
@@ -102,6 +118,7 @@ partial class Build
             }
 
             PatchSkiaToolchain();
+            PatchSkiaMacOsVersion();
         });
 
     void BuildSkia()
@@ -112,7 +129,7 @@ partial class Build
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
         var distPath = DistBasePath / libDir;
         var outDir = SkiaPath / "out" / libDir;
-        var libExtension = GetLibExtension(Variant.Static);
+        var libExtension = new HashSet<string>(GetLibExtensions(Variant.Static), StringComparer.OrdinalIgnoreCase);
 
         // disable features we don't need
         gnArgs["skia_use_icu"] = "false";
@@ -152,7 +169,7 @@ partial class Build
         {
             // libs
             FileSystemTasks.CopyDirectoryRecursively(outDir, path, DirectoryExistsPolicy.Merge,
-                FileExistsPolicy.OverwriteIfNewer, null, file => file.Extension != libExtension);
+                FileExistsPolicy.OverwriteIfNewer, null, file => !libExtension.Contains(file.Extension));
         }
 
         CopyBuildOutputTo(distPath);

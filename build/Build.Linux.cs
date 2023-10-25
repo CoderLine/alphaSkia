@@ -1,74 +1,89 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 
 partial class Build
 {
-    void InstallDependenciesLinux()
-    {
-        var installDependencies = new StringBuilder();
-        installDependencies.AppendLine("#!/bin/bash");
-        installDependencies.AppendLine("set -e");
-
-        // Using aptitude here because github actions runners have quite some packages preinstalled
-        // which leads to many version conflicts after adding more sources. aptitude can resolve those 
-        // conflicts easier
-        installDependencies.AppendLine("echo Install Aptitude");
-        installDependencies.AppendLine("apt-get update");
-        installDependencies.AppendLine("apt-get install -y aptitude");
-        
-        // Main system build tools
-        installDependencies.AppendLine("apt-get install -y build-essential");
-        
-        // Cross compilation build tools if needed
-        var linuxArch = Architecture.LinuxArch;
-        if (Architecture != Architecture.X64 && TargetOs == TargetOperatingSystem.Linux)
+    Target InstallDependenciesLinux => _ => _
+        .Unlisted()
+        .OnlyWhenStatic(()=> OperatingSystem.IsLinux() && IsGitHubActions)
+        .After(PrepareGitHubArtifacts,
+            LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles,
+            LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
+        .Before(LibSkia, LibAlphaSkia, LibAlphaSkiaTest)
+        .Executes(() =>
         {
-            installDependencies.AppendLine($"echo Adding Arch {linuxArch}");
-            installDependencies.AppendLine($"dpkg --add-architecture {linuxArch}");
+            var installDependencies = new StringBuilder();
+            installDependencies.AppendLine("#!/bin/bash");
+            installDependencies.AppendLine("set -e");
 
-            installDependencies.AppendLine("echo Modifying sources.list");
-            installDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
-            installDependencies.AppendLine("sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
+            // Using aptitude here because github actions runners have quite some packages preinstalled
+            // which leads to many version conflicts after adding more sources. aptitude can resolve those 
+            // conflicts easier
+            installDependencies.AppendLine("echo Install Aptitude");
+            installDependencies.AppendLine("apt-get update");
+            installDependencies.AppendLine("apt-get install -y aptitude");
 
-            if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
+            // Main system build tools
+            installDependencies.AppendLine("apt-get install -y build-essential");
+
+            // Cross compilation build tools if needed
+            var linuxArch = Architecture.LinuxArch;
+            if (Architecture != Architecture.X64 && TargetOs == TargetOperatingSystem.Linux)
             {
-                installDependencies.AppendLine($"echo Adding new {linuxArch} sources");
+                installDependencies.AppendLine($"echo Adding Arch {linuxArch}");
+                installDependencies.AppendLine($"dpkg --add-architecture {linuxArch}");
 
-                installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
-                installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
-                installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
-                installDependencies.AppendLine($"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
+                installDependencies.AppendLine("echo Modifying sources.list");
+                installDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
+                installDependencies.AppendLine(
+                    "sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
+
+                if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
+                {
+                    installDependencies.AppendLine($"echo Adding new {linuxArch} sources");
+
+                    installDependencies.AppendLine(
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
+                    installDependencies.AppendLine(
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
+                    installDependencies.AppendLine(
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
+                    installDependencies.AppendLine(
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
+                }
+                else
+                {
+                    installDependencies.AppendLine($"echo No additional package sources for {linuxArch}");
+                }
+
+                installDependencies.AppendLine("echo Updating Packages");
+                installDependencies.AppendLine("apt-get update");
+                installDependencies.AppendLine("echo Installing main build tools");
+                installDependencies.AppendLine(
+                    $"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
             }
             else
             {
-                installDependencies.AppendLine($"echo No additional package sources for {linuxArch}");
-
+                // no cross compilation packages
+                linuxArch = "";
             }
-            
-            installDependencies.AppendLine("echo Updating Packages");
-            installDependencies.AppendLine("apt-get update");
-            installDependencies.AppendLine("echo Installing main build tools");
-            installDependencies.AppendLine($"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
-        }
-        else 
-        {
-            // no cross compilation packages
-            linuxArch = "";
-        }
-        
-        // dependent libraries
-        var linuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
-        installDependencies.AppendLine("echo Installing libs");
-        installDependencies.AppendLine($"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix}");
 
-        var scriptFile = TemporaryDirectory / "install_dependencies.sh";
-        File.WriteAllText(scriptFile, installDependencies.ToString());
-        ToolResolver.GetPathTool("sudo")($"bash {scriptFile}");
-    }
+            // dependent libraries
+            var linuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
+            installDependencies.AppendLine("echo Installing libs");
+            installDependencies.AppendLine(
+                $"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix}");
+
+            var scriptFile = TemporaryDirectory / "install_dependencies.sh";
+            File.WriteAllText(scriptFile, installDependencies.ToString());
+            ToolResolver.GetPathTool("sudo")($"bash {scriptFile}");
+        });
 
     void SetClangLinux(Dictionary<string, string> gnArgs)
     {
@@ -77,7 +92,7 @@ partial class Build
 
         var crossCompileToolchainArch = Architecture.LinuxCrossToolchain;
         var crossCompileTargetArch = Architecture.LinuxCrossTargetArch;
-       
+
         if (!string.IsNullOrEmpty(crossCompileToolchainArch) && TargetOs == TargetOperatingSystem.Linux)
         {
             var sysroot = $"/usr/{crossCompileToolchainArch}";

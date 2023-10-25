@@ -51,4 +51,27 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
         this.checkDisposed();
         return loadAddon().alphaskia_image_encode_png(this.handle!);
     }
+
+    /**
+     * Decodes the given bytes into an image using supported image formats like PNG.
+     * @param bytes The raw iamge bytes.
+     * @return The decoded image or {@code undefined} if the image could not be decoded.
+     */
+    public static decode(bytes: ArrayBuffer): AlphaSkiaImage | undefined {
+        const handle = loadAddon().alphaskia_image_decode(bytes);
+        return !handle ? undefined : new AlphaSkiaImage(handle);
+    }
+
+
+    /**
+     * Creates an image from the raw pixels assuming the default internal pixel format of alphaSkia.
+     * @param width The width of the image in pixels.
+     * @param height The height of the image in pixels.
+     * @param pixels The raw pixel bytes.
+     * @return The decoded image or {@code undefined} if the creation of the image from the pixels failed.
+     */
+    public static fromPixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImage | undefined {
+        const handle = loadAddon().alphaskia_image_from_pixels(width, height, pixels);
+        return handle == 0 ? undefined : new AlphaSkiaImage(handle);
+    }
 }

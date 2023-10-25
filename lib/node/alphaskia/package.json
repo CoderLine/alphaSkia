@@ -4,11 +4,7 @@
   "description": "A Skia based rendering backend for alphaTab.",
   "module": "dist/alphaskia.mjs",
   "typings": "dist/alphaskia.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/alphaskia.mjs"
-    }
-  },
+  "exports": "./dist/alphaskia.mjs",
   "engines": {
     "node": ">=18.0.0"
   },

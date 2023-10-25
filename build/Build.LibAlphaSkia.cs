@@ -6,6 +6,7 @@ using System.Text;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using Serilog;
 
 partial class Build
 {
@@ -24,11 +25,19 @@ partial class Build
         });
 
     public Target LibAlphaSkia => _ => _
-        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles)
+        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .Requires(() => Architecture)
         .Requires(() => Variant)
         .Requires(() => TargetOs)
         .Executes(BuildAlphaSkia);
+
+    public Target LibAlphaSkiaTest => _ => _
+        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
+        .After(LibAlphaSkia)
+        .Requires(() => Architecture)
+        .OnlyWhenStatic(() => Variant == Variant.Shared)
+        .Requires(() => TargetOs)
+        .Executes(BuildAlphaSkiaTest);
 
     public Target LibAlphaSkiaPatchSkiaBuildFiles => _ => _
         .Unlisted()
@@ -47,6 +56,12 @@ partial class Build
                         _alphaskia_mode = "static_library"
                     }
                 
+                    target(_alphaskia_mode, target_name) {
+                        forward_variables_from(invoker, "*")
+                    }
+                }
+                template("alphaskia_executable") {
+                    _alphaskia_mode = "executable"
                     target(_alphaskia_mode, target_name) {
                         forward_variables_from(invoker, "*")
                     }
@@ -152,9 +167,25 @@ partial class Build
                     sources += [ "../../lib/node/addon/win_delay_load_hook.cpp"]
                   }
                 }
+
+                alphaskia_executable("libalphaskiatest") {
+                  sources = [
+                      "../../test/native/src/AlphaSkiaTestBridge.cpp",
+                      "../../test/native/src/AlphaTabGeneratedTest.cpp",
+                      "../../test/native/src/main.cpp",
+                      "../../test/native/src/PixelMatch.cpp"
+                  ]
+                  if (is_win) {
+                    libs = [ "libalphaskia.dll.lib" ]
+                  }
+                  else {
+                    libs = [ "alphaskia" ]
+                  }
+                }
             """;
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew);
             PatchSkiaToolchain();
+            PatchSkiaMacOsVersion();
         });
 
 
@@ -197,7 +228,7 @@ partial class Build
         var gnArgs = PrepareNativeBuild(Variant);
         var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
         var gnFlags = new Dictionary<string, string>();
-        
+
         string buildTarget;
         if (Variant == Variant.Static)
         {
@@ -245,7 +276,7 @@ partial class Build
                 AppendToFlagList(gnArgs, "extra_ldflags",
                     $"'/DELAYLOAD:node.exe', '/LIBPATH:{nodeLibPath}', 'node.lib', 'DelayImp.lib'");
             }
-            else if(OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
+            else if (OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
             {
                 // disable need of a libnode.dylib dependencies are resolve dynamically during runtime 
                 // and as the node binary has them built-in
@@ -272,7 +303,7 @@ partial class Build
         var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
         var distPath = DistBasePath / libDir;
         var outDir = SkiaPath / "out" / libDir;
-        var libExtension = GetLibExtension(Variant);
+        var libExtensions = new HashSet<string>(GetLibExtensions(Variant), StringComparer.OrdinalIgnoreCase);
 
         AbsolutePath rcOutputDir = null;
         if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
@@ -288,16 +319,15 @@ partial class Build
                 {
                     // compile resource file. Is is added as "library" in the BUILD.gn as input
                     // "llvm-rc.exe" /FO alphaskia.rc.obj alphaskia.rc /D RC_INVOKED /C 65001
-                    
+
                     var input = RootDirectory / "wrapper" / "src" / "alphaskia.rc";
                     rcOutputDir.CreateDirectory();
                     var output = rcOutputDir / "alphaskia.rc.obj";
-                    
+
                     const int utf8CodePage = 65001;
                     ToolResolver.GetTool((AbsolutePath)LlvmHome / "bin" / "llvm-rc.exe")(
                         $"/FO {output} {input} /D RC_INVOKED /C {utf8CodePage}",
                         workingDirectory: SkiaPath);
-                    
                 }
             });
 
@@ -307,7 +337,7 @@ partial class Build
             {
                 // libs
                 FileSystemTasks.CopyDirectoryRecursively(outDir, path, DirectoryExistsPolicy.Merge,
-                    FileExistsPolicy.OverwriteIfNewer, null, file => file.Extension != libExtension);
+                    FileExistsPolicy.OverwriteIfNewer, null, file => !libExtensions.Contains(file.Extension));
                 // copy header
                 FileSystemTasks.CopyFile(RootDirectory / "wrapper" / "include" / "alphaskia.h",
                     DistBasePath / "include" / "alphaskia" / "alphaskia.h", FileExistsPolicy.OverwriteIfNewer);
@@ -327,9 +357,96 @@ partial class Build
         }
     }
 
+    void BuildAlphaSkiaTest()
+    {
+        if (Variant != Variant.Shared)
+        {
+            Log.Information("Skipping build of BuildAlphaSkiaTest, not relevant for variant {Variant}", Variant);
+            return;
+        }
+        
+        var gnArgs = PrepareNativeBuild(Variant);
+        var sharedLibPath = DistBasePath / GetLibDirectory("libalphaskia", variant: Variant);
+        var gnFlags = new Dictionary<string, string>();
+
+        if (!sharedLibPath.DirectoryExists())
+        {
+            throw new IOException(sharedLibPath + " is fully missing, needed for linking!");
+        }
+
+        Log.Debug("Available libs for linking: " + string.Join(", ", sharedLibPath.GetFiles().Select(f => f.Name)));
+        AppendToFlagList(gnArgs, "extra_cflags", $"'-DALPHASKIA_TEST_RID={TargetOs.RuntimeIdentifier}'");
+
+        if (TargetOs == TargetOperatingSystem.Windows)
+        {
+            // TODO: check if clang-cl also works with the linux flags
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'/LIBPATH:{sharedLibPath}'");
+        }
+        else
+        {
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'-L{sharedLibPath}'");
+        }
+
+        var buildTarget = "libalphaskiatest";
+        var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
+        var outDir = SkiaPath / "out" / libDir;
+        var exeExtension = GetExeExtension();
+
+        GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath);
+
+        // copy for artifacts
+        var distPath = DistBasePath / libDir;
+        var exePath = outDir / (buildTarget + exeExtension);
+        FileSystemTasks.CopyFile(exePath, distPath / exePath.Name, FileExistsPolicy.OverwriteIfNewer);
+
+        // copy shared lib beside executable
+        var libExtensions = new HashSet<string>(GetLibExtensions(Variant), StringComparer.OrdinalIgnoreCase);
+        foreach (var file in sharedLibPath.GetFiles().Where(f => libExtensions.Contains(f.Extension)))
+        {
+            FileSystemTasks.CopyFile(file, outDir / file.Name, FileExistsPolicy.OverwriteIfNewer);
+        }
+
+        // run executable
+        if (LibAlphaSkiaCanRunTests)
+        {
+            ToolResolver.GetTool(exePath)(
+                "",
+                workingDirectory: outDir
+            );
+        }
+        else
+        {
+            Log.Information(
+                $"Skipping test execution, cannot run {TargetOs.RuntimeIdentifier}-{Architecture} tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system");
+        }
+    }
+
+    public bool LibAlphaSkiaCanRunTests
+    {
+        get
+        {
+            if (TargetOs == TargetOperatingSystem.Current)
+            {
+                // If arch and OS match we can definitely run
+                if (Architecture == Architecture.Current)
+                {
+                    return true;
+                }
+
+                // x64 can run x86 processes
+                if (Architecture == Architecture.X86 && Architecture.Current == Architecture.X64)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     void NativeWriteVersionInfoHeader()
     {
-        var libExtension = GetLibExtension(Variant);
+        var libExtension = GetLibExtensions(Variant)[0];
 
         var versionInfo = new StringBuilder();
         versionInfo.AppendLine("#pragma once");
