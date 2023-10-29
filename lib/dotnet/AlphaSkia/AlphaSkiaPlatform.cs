@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace AlphaSkia;
 
@@ -40,7 +41,7 @@ public static class AlphaSkiaPlatform
                 NativeMethods.AlphaSkiaNativeLibName + libExtension);
             if (File.Exists(alphaSkiaPath))
             {
-                if (NativeLibrary.TryLoad(alphaSkiaPath, out _) && CheckNativeLib())
+                if (TryLoadLibrary(alphaSkiaPath) && CheckNativeLib())
                 {
                     return true;
                 }
@@ -54,12 +55,42 @@ public static class AlphaSkiaPlatform
         return false;
     }
 
+    private static bool TryLoadLibrary(string path)
+    {
+        // on .net FX or some .netstandard environments the NativeLibrary might not be available
+        // try to use it if available, otherwise fallback.
+        var nativeLibraryTryLoadMethod = typeof(DllImportAttribute).Assembly
+            .GetType("System.Runtime.InteropServices.NativeLibrary")
+            ?.GetMethod("TryLoad", BindingFlags.Static | BindingFlags.Public);
+        if (nativeLibraryTryLoadMethod != null)
+        {
+            return (bool)nativeLibraryTryLoadMethod.Invoke(null, new object[]
+            {
+                path, IntPtr.Zero
+            })!;
+        }
+
+        var handle = LoadLibraryWindows(path);
+        return handle != IntPtr.Zero;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "LoadLibraryW",
+        ExactSpelling = true)]
+    private static extern nint LoadLibraryWindows(string fileName);
+
+    private static string FallbackRuntimeIdentifier =>
+#if NETSTANDARD2_0
+        "windows-" + RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+#else
+        RuntimeInformation.RuntimeIdentifier;
+#endif
+
     private static string BuildKnownRid(out string libExtension)
     {
-        var officialRid = RuntimeInformation.RuntimeIdentifier;
+        var officialRid = FallbackRuntimeIdentifier;
         var separator = officialRid.IndexOf('-');
-        var officialOs = officialRid[..separator];
-        var officialArch = officialRid[(separator + 1)..];
+        var officialOs = officialRid.Substring(0, separator);
+        var officialArch = officialRid.Substring(separator + 1);
 
         libExtension = Environment.OSVersion.Platform switch
         {
@@ -68,7 +99,7 @@ public static class AlphaSkiaPlatform
             PlatformID.MacOSX => ".dylib",
             _ => ""
         };
-        
+
         var os = Environment.OSVersion.Platform switch
         {
             PlatformID.Unix => "linux",
@@ -78,7 +109,7 @@ public static class AlphaSkiaPlatform
         };
         if (string.IsNullOrEmpty(os))
         {
-            return RuntimeInformation.RuntimeIdentifier;
+            return FallbackRuntimeIdentifier;
         }
 
         var arch = RuntimeInformation.OSArchitecture switch

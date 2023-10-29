@@ -95,14 +95,18 @@ partial class Build
         (RootDirectory / "lib" / "dotnet" / "Version.props").WriteAllText(props);
     }
 
+    [Parameter] string Framework;
+    
     public Target DotNetTest => _ => _
         .DependsOn(PrepareGitHubArtifacts)
+        .Requires(() => Framework)
         .Executes(() =>
         {
             DotNetTasks.DotNetRun(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
                 .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
                             (Architecture ?? Architecture.Current))
+                .SetFramework(Framework)
                 .AddProcessEnvironmentVariable("NUGET_PACKAGES", TemporaryDirectory / "packages")
             );
         });
