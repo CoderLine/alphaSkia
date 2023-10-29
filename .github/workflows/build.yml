@@ -212,12 +212,17 @@ jobs:
         include: 
           - runs-on: ubuntu-latest
             architecture: x64
-          - runs-on: windows-latest
-            architecture: x64
-          - runs-on: windows-latest
-            architecture: x86
+            framework: net6.0
           - runs-on: macos-latest
             architecture: x64
+            framework: net6.0
+          - runs-on: windows-latest
+            architecture: x64
+            framework: net6.0
+          - runs-on: windows-latest
+            architecture: x64
+            framework: net48
+
     runs-on: ${{ matrix.runs-on }}
     needs: [dotnet]
     steps:
@@ -226,7 +231,7 @@ jobs:
       with:
         name: nupkgs
         path: dist/.organize/nupkgs
-    - run: ./build.cmd DotNetTest --architecture ${{ matrix.architecture }}
+    - run: ./build.cmd DotNetTest --architecture ${{ matrix.architecture }} --framework ${{ matrix.framework }}
     - uses: actions/upload-artifact@v3
       with:
         name: DotNet Test Results

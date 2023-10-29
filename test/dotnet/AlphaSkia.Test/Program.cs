@@ -1,8 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿namespace AlphaSkia.Test;
 
-namespace AlphaSkia.Test;
-
-public class Program
+public static class Program
 {
     private static string FindRepositoryRoot(string current)
     {
@@ -40,7 +38,7 @@ public class Program
             var h = AlphaTabGeneratedRenderTest.PartPositions[i, 3];
 
             Console.WriteLine($"Drawing part {i} into full image at {x}/{y}/{w}/{h}");
-            fullImageCanvas.DrawImage(part, x, y, w, h);
+            fullImageCanvas.DrawImage(part!, x, y, w, h);
         }
 
         var fullImage = fullImageCanvas.EndRender();
@@ -58,7 +56,8 @@ public class Program
             // Load all fonts for rendering
             Console.WriteLine("Loading fonts");
             var testDataPath = Path.Combine(repositoryRoot, "test", "test-data");
-            AlphaTabGeneratedRenderTest.MusicTypeface = AlphaTabGeneratedRenderTest.LoadTypeface("Bravura", false, false,
+            AlphaTabGeneratedRenderTest.MusicTypeface = AlphaTabGeneratedRenderTest.LoadTypeface("Bravura", false,
+                false,
                 Path.Combine(testDataPath, "font", "bravura", "Bravura.ttf"));
             AlphaTabGeneratedRenderTest.LoadTypeface("Roboto", false, false,
                 Path.Combine(testDataPath, "font", "roboto", "Roboto-Regular.ttf"));
@@ -169,6 +168,15 @@ public class Program
         }
     }
 
+#if NET48
+    private static readonly string AlphaSkiaTestRid = Environment.OSVersion.Platform == PlatformID.Win32NT
+        ? "win"
+        : Environment.OSVersion.Platform == PlatformID.Unix
+            ? "linux"
+            : Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? "macos"
+                : throw new PlatformNotSupportedException("Unsupported test platform");
+#else
     private static readonly string AlphaSkiaTestRid = OperatingSystem.IsWindows()
         ? "win"
         : OperatingSystem.IsLinux()
@@ -180,4 +188,5 @@ public class Program
                     : OperatingSystem.IsIOS()
                         ? "ios"
                         : throw new PlatformNotSupportedException("Unsupported test platform");
+#endif
 }
