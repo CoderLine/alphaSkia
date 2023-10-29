@@ -82,6 +82,7 @@ partial class Build
     public Target LibSkiaPatchSkiaBuildFiles => _ => _
         .Unlisted()
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
+        .After(LibSkiaGitSyncDeps)
         .Executes(() =>
         {
             // add harfbuzz as dependency as we want it for alphaSkia
