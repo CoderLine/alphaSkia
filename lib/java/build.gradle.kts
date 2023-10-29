@@ -72,6 +72,9 @@ loadSetting("ALPHASKIA_LICENSE_SPDX", "alphaskiaLicenseSpdx") { libLicenseSpdx =
 loadSetting("ALPHASKIA_LICENSE_URL", "alphaskiaLicenseUrl") { libLicenseUrl = it }
 loadSetting("ALPHASKIA_ISSUES_URL", "alphaskiaIssuesUrl") { libIssuesUrl = it }
 
+group = "net.alphatab"
+version = libVersion
+
 subprojects {
     apply<JavaLibraryPlugin>()
     apply<MavenPublishPlugin>()
