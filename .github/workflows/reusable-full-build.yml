@@ -126,7 +126,7 @@ jobs:
   node:
     needs: [windows, linux, macos]
     secrets: inherit
-    uses: ./.github/workflows/java.yml
+    uses: ./.github/workflows/node.yml
     with:
       alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
