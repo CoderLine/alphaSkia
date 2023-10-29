@@ -14,7 +14,7 @@ env:
         
 jobs:
   full_build:
-    uses: ./.github/workflows/reusable-build.yaml
+    uses: ./.github/workflows/reusable-build.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }}
       alphaskia-version: 1.0

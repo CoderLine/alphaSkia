@@ -17,7 +17,7 @@ env:
 
 jobs:
   build:
-    uses: ./.github/workflows/reusable-build.yaml
+    uses: ./.github/workflows/reusable-build.yml
     with: 
       # TODO: change to false once pipeline is done
       use-skia-cache: true 
