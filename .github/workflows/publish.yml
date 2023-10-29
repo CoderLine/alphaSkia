@@ -76,4 +76,8 @@ jobs:
         with:
           name: nodetars
           path: dist/.organize/node
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+          registry-url: https://registry.npmjs.org/
       - run: ./build.sh NodePublish
