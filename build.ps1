@@ -15,7 +15,7 @@ function ExecSafe([scriptblock] $cmd) {
 }
 
 
-if( $env:GITHUB_ACTIONS -eq "true" -And Test-Path "$PSScriptRoot\build\bin\Debug\publish\_build.dll") {
+if( ($env:GITHUB_ACTIONS -eq "true") -And (Test-Path "$PSScriptRoot\build\bin\Debug\publish\_build.dll") ) {
     ExecSafe { & dotnet "$PSScriptRoot\build\bin\Debug\publish\_build.dll" $BuildArguments }
 }
 else {
