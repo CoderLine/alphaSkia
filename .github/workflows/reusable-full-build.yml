@@ -65,7 +65,7 @@ jobs:
       alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: macos-latest
-      target-os: linux
+      target-os: macos
       architectures: '[ "x64", "arm64" ]'
       variants: '[ "shared" , "jni", "node" ]'
 
@@ -77,7 +77,7 @@ jobs:
       alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: ubuntu-latest
-      target-os: macos
+      target-os: android
       architectures: '[ "x64", "x86", "arm", "arm64" ]'
       variants: '[ "shared" , "jni" ]'
 
