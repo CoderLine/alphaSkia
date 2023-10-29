@@ -22,7 +22,7 @@ partial class Build
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
-            GradlewTool("publishAllPublicationsToDistPathRepository",
+            GradlewTool("publishMavenJavaToDistPathRepository",
                 environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)
                     .SetKeyValue("JAVA_HOME", JavaHome)
@@ -124,4 +124,38 @@ partial class Build
             return semVer;
         }
     }
+    
+    [Parameter] [Secret] readonly string OssrhPassword = GetVariable<string>("OSSRH_PASSWORD");
+    [Parameter] [Secret] readonly string OssrhUsername = GetVariable<string>("OSSRH_USERNAME");
+    [Parameter] [Secret] readonly string SonatypeSigningKey = GetVariable<string>("SONATYPE_SIGNING_KEY");
+    [Parameter] [Secret] readonly string SonatypeSigningKeyId = GetVariable<string>("SONATYPE_SIGNING_KEY_ID");
+    [Parameter] [Secret] readonly string SonatypeSigningPassword = GetVariable<string>("SONATYPE_SIGNING_PASSWORD");
+    [Parameter] [Secret] readonly string SonatypeStagingProfileId = GetVariable<string>("SONATYPE_STAGING_PROFILE_ID");
+    
+    public Target JavaPublish => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
+        .Requires(() => IsGitHubActions)
+        .Executes(() =>
+        {
+            // https://support.sonatype.com/hc/en-us/articles/115006744008
+//             maven {
+//                 name = "sonatype"
+//                 url = uri(
+//                     "http://localhost:8081/repository/Snapshots/"
+// //                    if (libVersion.endsWith("SNAPSHOT"))
+// //                        "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+// //                    else
+// //                        "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+//                 )
+//                 credentials {
+//                     username = ossrhUsername
+//                     password = ossrhPassword
+//                 }
+//             }
+
+            
+            // TODO: how to publish to Sonatype from local maven structure?
+            // https://central.sonatype.org/publish/publish-gradle/#deployment
+            // https://github.com/CoderLine/alphaTab/blob/develop/.github/workflows/publish.yml#L102C28-L106
+        });
 }
