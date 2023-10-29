@@ -1,0 +1,131 @@
+on:
+  workflow_call:
+    inputs:
+      # Caching  
+      use-skia-cache:
+        type: boolean
+        description: Use Skia Binary from cache
+        required: true
+      
+      # Versioning
+      alphaskia-version:
+        type: string
+        description: The version for alphaSkia in format MAJOR.MINOR
+        required: true
+      is-release-build:
+        type: boolean
+        description: Whether the version is a prerelease or full release
+        required: false
+
+      # Build Settings
+      runs-on:
+        type: string
+        description: The runner image to run the workflow on.
+        required: true
+      target-os:
+        type: string
+        description: The target OS for which to build the libraries.
+        required: true
+      architectures:
+        type: string
+        description: The JSON encoded array of CPU architectures to build the libraries for.
+        required: true
+      variants:
+        type: string
+        description: The JSON encoded array of variants to build the libraries for.
+        required: true
+
+env:
+  ALPHASKIA_VERSION_TEMPLATE: ${{ inputs.alphaskia-version }}
+  IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
+
+jobs:
+  skia:
+    runs-on: ${{ inputs.runs-on }}
+    name: LibSkia ${{ inputs.target-os }}-${{ matrix.architecture }}
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: ${{ fromJson( inputs.architectures ) }}
+    steps:
+      - name: Cloning Repository
+        uses: actions/checkout@v3
+
+      - name: Fetching Pre-Built Nuke
+        uses: actions/download-artifact@v3
+        with:
+          name: nuke
+          path: build/bin/Debug/publish/
+
+      - name: Fetch Cached LibSkia
+        uses: actions/cache/restore@v3
+        if: ${{ inputs.use-skia-cache }}
+        with:
+          path: dist
+          key: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static-${{ github.run_id }}
+          restore-keys: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
+
+      - name: Compiling LibSkia
+        run: dotnet build/bin/Debug/publish/_build.dll LibSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --use-cache ${{ inputs.use-skia-cache }}
+        id: build
+
+      - name: Uploading LibSkia to Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
+          path: artifacts
+  
+      - name: Uploading LibSkia to Build Cache
+        uses: actions/cache/save@v3
+        if: ${{ steps.build.outputs.build-skipped != 'true' }}
+        with:
+          path: dist
+          key: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static-${{ github.run_id }} 
+
+  alphaskia:
+    runs-on: ${{ inputs.runs-on }}
+    needs: [skia]
+    name: LibAlphaSkia ${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: ${{ fromJson( inputs.architectures ) }}
+        variant: ${{ fromJson( inputs.variants ) }}
+    steps:
+      - name: Cloning Repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Fetching Pre-Built Nuke
+        uses: actions/download-artifact@v3
+        with:
+          name: nuke
+          path: build/bin/Debug/publish/
+
+      - name: Downloading LibSkia
+        uses: actions/download-artifact@v3
+        with:
+          path: dist/.organize/libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
+          name: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
+
+      - name: Compiling LibAlphaSkia
+        run: dotnet build/bin/Debug/publish/_build.dll LibAlphaSkia LibAlphaSkiaTest --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+        id: build
+
+      - name: Uploading LibAlphaSkia to Artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: libalphaskia-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}
+          path: artifacts
+
+      - name: Uploading LibAlphaSkiaTest to Artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: libalphaskiatest-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}
+          if-no-files-found: ignore
+          path: |
+            dist/libalphaskiatest-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}/
+            test/test-outputs/

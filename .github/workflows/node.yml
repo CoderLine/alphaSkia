@@ -1,0 +1,59 @@
+on:
+  workflow_call:
+    inputs:
+      # Versioning
+      alphaskia-version:
+        type: string
+        description: The version for alphaSkia in format MAJOR.MINOR
+        required: true
+      is-release-build:
+        type: boolean
+        description: Whether the version is a prerelease or full release
+        required: false
+
+env:
+  ALPHASKIA_VERSION_TEMPLATE: ${{ inputs.alphaskia-version }}
+  IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist/.organize
+    - run: ./build.cmd Node
+    - uses: actions/upload-artifact@v3
+      with:
+        name: nodetars
+        path: |
+          lib/node/*/*.tgz
+  node-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        node: [latest, "lts/*"]
+    runs-on: ${{ matrix.runs-on }}
+    needs: [node]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nodetars
+        path: dist/.organize/node
+    - uses: actions/setup-node@v3
+      with:
+        node-version:  ${{ matrix.node }}
+    - run: node -e "console.log(process)"
+    - run: ./build.cmd NodeTest
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Node Test Results
+        path: |
+          test/test-outputs/**/*.*
