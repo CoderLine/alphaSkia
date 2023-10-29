@@ -12,7 +12,6 @@ env:
   SONATYPE_SIGNING_PASSWORD: ${{ secrets.SONATYPE_SIGNING_PASSWORD }}
   SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
         
-
 jobs:
   full_build:
     uses: .github/workflows/reusable-build.yaml

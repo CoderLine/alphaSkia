@@ -45,28 +45,30 @@ partial class Build
 
     public Target JavaBuild => _ => _
         .DependsOn(PrepareGitHubArtifacts)
-        .Executes(() =>
+        .Executes(JavaBuildInternal);
+
+    void JavaBuildInternal()
+    {
+        JavaWriteVersionInfoProperties();
+
+        if (Rebuild)
         {
-            JavaWriteVersionInfoProperties();
-
-            if (Rebuild)
-            {
-                GradlewTool("clean",
-                    environmentVariables: Variables
-                        .ToDictionary(x => x.Key, x => x.Value)
-                        .SetKeyValue("JAVA_HOME", JavaHome)
-                        .AsReadOnly(),
-                    workingDirectory: RootDirectory / "lib" / "java");
-                (RootDirectory / "lib" / "java" / "dist").DeleteDirectory();
-            }
-
-            GradlewTool("build",
-                environmentVariables:  Variables
+            GradlewTool("clean",
+                environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)
                     .SetKeyValue("JAVA_HOME", JavaHome)
                     .AsReadOnly(),
                 workingDirectory: RootDirectory / "lib" / "java");
-        });
+            (RootDirectory / "lib" / "java" / "dist").DeleteDirectory();
+        }
+
+        GradlewTool("build",
+            environmentVariables:  Variables
+                .ToDictionary(x => x.Key, x => x.Value)
+                .SetKeyValue("JAVA_HOME", JavaHome)
+                .AsReadOnly(),
+            workingDirectory: RootDirectory / "lib" / "java");
+    }
 
     public Target JavaTest => _ => _
         .DependsOn(PrepareGitHubArtifacts)
@@ -125,37 +127,27 @@ partial class Build
         }
     }
     
-    [Parameter] [Secret] readonly string OssrhPassword = GetVariable<string>("OSSRH_PASSWORD");
-    [Parameter] [Secret] readonly string OssrhUsername = GetVariable<string>("OSSRH_USERNAME");
-    [Parameter] [Secret] readonly string SonatypeSigningKey = GetVariable<string>("SONATYPE_SIGNING_KEY");
-    [Parameter] [Secret] readonly string SonatypeSigningKeyId = GetVariable<string>("SONATYPE_SIGNING_KEY_ID");
-    [Parameter] [Secret] readonly string SonatypeSigningPassword = GetVariable<string>("SONATYPE_SIGNING_PASSWORD");
-    [Parameter] [Secret] readonly string SonatypeStagingProfileId = GetVariable<string>("SONATYPE_STAGING_PROFILE_ID");
-    
     public Target JavaPublish => _ => _
         .DependsOn(PrepareGitHubArtifacts)
         .Requires(() => IsGitHubActions)
         .Executes(() =>
         {
-            // https://support.sonatype.com/hc/en-us/articles/115006744008
-//             maven {
-//                 name = "sonatype"
-//                 url = uri(
-//                     "http://localhost:8081/repository/Snapshots/"
-// //                    if (libVersion.endsWith("SNAPSHOT"))
-// //                        "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-// //                    else
-// //                        "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-//                 )
-//                 credentials {
-//                     username = ossrhUsername
-//                     password = ossrhPassword
-//                 }
-//             }
-
+            // workaround until we know how to upload existing maven packages
+            // https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
+            JavaBuildInternal();
             
-            // TODO: how to publish to Sonatype from local maven structure?
-            // https://central.sonatype.org/publish/publish-gradle/#deployment
-            // https://github.com/CoderLine/alphaTab/blob/develop/.github/workflows/publish.yml#L102C28-L106
+            GradlewTool("publishMavenJavaToSonatypeRepository",
+                environmentVariables: Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .AsReadOnly(),
+                workingDirectory: RootDirectory / "lib" / "java");
+            
+            GradlewTool("closeAndReleaseSonatypeStagingRepository",
+                environmentVariables: Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .AsReadOnly(),
+                workingDirectory: RootDirectory / "lib" / "java");
         });
 }

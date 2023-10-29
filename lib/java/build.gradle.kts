@@ -1,4 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import java.io.FileInputStream
 import java.util.*
 
@@ -10,6 +9,9 @@ buildscript {
     }
 }
 
+plugins {
+    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+}
 
 var sonatypeSigningKeyId = ""
 var sonatypeSigningPassword = ""
@@ -104,7 +106,7 @@ subprojects {
         defaultCharacterEncoding = "UTF-8"
     }
 
-    tasks.withType<Javadoc>{
+    tasks.withType<Javadoc> {
         options.encoding = "UTF-8"
     }
 
@@ -112,27 +114,13 @@ subprojects {
         if (sonatypeSigningKeyId.isNotBlank() && sonatypeSigningKey.isNotBlank() && sonatypeSigningPassword.isNotBlank()) {
             useInMemoryPgpKeys(sonatypeSigningKeyId, sonatypeSigningKey, sonatypeSigningPassword)
             sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
-        } else if(System.getenv("GITHUB_ACTIONS") == "true"){
+        } else if (System.getenv("GITHUB_ACTIONS") == "true") {
             throw Exception("no signing configured")
         }
     }
 
     configure<PublishingExtension> {
         repositories {
-            maven {
-                name = "sonatype"
-                url = uri(
-                    if (version.toString().endsWith("SNAPSHOT"))
-                        "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                    else
-                        "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-                )
-                credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
-                }
-            }
-
             maven {
                 name = "DistPath"
                 url = rootProject.projectDir.resolve("dist").toURI()
@@ -175,5 +163,14 @@ subprojects {
                 }
             }
         }
+    }
+}
+
+nexusPublishing {
+    repositories.sonatype {
+        nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+        snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        username = ossrhUsername
+        password = ossrhPassword
     }
 }

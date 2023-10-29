@@ -41,10 +41,14 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v3
+      
       - uses: actions/download-artifact@v3
         with:
-          name: maven
-          path: dist/.organize/maven
+          # NOTE: workaround until we know how to upload existing maven packages
+          # https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
+          # name: maven
+          # path: dist/.organize/maven
+          path: dist/.organize
       - run: ./build.sh JavaPublish
 
   node-publish: 
