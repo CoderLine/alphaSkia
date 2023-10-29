@@ -127,7 +127,6 @@ partial class Build
     {
         // https://github.com/microsoft/vcpkg/issues/31875
         var buildFile = SkiaPath / "third_party" / "externals" / "vulkanmemoryallocator" / "include" / "vk_mem_alloc.h";
-        const string searchText = "CONFIGURATION SECTION";
 
         var include = """
             #if VMA_STATS_STRING_ENABLED

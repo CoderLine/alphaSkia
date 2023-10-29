@@ -15,6 +15,16 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+
     - uses: actions/cache/restore@v3
       if: ${{ inputs.use-cache }}
       with:
