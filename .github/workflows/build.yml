@@ -8,8 +8,9 @@ on:
         
 jobs:
   full_build:
-    uses: ./.github/workflows/reusable-build.yml
+    uses: ./.github/workflows/reusable-full-build.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }}
       alphaskia-version: "1.0"
+      is-release-build: false
     secrets: inherit

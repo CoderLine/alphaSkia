@@ -1,0 +1,71 @@
+on:
+  workflow_call:
+    inputs:
+      # Versioning
+      alphaskia-version:
+        type: string
+        description: The version for alphaSkia in format MAJOR.MINOR
+        required: true
+      is-release-build:
+        type: boolean
+        description: Whether the version is a prerelease or full release
+        required: false
+
+env:
+  ALPHASKIA_VERSION_TEMPLATE: ${{ inputs.alphaskia-version }}
+  IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
+
+jobs:
+  java:
+    runs-on: ubuntu-latest
+    env:
+      SONATYPE_SIGNING_KEY: ${{ secrets.SONATYPE_SIGNING_KEY }}
+      SONATYPE_SIGNING_KEY_ID: ${{ secrets.SONATYPE_SIGNING_KEY_ID }}
+      SONATYPE_SIGNING_PASSWORD: ${{ secrets.SONATYPE_SIGNING_PASSWORD }}
+      SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist/.organize
+    - run: ./build.cmd Java
+    - uses: actions/upload-artifact@v3
+      with:
+        name: maven
+        path: |
+          lib/java/dist/**/*.*
+  java-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: 
+          - runs-on: ubuntu-latest
+          - runs-on: windows-latest
+          - runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
+    needs: [java]
+    steps:
+      # even though it is installed, not all Operating systems are configured the same
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+    - uses: actions/download-artifact@v3
+      with:
+        name: maven
+        path: dist/.organize/maven
+    - run: ./build.cmd JavaTest
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Java Test Results
+        path: |
+          test/test-outputs/**/*.*    

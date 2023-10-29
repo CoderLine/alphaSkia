@@ -1,0 +1,132 @@
+on:
+  workflow_call:
+    inputs:
+      # Caching  
+      use-skia-cache:
+        type: boolean
+        description: Use Skia Binary from cache
+        required: true
+      
+      # Versioning
+      alphaskia-version:
+        type: string
+        description: The version for alphaSkia in format MAJOR.MINOR
+        required: true
+      is-release-build:
+        type: boolean
+        description: Whether the version is a prerelease or full release
+        required: false
+                
+env:
+  ALPHASKIA_VERSION_TEMPLATE: ${{ inputs.alphaskia-version }}
+  IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
+  
+jobs:
+  nuke: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: dotnet publish ./build/_build.csproj
+      - uses: actions/upload-artifact@v3
+        with:
+          name: nuke
+          path: build/bin/Debug/publish/
+#
+# Native Libs
+  windows:
+    needs: [nuke]
+    uses: ./.github/workflows/native.yml
+    with: 
+      use-skia-cache: ${{ inputs.use-skia-cache }} 
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+      runs-on: windows-latest
+      target-os: windows
+      architectures: '[ "x64", "x86", "arm64" ]'
+      variants: '[ "shared" , "jni", "node" ]'
+
+  linux:
+    needs: [nuke]
+    uses: ./.github/workflows/native.yml
+    with: 
+      use-skia-cache: ${{ inputs.use-skia-cache }} 
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+      runs-on: ubuntu-latest
+      target-os: linux
+      architectures: '[ "x64", "x86", "arm", "arm64" ]'
+      variants: '[ "shared" , "jni", "node" ]'
+
+  macos:
+    needs: [nuke]
+    uses: ./.github/workflows/native.yml
+    with: 
+      use-skia-cache: ${{ inputs.use-skia-cache }} 
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+      runs-on: macos-latest
+      target-os: linux
+      architectures: '[ "x64", "arm64" ]'
+      variants: '[ "shared" , "jni", "node" ]'
+
+  android:
+    needs: [nuke]
+    uses: ./.github/workflows/native.yml
+    with: 
+      use-skia-cache: ${{ inputs.use-skia-cache }} 
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+      runs-on: ubuntu-latest
+      target-os: macos
+      architectures: '[ "x64", "x86", "arm", "arm64" ]'
+      variants: '[ "shared" , "jni" ]'
+
+  ios:
+    needs: [nuke]
+    uses: ./.github/workflows/native.yml
+    with: 
+      use-skia-cache: ${{ inputs.use-skia-cache }} 
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+      runs-on: macos-latest
+      target-os: ios
+      architectures: '[ "arm64" ]'
+      variants: '[ "shared" ]'
+
+  iossimulator:
+    needs: [nuke]
+    uses: ./.github/workflows/native.yml
+    with: 
+      use-skia-cache: ${{ inputs.use-skia-cache }} 
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+      runs-on: macos-latest
+      target-os: iossimulator
+      architectures: '[ "arm64", "x64" ]'
+      variants: '[ "shared" ]'
+
+#
+# Libraries
+  dotnet:
+    needs: [windows, linux, android, macos, ios, iossimulator]
+    uses: ./.github/workflows/dotnet.yml
+    secrets: inherit
+    with:
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+
+  java:
+    needs: [windows, linux, android, macos]
+    secrets: inherit
+    uses: ./.github/workflows/java.yml
+    with:
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}
+
+  node:
+    needs: [windows, linux, macos]
+    secrets: inherit
+    uses: ./.github/workflows/java.yml
+    with:
+      alphaskia-version: ${{ inputs.alphaskia-version }} 
+      is-release-build: ${{ inputs.is-release-build }}

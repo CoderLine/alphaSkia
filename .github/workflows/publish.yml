@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/reusable-build.yml
+    uses: ./.github/workflows/reusable-full-build.yml
     with: 
       # TODO: change to false once pipeline is done
       use-skia-cache: true 
