@@ -20,6 +20,11 @@ runs:
   steps:
     - uses: actions/download-artifact@v3
       with:
+        name: nuke
+        path: build/bin/Debug/publish/
+
+    - uses: actions/download-artifact@v3
+      with:
         path: dist/.organize/libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
         name: libskia-${{ inputs.target-os }}-${{ inputs.architecture }}-static
 
