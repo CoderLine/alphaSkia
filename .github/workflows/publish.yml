@@ -17,7 +17,7 @@ env:
 
 jobs:
   build:
-    uses: .github/workflows/reusable-build.yaml
+    uses: ./.github/workflows/reusable-build.yaml
     with: 
       # TODO: change to false once pipeline is done
       use-skia-cache: true 
@@ -44,7 +44,7 @@ jobs:
       
       - uses: actions/download-artifact@v3
         with:
-          # NOTE: workaround until we know how to upload existing maven packages
+          # workaround until we know how to upload existing maven packages
           # https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
           # name: maven
           # path: dist/.organize/maven
