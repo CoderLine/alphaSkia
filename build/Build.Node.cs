@@ -219,13 +219,12 @@ partial class Build
             foreach (var tar in (DistBasePath / "nodetars").GlobFiles("*.tgz"))
             {
                 var tag = (IsReleaseBuild) ? "latest" : "alpha";
-                Log.Information("Dummy: npm publish {Tar} --access public --tag {Tag}", tar, tag);
-                // NpmTasks.Npm($"publish {tar} --access public --tag {tag}",
-                //     environmentVariables: Variables
-                //         .ToDictionary(x => x.Key, x => x.Value)
-                //         .SetKeyValue("NODE_AUTH_TOKEN", NpmjsAuthToken)
-                //         .AsReadOnly()
-                // );
+                NpmTasks.Npm($"publish {tar} --access public --tag {tag}",
+                    environmentVariables: Variables
+                        .ToDictionary(x => x.Key, x => x.Value)
+                        .SetKeyValue("NODE_AUTH_TOKEN", NpmjsAuthToken)
+                        .AsReadOnly()
+                );
             }
         });
 }

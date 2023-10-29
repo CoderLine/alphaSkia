@@ -119,17 +119,12 @@ partial class Build
         .Requires(() => IsGitHubActions)
         .Executes(() =>
         {
-            foreach (var nupkg in (DistBasePath / "nupkgs").GlobFiles("*.nupkg"))
-            {
-                Log.Information("Dummy: nuget push {NuPkg}", nupkg);
-            }
-
-            // DotNetTasks.DotNetNuGetPush(_ => _
-            //         .SetSource("https://api.nuget.org/v3/index.json")
-            //         .SetApiKey(NugetApiKey)
-            //         .CombineWith(
-            //             (DistBasePath / "nupkgs").GlobFiles("*.nupkg")
-            //             , (_, v) => _
-            //                 .SetTargetPath(v)));
+            DotNetTasks.DotNetNuGetPush(_ => _
+                    .SetSource("https://api.nuget.org/v3/index.json")
+                    .SetApiKey(NugetApiKey)
+                    .CombineWith(
+                        (DistBasePath / "nupkgs").GlobFiles("*.nupkg")
+                        , (_, v) => _
+                            .SetTargetPath(v)));
         });
 }
