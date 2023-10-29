@@ -66,7 +66,7 @@ partial class Build
         arch ??= Architecture;
         variant ??= Variant;
 
-        return $"{libName.ToLowerInvariant()}-{targetOs.RuntimeIdentifier}-{arch}-{variant}";
+        return $"{libName.ToLowerInvariant()}-{targetOs?.RuntimeIdentifier}-{arch}-{variant}";
     }
 
     Task GitSyncDepsCustom(string[] requiredDependencies)

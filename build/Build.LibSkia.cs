@@ -119,7 +119,34 @@ partial class Build
 
             PatchSkiaToolchain();
             PatchSkiaMacOsVersion();
+            PatchVulcanAllocatorIncludes();
         });
+
+    void PatchVulcanAllocatorIncludes()
+    {
+        // https://github.com/microsoft/vcpkg/issues/31875
+        var buildFile = SkiaPath / "third_party" / "externals" / "vulkanmemoryallocator" / "include" / "vk_mem_alloc.h";
+        const string searchText = "CONFIGURATION SECTION";
+
+        var include = """
+            #if VMA_STATS_STRING_ENABLED
+                #include <cstdio> // For snprintf
+            #endif
+        """;
+
+        PatchSkiaFile(buildFile, include, "cstdio", "//",
+            source =>
+            {
+                var stdLibInclude = source.IndexOf("#include <cstdlib>", StringComparison.Ordinal);
+                if (stdLibInclude == -1)
+                {
+                    throw new IOException("Could not find patch position for vulcan memory allocator");
+                }
+
+                var endOfLine = source.IndexOf("\n", stdLibInclude, StringComparison.Ordinal);
+                return endOfLine + 1;
+            });
+    }
 
     void BuildSkia()
     {

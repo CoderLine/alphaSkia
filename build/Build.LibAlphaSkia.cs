@@ -73,7 +73,7 @@ partial class Build
                   }
                 }
             """;
-            PatchSkiaFile(SkiaPath / "gn" / "BUILDCONFIG.gn", buildConfigNew);
+            PatchSkiaFile(SkiaPath / "gn" / "BUILDCONFIG.gn", buildConfigNew, "BuildConfig", "#");
 
             const string buildNew = """
                 alphaskia_wrapper_sources = [
@@ -183,17 +183,18 @@ partial class Build
                   }
                 }
             """;
-            PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew);
+            PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew, "Build", "#");
             PatchSkiaToolchain();
             PatchSkiaMacOsVersion();
         });
 
 
-    void PatchSkiaFile(AbsolutePath file, string newText)
+    void PatchSkiaFile(AbsolutePath file, string newText, string patchName, string patchCommentPrefix,
+        Func<string, int> findInsertOffset = null)
     {
         var existingText = file.ReadAllText();
-        const string startMarker = "# AlphaSkia Patch Start";
-        const string endMarker = "# AlphaSkia Patch End";
+        string startMarker = patchCommentPrefix + " AlphaSkia Patch Start - " + patchName;
+        string endMarker = patchCommentPrefix + " AlphaSkia Patch End - " + patchName;
         var newTextWithMarker = new StringBuilder();
         newTextWithMarker.AppendLine();
         newTextWithMarker.AppendLine(startMarker);
@@ -201,6 +202,11 @@ partial class Build
         newTextWithMarker.AppendLine(endMarker);
 
         var beforePatchIndex = existingText.IndexOf(startMarker, StringComparison.OrdinalIgnoreCase);
+        if (beforePatchIndex == -1 && findInsertOffset != null)
+        {
+            beforePatchIndex = findInsertOffset.Invoke(existingText);
+        }
+        
         if (beforePatchIndex == -1)
         {
             // not yet patched
@@ -211,8 +217,8 @@ partial class Build
             var afterPatchIndex = existingText.IndexOf(endMarker, beforePatchIndex, StringComparison.OrdinalIgnoreCase);
             if (afterPatchIndex == -1)
             {
-                // corrupt patch (no end)
-                file.WriteAllText(existingText[..beforePatchIndex].TrimEnd() + newTextWithMarker);
+                // corrupt patch (no end) or custom insert position
+                file.WriteAllText(existingText[..beforePatchIndex].TrimEnd() + newTextWithMarker + existingText[beforePatchIndex..]);
             }
             else
             {
