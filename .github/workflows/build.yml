@@ -18,5 +18,5 @@ jobs:
     uses: .github/workflows/reusable-build.yaml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }}
-      alphaskia-version: 1.0.0.${{ github.run_number }}
+      alphaskia-version: 1.0
     secrets: inherit

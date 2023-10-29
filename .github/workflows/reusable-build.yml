@@ -7,7 +7,7 @@ on:
         required: true
       alphaskia-version:
         type: string
-        description: The version for alphaSkia
+        description: The version for alphaSkia in format MAJOR.MINOR
         required: true
       is-release-build:
         type: boolean

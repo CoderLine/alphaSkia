@@ -21,7 +21,7 @@ jobs:
     with: 
       # TODO: change to false once pipeline is done
       use-skia-cache: true 
-      alphaskia-version: 1.0.0.${{ github.run_number }}
+      alphaskia-version: 1.0
       is-release-build: ${{ inputs.is-release-build }}
     secrets: inherit
 
