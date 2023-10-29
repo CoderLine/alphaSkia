@@ -136,21 +136,18 @@ partial class Build
             // https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
             JavaBuildInternal();
             
-            Log.Information("Dummy: publishMavenJavaPublicationToSonatypeRepository");
-            Log.Information("Dummy: closeAndReleaseSonatypeStagingRepository");
+            GradlewTool("publishMavenJavaPublicationToSonatypeRepository",
+                environmentVariables: Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .AsReadOnly(),
+                workingDirectory: RootDirectory / "lib" / "java");
             
-            // GradlewTool("publishMavenJavaPublicationToSonatypeRepository",
-            //     environmentVariables: Variables
-            //         .ToDictionary(x => x.Key, x => x.Value)
-            //         .SetKeyValue("JAVA_HOME", JavaHome)
-            //         .AsReadOnly(),
-            //     workingDirectory: RootDirectory / "lib" / "java");
-            //
-            // GradlewTool("closeAndReleaseSonatypeStagingRepository",
-            //     environmentVariables: Variables
-            //         .ToDictionary(x => x.Key, x => x.Value)
-            //         .SetKeyValue("JAVA_HOME", JavaHome)
-            //         .AsReadOnly(),
-            //     workingDirectory: RootDirectory / "lib" / "java");
+            GradlewTool("closeAndReleaseSonatypeStagingRepository",
+                environmentVariables: Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .AsReadOnly(),
+                workingDirectory: RootDirectory / "lib" / "java");
         });
 }
