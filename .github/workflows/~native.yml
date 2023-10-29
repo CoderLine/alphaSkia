@@ -111,7 +111,6 @@ jobs:
 
       - name: Compiling LibAlphaSkia
         run: dotnet build/bin/Debug/publish/_build.dll LibAlphaSkia LibAlphaSkiaTest --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-        id: build
 
       - name: Uploading LibAlphaSkia to Artifacts
         uses: actions/upload-artifact@v3

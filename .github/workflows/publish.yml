@@ -5,13 +5,16 @@ on:
         type: boolean
         description: Whether the version is a prerelease or full release
         default: false
+      use-skia-cache:
+        type: boolean
+        description: Use Skia Binary from cache
+        default: false
 
 jobs:
   build:
-    uses: ./.github/workflows/reusable-full-build.yml
+    uses: ./.github/workflows/~reusable-full-build.yml
     with: 
-      # TODO: change to false once pipeline is done
-      use-skia-cache: true 
+      use-skia-cache: ${{ inputs.use-skia-cache }} 
       alphaskia-version: "1.0"
       is-release-build: ${{ inputs.is-release-build }}
     secrets: inherit

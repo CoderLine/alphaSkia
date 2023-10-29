@@ -35,7 +35,7 @@ jobs:
 # Native Libs
   windows:
     needs: [nuke]
-    uses: ./.github/workflows/native.yml
+    uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
       alphaskia-version: ${{ inputs.alphaskia-version }} 
@@ -47,7 +47,7 @@ jobs:
 
   linux:
     needs: [nuke]
-    uses: ./.github/workflows/native.yml
+    uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
       alphaskia-version: ${{ inputs.alphaskia-version }} 
@@ -59,7 +59,7 @@ jobs:
 
   macos:
     needs: [nuke]
-    uses: ./.github/workflows/native.yml
+    uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
       alphaskia-version: ${{ inputs.alphaskia-version }} 
@@ -71,7 +71,7 @@ jobs:
 
   android:
     needs: [nuke]
-    uses: ./.github/workflows/native.yml
+    uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
       alphaskia-version: ${{ inputs.alphaskia-version }} 
@@ -83,7 +83,7 @@ jobs:
 
   ios:
     needs: [nuke]
-    uses: ./.github/workflows/native.yml
+    uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
       alphaskia-version: ${{ inputs.alphaskia-version }} 
@@ -95,7 +95,7 @@ jobs:
 
   iossimulator:
     needs: [nuke]
-    uses: ./.github/workflows/native.yml
+    uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
       alphaskia-version: ${{ inputs.alphaskia-version }} 
@@ -109,7 +109,7 @@ jobs:
 # Libraries
   dotnet:
     needs: [windows, linux, android, macos, ios, iossimulator]
-    uses: ./.github/workflows/dotnet.yml
+    uses: ./.github/workflows/~dotnet.yml
     secrets: inherit
     with:
       alphaskia-version: ${{ inputs.alphaskia-version }} 
@@ -118,7 +118,7 @@ jobs:
   java:
     needs: [windows, linux, android, macos]
     secrets: inherit
-    uses: ./.github/workflows/java.yml
+    uses: ./.github/workflows/~java.yml
     with:
       alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
@@ -126,7 +126,7 @@ jobs:
   node:
     needs: [windows, linux, macos]
     secrets: inherit
-    uses: ./.github/workflows/node.yml
+    uses: ./.github/workflows/~node.yml
     with:
       alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
