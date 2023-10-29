@@ -22,7 +22,7 @@ partial class Build
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
-            GradlewTool("publishMavenJavaToDistPathRepository",
+            GradlewTool("publishMavenJavaPublicationToDistPathRepository",
                 environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)
                     .SetKeyValue("JAVA_HOME", JavaHome)
@@ -136,10 +136,10 @@ partial class Build
             // https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
             JavaBuildInternal();
             
-            Log.Information("Dummy: publishMavenJavaToSonatypeRepository");
+            Log.Information("Dummy: publishMavenJavaPublicationToSonatypeRepository");
             Log.Information("Dummy: closeAndReleaseSonatypeStagingRepository");
             
-            // GradlewTool("publishMavenJavaToSonatypeRepository",
+            // GradlewTool("publishMavenJavaPublicationToSonatypeRepository",
             //     environmentVariables: Variables
             //         .ToDictionary(x => x.Key, x => x.Value)
             //         .SetKeyValue("JAVA_HOME", JavaHome)
