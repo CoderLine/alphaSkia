@@ -111,11 +111,13 @@ subprojects {
     }
 
     configure<SigningExtension> {
-        if (sonatypeSigningKeyId.isNotBlank() && sonatypeSigningKey.isNotBlank() && sonatypeSigningPassword.isNotBlank()) {
-            useInMemoryPgpKeys(sonatypeSigningKeyId, sonatypeSigningKey, sonatypeSigningPassword)
-            sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
-        } else if (System.getenv("GITHUB_ACTIONS") == "true") {
-            throw Exception("no signing configured")
+        afterEvaluate {
+            if (sonatypeSigningKeyId.isNotBlank() && sonatypeSigningKey.isNotBlank() && sonatypeSigningPassword.isNotBlank()) {
+                useInMemoryPgpKeys(sonatypeSigningKeyId, sonatypeSigningKey, sonatypeSigningPassword)
+                sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
+            } else if (System.getenv("GITHUB_ACTIONS") == "true") {
+                throw Exception("no signing configured")
+            }
         }
     }
 
