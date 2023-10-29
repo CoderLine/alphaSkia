@@ -1,0 +1,65 @@
+on:
+  workflow_dispatch:
+    inputs:
+      is-release-build:
+        type: boolean
+        description: Whether the version is a prerelease or full release
+        default: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-build.yml
+    with: 
+      # TODO: change to false once pipeline is done
+      use-skia-cache: true 
+      alphaskia-version: "1.0"
+      is-release-build: ${{ inputs.is-release-build }}
+    secrets: inherit
+
+  dotnet-publish: 
+    runs-on: ubuntu-latest
+    needs: [build]
+    env:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: nodetars
+          path: dist/.organize/node
+      - run: ./build.sh DotNetPublish
+
+  java-publish: 
+    runs-on: ubuntu-latest
+    needs: [build]
+    env:
+      OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+      OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}    
+      SONATYPE_SIGNING_KEY: ${{ secrets.SONATYPE_SIGNING_KEY }}
+      SONATYPE_SIGNING_KEY_ID: ${{ secrets.SONATYPE_SIGNING_KEY_ID }}
+      SONATYPE_SIGNING_PASSWORD: ${{ secrets.SONATYPE_SIGNING_PASSWORD }}
+      SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/download-artifact@v3
+        with:
+          # workaround until we know how to upload existing maven packages
+          # https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
+          # name: maven
+          # path: dist/.organize/maven
+          path: dist/.organize
+      - run: ./build.sh JavaPublish
+
+  node-publish: 
+    runs-on: ubuntu-latest
+    needs: [build]
+    env:
+      NPMJS_AUTH_TOKEN: ${{ secrets.NPMJS_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: nodetars
+          path: dist/.organize/node
+      - run: ./build.sh NodePublish

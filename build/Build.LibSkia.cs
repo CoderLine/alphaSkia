@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Nuke.Common;
-using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
 using Serilog;
 

@@ -22,7 +22,7 @@ partial class Build
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
-            GradlewTool("publishAllPublicationsToDistPathRepository",
+            GradlewTool("publishMavenJavaPublicationToDistPathRepository",
                 environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)
                     .SetKeyValue("JAVA_HOME", JavaHome)
@@ -45,28 +45,30 @@ partial class Build
 
     public Target JavaBuild => _ => _
         .DependsOn(PrepareGitHubArtifacts)
-        .Executes(() =>
+        .Executes(JavaBuildInternal);
+
+    void JavaBuildInternal()
+    {
+        JavaWriteVersionInfoProperties();
+
+        if (Rebuild)
         {
-            JavaWriteVersionInfoProperties();
-
-            if (Rebuild)
-            {
-                GradlewTool("clean",
-                    environmentVariables: Variables
-                        .ToDictionary(x => x.Key, x => x.Value)
-                        .SetKeyValue("JAVA_HOME", JavaHome)
-                        .AsReadOnly(),
-                    workingDirectory: RootDirectory / "lib" / "java");
-                (RootDirectory / "lib" / "java" / "dist").DeleteDirectory();
-            }
-
-            GradlewTool("build",
-                environmentVariables:  Variables
+            GradlewTool("clean",
+                environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)
                     .SetKeyValue("JAVA_HOME", JavaHome)
                     .AsReadOnly(),
                 workingDirectory: RootDirectory / "lib" / "java");
-        });
+            (RootDirectory / "lib" / "java" / "dist").DeleteDirectory();
+        }
+
+        GradlewTool("build",
+            environmentVariables:  Variables
+                .ToDictionary(x => x.Key, x => x.Value)
+                .SetKeyValue("JAVA_HOME", JavaHome)
+                .AsReadOnly(),
+            workingDirectory: RootDirectory / "lib" / "java");
+    }
 
     public Target JavaTest => _ => _
         .DependsOn(PrepareGitHubArtifacts)
@@ -124,4 +126,31 @@ partial class Build
             return semVer;
         }
     }
+    
+    public Target JavaPublish => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
+        .Requires(() => IsGitHubActions)
+        .Executes(() =>
+        {
+            // workaround until we know how to upload existing maven packages
+            // https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
+            JavaBuildInternal();
+            
+            Log.Information("Dummy: publishMavenJavaPublicationToSonatypeRepository");
+            Log.Information("Dummy: closeAndReleaseSonatypeStagingRepository");
+            
+            // GradlewTool("publishMavenJavaPublicationToSonatypeRepository",
+            //     environmentVariables: Variables
+            //         .ToDictionary(x => x.Key, x => x.Value)
+            //         .SetKeyValue("JAVA_HOME", JavaHome)
+            //         .AsReadOnly(),
+            //     workingDirectory: RootDirectory / "lib" / "java");
+            //
+            // GradlewTool("closeAndReleaseSonatypeStagingRepository",
+            //     environmentVariables: Variables
+            //         .ToDictionary(x => x.Key, x => x.Value)
+            //         .SetKeyValue("JAVA_HOME", JavaHome)
+            //         .AsReadOnly(),
+            //     workingDirectory: RootDirectory / "lib" / "java");
+        });
 }

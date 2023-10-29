@@ -1,9 +1,10 @@
-using System;
 using Nuke.Common;
+using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Serilog;
+using static Nuke.Common.EnvironmentInfo;
 
 partial class Build
 {
@@ -109,5 +110,26 @@ partial class Build
                 .SetFramework(Framework)
                 .AddProcessEnvironmentVariable("NUGET_PACKAGES", TemporaryDirectory / "packages")
             );
+        });
+
+    [Parameter] [Secret] readonly string NugetApiKey = GetVariable<string>("NUGET_API_KEY");
+
+    public Target DotNetPublish => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
+        .Requires(() => IsGitHubActions)
+        .Executes(() =>
+        {
+            foreach (var nupkg in (DistBasePath / "nupkgs").GlobFiles("*.nupkg"))
+            {
+                Log.Information("Dummy: nuget push {NuPkg}", nupkg);
+            }
+
+            // DotNetTasks.DotNetNuGetPush(_ => _
+            //         .SetSource("https://api.nuget.org/v3/index.json")
+            //         .SetApiKey(NugetApiKey)
+            //         .CombineWith(
+            //             (DistBasePath / "nupkgs").GlobFiles("*.nupkg")
+            //             , (_, v) => _
+            //                 .SetTargetPath(v)));
         });
 }

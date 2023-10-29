@@ -1,4 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import java.io.FileInputStream
 import java.util.*
 
@@ -10,6 +9,9 @@ buildscript {
     }
 }
 
+plugins {
+    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+}
 
 var sonatypeSigningKeyId = ""
 var sonatypeSigningPassword = ""
@@ -70,12 +72,11 @@ loadSetting("ALPHASKIA_LICENSE_SPDX", "alphaskiaLicenseSpdx") { libLicenseSpdx =
 loadSetting("ALPHASKIA_LICENSE_URL", "alphaskiaLicenseUrl") { libLicenseUrl = it }
 loadSetting("ALPHASKIA_ISSUES_URL", "alphaskiaIssuesUrl") { libIssuesUrl = it }
 
-
-
 subprojects {
     apply<JavaLibraryPlugin>()
     apply<MavenPublishPlugin>()
     apply(plugin = "maven-publish")
+    apply(plugin = "signing")
 
     group = "net.alphatab"
     version = libVersion
@@ -105,26 +106,21 @@ subprojects {
         defaultCharacterEncoding = "UTF-8"
     }
 
-    tasks.withType<Javadoc>{
+    tasks.withType<Javadoc> {
         options.encoding = "UTF-8"
+    }
+
+    configure<SigningExtension> {
+        if (sonatypeSigningKeyId.isNotBlank() && sonatypeSigningKey.isNotBlank() && sonatypeSigningPassword.isNotBlank()) {
+            useInMemoryPgpKeys(sonatypeSigningKeyId, sonatypeSigningKey, sonatypeSigningPassword)
+            sign(extensions.getByType<PublishingExtension>().publications)
+        } else if (System.getenv("GITHUB_ACTIONS") == "true") {
+            throw Exception("no signing configured")
+        }
     }
 
     configure<PublishingExtension> {
         repositories {
-//                maven {
-//                    name = "sonatype"
-//                    url = uri(
-//                        if (libVersion.endsWith("SNAPSHOT"))
-//                            "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-//                        else
-//                            "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-//                    )
-//                    credentials {
-//                        username = ossrhUsername
-//                        password = ossrhPassword
-//                    }
-//                }
-
             maven {
                 name = "DistPath"
                 url = rootProject.projectDir.resolve("dist").toURI()
@@ -132,11 +128,11 @@ subprojects {
         }
 
         publications {
+            // this publication builds the library and is meant to publish to the local dist folder
             create<MavenPublication>("mavenJava") {
                 from(components["java"])
                 afterEvaluate {
                     artifactId = tasks.withType<Jar>().first().archiveBaseName.get()
-
                     pom {
                         description = libDescription
                         url = libProjectUrl
@@ -167,5 +163,14 @@ subprojects {
                 }
             }
         }
+    }
+}
+
+nexusPublishing {
+    repositories.sonatype {
+        nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+        snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        username = ossrhUsername
+        password = ossrhPassword
     }
 }

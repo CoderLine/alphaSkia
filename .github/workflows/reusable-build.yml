@@ -1,0 +1,361 @@
+on:
+  workflow_call:
+    inputs:
+      use-skia-cache:
+        type: boolean
+        description: Use Skia Binary from cache
+        required: true
+      alphaskia-version:
+        type: string
+        description: The version for alphaSkia in format MAJOR.MINOR
+        required: true
+      is-release-build:
+        type: boolean
+        description: Whether the version is a prerelease or full release
+        required: false
+                
+env:
+  ALPHASKIA_VERSION_TEMPLATE: ${{ inputs.alphaskia-version }}
+  IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
+  
+jobs:
+#
+# Nuke
+  nuke: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: dotnet publish ./build/_build.csproj
+      - uses: actions/upload-artifact@v3
+        with:
+          name: nuke
+          path: build/bin/Debug/publish/
+#
+# Windows
+  windows-skia:
+    runs-on: windows-latest
+    needs: [nuke]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm64]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          target-os: windows
+  windows-alphaskia:
+    runs-on: windows-latest
+    needs: [windows-skia]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm64]
+        variant: [shared, jni, node]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
+        with:
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: windows
+
+#
+# Linux
+  linux-skia:
+    runs-on: ubuntu-latest
+    needs: [nuke]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm, arm64]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          target-os: linux
+  linux-alphaskia:
+    runs-on: ubuntu-latest
+    needs: [linux-skia]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm, arm64]
+        variant: [shared, jni, node]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
+        with:
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: linux
+
+#
+# Android
+  android-skia:
+    runs-on: ubuntu-latest
+    needs: [nuke]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm, arm64]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          target-os: android
+  android-alphaskia:
+    runs-on: ubuntu-latest
+    needs: [android-skia]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86, arm, arm64]
+        variant: [shared, jni]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
+        with:
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: android
+#
+# MacOs
+  macos-skia:
+    runs-on: macos-latest
+    needs: [nuke]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          target-os: macos
+  macos-alphaskia:
+    runs-on: macos-latest
+    needs: [macos-skia]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+        variant: [shared, jni, node]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
+        with:
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: macos
+
+#
+# iOS
+  ios-skia:
+    runs-on: macos-latest
+    needs: [nuke]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: arm64
+            target-os: ios
+          - architecture: arm64
+            target-os: iossimulator
+          - architecture: x64
+            target-os: iossimulator
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-skia
+        with:
+          use-cache: ${{ inputs.use-skia-cache }}
+          architecture: ${{ matrix.architecture }}
+          target-os: ${{ matrix.target-os }}
+  ios-alphaskia:
+    runs-on: macos-latest
+    needs: [ios-skia]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: arm64
+            variant: shared
+            target-os: ios
+          - architecture: arm64
+            variant: shared
+            target-os: iossimulator
+          - architecture: x64
+            variant: shared
+            target-os: iossimulator
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./.github/actions/build-alphaskia
+        with:
+          architecture: ${{ matrix.architecture }}
+          variant: ${{ matrix.variant }}
+          target-os: ${{ matrix.target-os }}          
+#
+# Libraries
+  dotnet:
+    runs-on: ubuntu-latest
+    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia, ios-alphaskia]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist/.organize
+    - run: ./build.cmd DotNet
+    - uses: actions/upload-artifact@v3
+      with:
+        name: nupkgs
+        path: |
+          lib/dotnet/**/*.nupkg
+  dotnet-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: 
+          - runs-on: ubuntu-latest
+            architecture: x64
+            framework: net6.0
+          - runs-on: macos-latest
+            architecture: x64
+            framework: net6.0
+          - runs-on: windows-latest
+            architecture: x64
+            framework: net6.0
+          - runs-on: windows-latest
+            architecture: x64
+            framework: net48
+    runs-on: ${{ matrix.runs-on }}
+    needs: [dotnet]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nupkgs
+        path: dist/.organize/nupkgs
+    - run: ./build.cmd DotNetTest --architecture ${{ matrix.architecture }} --framework ${{ matrix.framework }}
+    - uses: actions/upload-artifact@v3
+      with:
+        name: DotNet Test Results
+        path: |
+          test/test-outputs/**/*.*
+
+  java:
+    runs-on: ubuntu-latest
+    needs: [windows-alphaskia, linux-alphaskia, android-alphaskia, macos-alphaskia]
+    env:
+      SONATYPE_SIGNING_KEY: ${{ secrets.SONATYPE_SIGNING_KEY }}
+      SONATYPE_SIGNING_KEY_ID: ${{ secrets.SONATYPE_SIGNING_KEY_ID }}
+      SONATYPE_SIGNING_PASSWORD: ${{ secrets.SONATYPE_SIGNING_PASSWORD }}
+      SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist/.organize
+    - run: ./build.cmd Java
+    - uses: actions/upload-artifact@v3
+      with:
+        name: maven
+        path: |
+          lib/java/dist/**/*.*
+  java-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: 
+          - runs-on: ubuntu-latest
+          - runs-on: windows-latest
+          - runs-on: macos-latest
+    runs-on: ${{ matrix.runs-on }}
+    needs: [java]
+    steps:
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: maven
+        path: dist/.organize/maven
+    - run: ./build.cmd JavaTest
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Java Test Results
+        path: |
+          test/test-outputs/**/*.*
+
+  
+  node:
+    runs-on: ubuntu-latest
+    needs: [windows-alphaskia, linux-alphaskia, macos-alphaskia]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nuke
+        path: build/bin/Debug/publish/
+    - uses: actions/download-artifact@v3
+      with:
+        path: dist/.organize
+    - run: ./build.cmd Node
+    - uses: actions/upload-artifact@v3
+      with:
+        name: nodetars
+        path: |
+          lib/node/*/*.tgz
+  node-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        node: [latest, "lts/*"]
+    runs-on: ${{ matrix.runs-on }}
+    needs: [node]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      with:
+        name: nodetars
+        path: dist/.organize/node
+    - uses: actions/setup-node@v3
+      with:
+        node-version:  ${{ matrix.node }}
+    - run: node -e "console.log(process)"
+    - run: ./build.cmd NodeTest
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Node Test Results
+        path: |
+          test/test-outputs/**/*.*

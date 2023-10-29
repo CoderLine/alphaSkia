@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -10,7 +11,38 @@ static class VersionInfo
 {
     public const string Company = "CoderLine";
     public const string Description = "A Skia based rendering backend for alphaTab.";
-    public static readonly Version FileVersion = GetVariable<Version>("ALPHASKIA_VERSION") ?? new Version(1, 0, 0, 0);
+
+    #region Dynamic Version Components
+
+    static readonly int BuildCounter = GetVariable<int?>("GITHUB_RUN_NUMBER") ?? 0;
+    static readonly int SkiaVersion = LoadSkiaVersion();
+
+    static int LoadSkiaVersion()
+    {
+        if (NukeBuild.RootDirectory == null)
+        {
+            throw new InvalidOperationException("Cannot load skia version before Nuke is initialized");
+        }
+        
+        var submodulesContent = NukeBuild.RootDirectory / ".gitmodules";
+        var text = submodulesContent.ReadAllText();
+        const string marker = "branch = chrome/m";
+        var startOfMarker = text.IndexOf(marker, StringComparison.Ordinal);
+        if (startOfMarker == -1)
+        {
+            throw new IOException(".gitmodules does not contain the skia submodule branch");
+        }
+        var endOfMarker = text.IndexOf("\n", startOfMarker, StringComparison.Ordinal);
+        return int.Parse(text[(startOfMarker + marker.Length)..endOfMarker].Trim());
+    }
+
+    static readonly Version FileVersionBase = GetVariable<Version>("ALPHASKIA_VERSION_TEMPLATE") ?? new Version(1, 0, 0, 0);
+
+    #endregion
+
+    public static Version FileVersion =>
+        new (FileVersionBase.Major, FileVersionBase.Minor, SkiaVersion, BuildCounter);
+
     public static readonly string Copyright = $"Copyright © {DateTime.Now.Year}, Daniel Kuschny";
     public const string AuthorId = "danielku15";
     public const string AuthorName = "Daniel Kuschny";
@@ -35,7 +67,7 @@ partial class Build : NukeBuild
 
     [Parameter] readonly bool IsReleaseBuild = GetVariable<bool?>("IS_RELEASE_BUILD") ?? false;
     [Parameter] readonly bool Rebuild;
-
+    
     public static int Main() => Execute<Build>();
 
     static void AppendToFlagList(

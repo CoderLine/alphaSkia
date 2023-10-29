@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -7,7 +6,9 @@ using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Npm;
+using Nuke.Common.Utilities.Collections;
 using Serilog;
+using static Nuke.Common.EnvironmentInfo;
 
 partial class Build
 {
@@ -60,7 +61,7 @@ partial class Build
     void PrepareTgzForTest()
     {
         Log.Information("Preparing TGZ files for test by creating copy without version");
-        var files = new List<string>();
+        var files = new System.Collections.Generic.List<string>();
         foreach (var tgz in (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz"))
         {
             // coderline-alphaskia-1.0.0-local.0.tgz
@@ -102,7 +103,7 @@ partial class Build
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
                 .SetCommand("build"));
         });
-    
+
     void NodeWritePackageJson()
     {
         string semVer;
@@ -207,4 +208,24 @@ partial class Build
                 FileExistsPolicy.OverwriteIfNewer, excludeFile: fi => fi.Extension != ".node");
         }
     }
+
+    [Parameter] [Secret] readonly string NpmjsAuthToken = GetVariable<string>("NPMJS_AUTH_TOKEN");
+
+    public Target NodePublish => _ => _
+        .DependsOn(PrepareGitHubArtifacts)
+        .Requires(() => IsGitHubActions)
+        .Executes(() =>
+        {
+            foreach (var tar in (DistBasePath / "nodetars").GlobFiles("*.tgz"))
+            {
+                var tag = (IsReleaseBuild) ? "latest" : "alpha";
+                Log.Information("Dummy: npm publish {Tar} --access public --tag {Tag}", tar, tag);
+                // NpmTasks.Npm($"publish {tar} --access public --tag {tag}",
+                //     environmentVariables: Variables
+                //         .ToDictionary(x => x.Key, x => x.Value)
+                //         .SetKeyValue("NODE_AUTH_TOKEN", NpmjsAuthToken)
+                //         .AsReadOnly()
+                // );
+            }
+        });
 }
