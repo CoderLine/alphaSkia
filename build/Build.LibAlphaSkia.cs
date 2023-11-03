@@ -81,7 +81,8 @@ partial class Build
                     "../../wrapper/src/alphaskia_canvas.cpp",
                     "../../wrapper/src/alphaskia_image.cpp",
                     "../../wrapper/src/alphaskia_typeface.cpp",
-                    "../../wrapper/src/alphaskia_data.cpp"
+                    "../../wrapper/src/alphaskia_data.cpp",
+                    "../../wrapper/src/alphaskia_string.cpp"
                 ]
                 if (is_win) {
                     alphaskia_wrapper_sources += [ "../../wrapper/src/alphaskia.rc" ]

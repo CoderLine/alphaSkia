@@ -1,4 +1,6 @@
-﻿namespace AlphaSkia;
+﻿using System.Text;
+
+namespace AlphaSkia;
 
 /// <summary>
 /// Represents a typeface to draw text.
@@ -6,6 +8,40 @@
 public sealed class AlphaSkiaTypeface : AlphaSkiaNative
 {
     private readonly AlphaSkiaData? _nativeData;
+    private string? _fontFamily;
+
+    /// <summary>
+    /// Gets the name of the font family of this typeface.
+    /// </summary>
+    public string FamilyName
+    {
+        get
+        {
+            if (_fontFamily == null)
+            {
+                var skFamilyName = NativeMethods.alphaskia_typeface_get_family_name(Handle);
+                var skFamilyChars = NativeMethods.alphaskia_string_get_utf8(skFamilyName);
+                var skFamilyLength = NativeMethods.alphaskia_string_get_length(skFamilyName);
+                unsafe
+                {
+                    _fontFamily = Encoding.UTF8.GetString((byte*)skFamilyChars.ToPointer(), (int)skFamilyLength);
+                }
+                NativeMethods.alphaskia_string_free(skFamilyName);
+            }
+
+            return _fontFamily;
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the typeface is bold.
+    /// </summary>
+    public bool IsBold => NativeMethods.alphaskia_typeface_is_bold(Handle) != 0;
+
+    /// <summary>
+    /// Gets a value indicating whether the typeface is italic.
+    /// </summary>
+    public bool IsItalic => NativeMethods.alphaskia_typeface_is_italic(Handle) != 0;
 
     private AlphaSkiaTypeface(IntPtr handle, AlphaSkiaData? nativeData = null)
         : base(handle, NativeMethods.alphaskia_typeface_free)
@@ -40,7 +76,7 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
 
         return new AlphaSkiaTypeface(typeface, nativeData);
     }
-    
+
     /// <summary>
     /// Creates a typeface using the provided information.
     /// </summary>

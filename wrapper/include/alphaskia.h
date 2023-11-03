@@ -28,10 +28,18 @@ extern "C"
     AS_API uint64_t alphaskia_data_get_length(alphaskia_data_t data);
     AS_API void alphaskia_data_free(alphaskia_data_t data);
 
+    typedef AS_API void *alphaskia_string_t;
+    AS_API const char* alphaskia_string_get_utf8(alphaskia_string_t string);
+    AS_API uint64_t alphaskia_string_get_length(alphaskia_string_t string);
+    AS_API void alphaskia_string_free(alphaskia_string_t string);
+
     typedef AS_API void *alphaskia_typeface_t;
     AS_API alphaskia_typeface_t alphaskia_typeface_register(alphaskia_data_t data);
-    AS_API void alphaskia_typeface_free(alphaskia_typeface_t type_face);
-    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *name, uint8_t bold, uint8_t italic);
+    AS_API void alphaskia_typeface_free(alphaskia_typeface_t typeface);
+    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint8_t bold, uint8_t italic);
+    AS_API alphaskia_string_t alphaskia_typeface_get_family_name(alphaskia_typeface_t typeface);
+    AS_API uint8_t alphaskia_typeface_is_bold(alphaskia_typeface_t typeface);
+    AS_API uint8_t alphaskia_typeface_is_italic(alphaskia_typeface_t typeface);
 
     typedef AS_API void *alphaskia_image_t;
     AS_API int32_t alphaskia_image_get_width(alphaskia_image_t image);

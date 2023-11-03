@@ -8,6 +8,33 @@ import { AlphaSkiaTypefaceHandle, loadAddon } from './addon';
 export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> {
     #data: AlphaSkiaData | undefined;
 
+    #familyName: string | undefined = undefined;
+
+    /**
+     * Gets the name of the font family of this typeface.
+     */
+    public get familyName(): string {
+        if (this.#familyName === undefined) {
+            this.#familyName = loadAddon().alphaskia_typeface_get_family_name(this.handle!);
+        }
+
+        return this.#familyName;
+    }
+
+    /**
+     * Gets a value indicating whether the typeface is bold.
+     */
+    public get isBold(): boolean {
+        return loadAddon().alphaskia_typeface_is_bold(this.handle!);
+    }
+
+    /**
+     * Gets a value indicating whether the typeface is italic.
+     */
+    public get isItalic(): boolean {
+        return loadAddon().alphaskia_typeface_is_italic(this.handle!);
+    }
+
     /**
      * @internal
      */
@@ -39,7 +66,7 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
             loadAddon().alphaskia_data_free(nativeData);
             return undefined;
         }
-        
+
         return new AlphaSkiaTypeface(typeface, new AlphaSkiaData(nativeData));
     }
 

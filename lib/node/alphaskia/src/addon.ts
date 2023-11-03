@@ -76,8 +76,11 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_data_free(data: AlphaSkiaDataHandle): void;
 
     alphaskia_typeface_register(data: AlphaSkiaDataHandle): AlphaSkiaTypefaceHandle | undefined;
-    alphaskia_typeface_free(type_face: AlphaSkiaTypefaceHandle): void;
+    alphaskia_typeface_free(typeface: AlphaSkiaTypefaceHandle): void;
     alphaskia_typeface_make_from_name(name: string, bold: boolean, italic: boolean): AlphaSkiaTypefaceHandle | undefined;
+    alphaskia_typeface_get_family_name(typeface: AlphaSkiaTypefaceHandle): string;
+    alphaskia_typeface_is_bold(typeface: AlphaSkiaTypefaceHandle): boolean;
+    alphaskia_typeface_is_italic(typeface: AlphaSkiaTypefaceHandle): boolean;
 
     alphaskia_image_get_width(image: AlphaSkiaImageHandle): number;
     alphaskia_image_get_height(image: AlphaSkiaImageHandle): number;
@@ -111,7 +114,7 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_canvas_fill(canvas: AlphaSkiaCanvasHandle): void;
     alphaskia_canvas_stroke(canvas: AlphaSkiaCanvasHandle): void;
     alphaskia_canvas_draw_image(canvas: AlphaSkiaCanvasHandle, image: AlphaSkiaImageHandle, x: number, y: number, w: number, h: number): void;
-    
+
     alphaskia_canvas_fill_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number, x: number, y: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void;
     alphaskia_canvas_measure_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number): number;
     alphaskia_canvas_begin_rotate(canvas: AlphaSkiaCanvasHandle, center_x: number, center_y: number, angle: number): void;
