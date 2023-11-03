@@ -276,6 +276,56 @@ static napi_value node_alphaskia_typeface_make_from_name(napi_env env, napi_call
   return wrapped;
 }
 
+static napi_value node_alphaskia_typeface_get_family_name(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_typeface_t, typeface);
+  alphaskia_string_t string = alphaskia_typeface_get_family_name(typeface);
+
+  const char *utf8Bytes = alphaskia_string_get_utf8(string);
+  uint64_t stringLength = alphaskia_string_get_length(string);
+
+  napi_value family_name;
+  status = napi_create_string_utf8(env, utf8Bytes, stringLength, &family_name);
+  ASSERT_STATUS();
+
+  alphaskia_string_free(string);
+
+  return family_name;
+}
+
+static napi_value node_alphaskia_typeface_is_bold(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_typeface_t, typeface);
+  uint8_t is_bold = alphaskia_typeface_is_bold(typeface);
+
+  napi_value node_is_bold;
+  status = napi_get_boolean(env, is_bold != 0, &node_is_bold);
+  ASSERT_STATUS();
+
+  return node_is_bold;
+}
+
+static napi_value node_alphaskia_typeface_is_italic(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_typeface_t, typeface);
+  uint8_t is_italic = alphaskia_typeface_is_italic(typeface);
+
+  napi_value node_is_italic;
+  status = napi_get_boolean(env, is_italic != 0, &node_is_italic);
+  ASSERT_STATUS();
+
+  return node_is_italic;
+}
+
 static napi_value node_alphaskia_image_get_width(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
@@ -783,6 +833,10 @@ napi_value init(napi_env env, napi_value exports)
   EXPORT_NODE_FUNCTION(alphaskia_typeface_register);
   EXPORT_NODE_FUNCTION(alphaskia_typeface_free);
   EXPORT_NODE_FUNCTION(alphaskia_typeface_make_from_name);
+  EXPORT_NODE_FUNCTION(alphaskia_typeface_get_family_name);
+  EXPORT_NODE_FUNCTION(alphaskia_typeface_is_bold);
+  EXPORT_NODE_FUNCTION(alphaskia_typeface_is_italic);
+
   EXPORT_NODE_FUNCTION(alphaskia_image_get_width);
   EXPORT_NODE_FUNCTION(alphaskia_image_get_height);
   EXPORT_NODE_FUNCTION(alphaskia_image_read_pixels);

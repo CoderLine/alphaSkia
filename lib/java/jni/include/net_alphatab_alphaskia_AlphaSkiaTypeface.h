@@ -9,6 +9,30 @@ extern "C" {
 #endif
 /*
  * Class:     net_alphatab_alphaskia_AlphaSkiaTypeface
+ * Method:    isBold
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_net_alphatab_alphaskia_AlphaSkiaTypeface_isBold
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     net_alphatab_alphaskia_AlphaSkiaTypeface
+ * Method:    isItalic
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_net_alphatab_alphaskia_AlphaSkiaTypeface_isItalic
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     net_alphatab_alphaskia_AlphaSkiaTypeface
+ * Method:    loadFamilyName
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_net_alphatab_alphaskia_AlphaSkiaTypeface_loadFamilyName
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     net_alphatab_alphaskia_AlphaSkiaTypeface
  * Method:    release
  * Signature: (J)V
  */

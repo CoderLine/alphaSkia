@@ -24,9 +24,22 @@ internal static class NativeMethods
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_data_free(alphaskia_data_t data);
 
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr alphaskia_string_get_utf8(alphaskia_string_t str);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern ulong alphaskia_string_get_length(alphaskia_string_t str);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void alphaskia_string_free(alphaskia_string_t str);
+
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern alphaskia_typeface_t alphaskia_typeface_register(alphaskia_data_t data);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern alphaskia_string_t alphaskia_typeface_get_family_name(alphaskia_typeface_t typeface);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern byte alphaskia_typeface_is_bold(alphaskia_typeface_t typeface);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern byte alphaskia_typeface_is_italic(alphaskia_typeface_t typeface);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_typeface_free(alphaskia_typeface_t type_face);
