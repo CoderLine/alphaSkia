@@ -46,10 +46,10 @@ extern "C"
     {
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
 
-        sk_sp<SkString> skFamilyName(new SkString());
-        (*skTypeface)->getFamilyName(skFamilyName.get());
+        SkString* skFamilyName = new SkString();
+        (*skTypeface)->getFamilyName(skFamilyName);
 
-        return reinterpret_cast<alphaskia_string_t>(new sk_sp<SkString>(skFamilyName));
+        return reinterpret_cast<alphaskia_string_t>(skFamilyName);
     }
 
     AS_API uint8_t alphaskia_typeface_is_bold(alphaskia_typeface_t typeface)
