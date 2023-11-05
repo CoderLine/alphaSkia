@@ -28,11 +28,11 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation("net.alphatab:net.alphatab.alphaskia:$alphaSkiaVersion")
-    implementation("net.alphatab:net.alphatab.alphaskia.macos:$alphaSkiaVersion")
-    implementation("net.alphatab:net.alphatab.alphaskia.windows:$alphaSkiaVersion")
-    implementation("net.alphatab:net.alphatab.alphaskia.linux:$alphaSkiaVersion")
-    implementation("net.alphatab:net.alphatab.alphaskia.android:$alphaSkiaVersion")
+    implementation("net.alphatab:alphaSkia:$alphaSkiaVersion")
+    implementation("net.alphatab:alphaSkia-macos:$alphaSkiaVersion")
+    implementation("net.alphatab:alphaSkia-windows:$alphaSkiaVersion")
+    implementation("net.alphatab:alphaSkia-linux:$alphaSkiaVersion")
+    implementation("net.alphatab:alphaSkia-android:$alphaSkiaVersion")
 }
 
 java {
