@@ -1,5 +1,7 @@
 package alphaTab.alphaSkia.test;
 
+import alphaTab.alphaSkia.*;
+
 public class AlphaTabGeneratedRenderTest extends AlphaTabGeneratedRenderTestBase
 {
     private static AlphaSkiaImage drawMusicSheetPart1(AlphaSkiaCanvas canvas) {
