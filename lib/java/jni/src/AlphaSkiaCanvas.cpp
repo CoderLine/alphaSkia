@@ -53,7 +53,7 @@ extern "C"
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         alphaskia_image_t image = alphaskia_canvas_end_render(canvas);
 
-        jclass cls = env->FindClass("net/alphatab/alphaskia/AlphaSkiaImage");
+        jclass cls = env->FindClass("alphaTab/alphaSkia/AlphaSkiaImage");
         jmethodID ctor = env->GetMethodID(cls, "<init>", "(J)V");
         return env->NewObject(cls, ctor, static_cast<jlong>(reinterpret_cast<std::uintptr_t>(image)));
     }

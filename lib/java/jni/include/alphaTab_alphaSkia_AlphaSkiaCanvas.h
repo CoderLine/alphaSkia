@@ -58,7 +58,7 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_beginRender
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
  * Method:    drawImage
- * Signature: (Lnet/alphatab/alphaskia/AlphaSkiaImage;FFFF)V
+ * Signature: (LalphaTab/alphaSkia/AlphaSkiaImage;FFFF)V
  */
 JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_drawImage
   (JNIEnv *, jobject, jobject, jfloat, jfloat, jfloat, jfloat);
@@ -66,7 +66,7 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_drawImage
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
  * Method:    endRender
- * Signature: ()Lnet/alphatab/alphaskia/AlphaSkiaImage;
+ * Signature: ()LalphaTab/alphaSkia/AlphaSkiaImage;
  */
 JNIEXPORT jobject JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_endRender
   (JNIEnv *, jobject);
@@ -170,7 +170,7 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_stroke
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
  * Method:    fillText
- * Signature: (Ljava/lang/String;Lnet/alphatab/alphaskia/AlphaSkiaTypeface;FFFLnet/alphatab/alphaskia/AlphaSkiaTextAlign;Lnet/alphatab/alphaskia/AlphaSkiaTextBaseline;)V
+ * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTypeface;FFFLalphaTab/alphaSkia/AlphaSkiaTextAlign;LalphaTab/alphaSkia/AlphaSkiaTextBaseline;)V
  */
 JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillText
   (JNIEnv *, jobject, jstring, jobject, jfloat, jfloat, jfloat, jobject, jobject);
@@ -178,7 +178,7 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillText
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
  * Method:    measureText
- * Signature: (Ljava/lang/String;Lnet/alphatab/alphaskia/AlphaSkiaTypeface;F)F
+ * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTypeface;F)F
  */
 JNIEXPORT jfloat JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_measureText
   (JNIEnv *, jobject, jstring, jobject, jfloat);
