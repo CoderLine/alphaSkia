@@ -1,4 +1,4 @@
-package net.alphatab.alphaskia;
+package alphaTab.alphaSkia;
 
 /**
  * This class contains the information about the Linux runtime dependencies to use with AlphaSkiaPlatform.

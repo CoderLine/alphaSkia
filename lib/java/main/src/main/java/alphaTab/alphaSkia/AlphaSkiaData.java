@@ -1,4 +1,4 @@
-package net.alphatab.alphaskia;
+package alphaTab.alphaSkia;
 
 class AlphaSkiaData extends AlphaSkiaNative {
     AlphaSkiaData(long handle) {

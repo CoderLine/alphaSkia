@@ -1,4 +1,4 @@
-package net.alphatab.alphaskia;
+package alphaTab.alphaSkia;
 
 /**
  * Represents a final rendered image.

@@ -1,4 +1,4 @@
-package net.alphatab.alphaskia;
+package alphaTab.alphaSkia;
 
 import java.io.File;
 import java.io.FileNotFoundException;

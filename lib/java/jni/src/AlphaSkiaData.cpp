@@ -1,4 +1,4 @@
-#include "../include/net_alphatab_alphaskia_AlphaSkiaData.h"
+#include "../include/alphaTab_alphaSkia_AlphaSkiaData.h"
 #include "../include/JniHelper.h"
 #include "../../../../wrapper/include/alphaskia.h"
 
@@ -6,7 +6,7 @@
 
 extern "C"
 {
-    JNIEXPORT jlong JNICALL Java_net_alphatab_alphaskia_AlphaSkiaData_allocateCopy(JNIEnv *env, jclass cls, jbyteArray data)
+    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_allocateCopy(JNIEnv *env, jclass cls, jbyteArray data)
     {
         jbyte *bytes = env->GetByteArrayElements(data, nullptr);
         alphaskia_data_t nativeData = alphaskia_data_new_copy(reinterpret_cast<const uint8_t *>(bytes), env->GetArrayLength(data));
@@ -14,7 +14,7 @@ extern "C"
         return reinterpret_cast<jlong>(nativeData);
     }
     
-    JNIEXPORT void JNICALL Java_net_alphatab_alphaskia_AlphaSkiaData_close(JNIEnv *env, jobject instance)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_close(JNIEnv *env, jobject instance)
     {
         jlong handle = get_handle(env, instance);
         alphaskia_data_t data = reinterpret_cast<alphaskia_data_t>(handle);
@@ -22,7 +22,7 @@ extern "C"
         set_handle(env, instance, 0);
     }
 
-    JNIEXPORT jbyteArray JNICALL Java_net_alphatab_alphaskia_AlphaSkiaData_toArray(JNIEnv *env, jobject instance)
+    JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_toArray(JNIEnv *env, jobject instance)
     {
         jlong handle = get_handle(env, instance);
         alphaskia_data_t data = reinterpret_cast<alphaskia_data_t>(handle);

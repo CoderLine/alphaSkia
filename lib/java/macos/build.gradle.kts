@@ -13,7 +13,7 @@ java {
 }
 
 tasks.jar {
-    archiveBaseName = "net.alphatab.alphaskia.macos"
+    archiveBaseName = "alphaSkia-macos"
 
     into("native/macos-x64/") {
         from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-macos-x64-jni/")) {

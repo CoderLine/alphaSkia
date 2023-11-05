@@ -14,7 +14,7 @@ java {
 
 
 tasks.jar {
-    archiveBaseName = "net.alphatab.alphaskia.windows"
+    archiveBaseName = "alphaSkia-windows"
 
     into("native/win-x64/") {
         from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-win-x64-jni/").absolutePath) {

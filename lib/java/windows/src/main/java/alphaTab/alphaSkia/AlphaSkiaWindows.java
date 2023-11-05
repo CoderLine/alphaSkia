@@ -1,14 +1,14 @@
-package net.alphatab.alphaskia;
+package alphaTab.alphaSkia;
 
 /**
- * This class contains the information about the macOS runtime dependencies to use with AlphaSkiaPlatform.
+ * This class contains the information about the Windows runtime dependencies to use with AlphaSkiaPlatform.
  */
-public final class AlphaSkiaMacOs {
+public final class AlphaSkiaWindows {
     /**
      * The native libraries needed to run alphaSkia.
      */
     public static final String[] libraries = {
-            "/native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.dylib"
+            "/native/win-" + getCurrentArchitecture() + "/libalphaskiajni.dll"
     };
 
     private static String getCurrentArchitecture() {
@@ -22,5 +22,5 @@ public final class AlphaSkiaMacOs {
         };
     }
 
-    private AlphaSkiaMacOs() {}
+    private AlphaSkiaWindows() {}
 }
