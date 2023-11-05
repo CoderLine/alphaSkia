@@ -15,7 +15,7 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
  * THIS SOFTWARE.
  */
-package net.alphatab.alphaskia.test;
+package alphaTab.alphaSkia.test;
 
 
 final class PixelMatch {

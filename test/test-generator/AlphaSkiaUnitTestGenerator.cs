@@ -134,9 +134,9 @@ public class AlphaSkiaUnitTestGenerator
         );
 
         sourceCode.Resume();
-        sourceCode.WriteLine("package net.alphatab.alphaskia.test;");
+        sourceCode.WriteLine("package alphaTab.alphaSkia.test;");
         sourceCode.WriteLine();
-        sourceCode.WriteLine("import net.alphatab.alphaskia.*;");
+        sourceCode.WriteLine("import alphaTab.alphaSkia.*;");
         sourceCode.WriteLine();
         sourceCode.WriteLine("public class AlphaTabGeneratedRenderTest extends AlphaTabGeneratedRenderTestBase");
         sourceCode.BeginBlock();

@@ -4,7 +4,7 @@ plugins {
     id("idea")
 }
 
-group = "net.alphatab.alphaskia"
+group = "alphaTab.alphaSkia"
 version = "1.0.0-LOCAL"
 // Use any latest version
 var alphaSkiaVersion = version
@@ -54,5 +54,5 @@ tasks.test {
 }
 
 application {
-    mainClass = "net.alphatab.alphaskia.test.Main"
+    mainClass = "alphaTab.alphaSkia.test.Main"
 }

@@ -1,3 +1,3 @@
-package net.alphatab.alphaskia.test;
+package alphaTab.alphaSkia.test;
 
 public record PixelMatchColor(byte r, byte g, byte b) { }

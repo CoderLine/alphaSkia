@@ -22,7 +22,7 @@ Directory.CreateDirectory(Path.GetDirectoryName(csharpTestFile)!);
 File.WriteAllText(csharpTestFile, AlphaSkiaUnitTestGenerator.GenerateCSharp());
 Console.WriteLine("Updated C# source in {0}", csharpTestFile);
 
-var javaTestFile = Path.Combine(rootDir, "test", "java", "src", "main", "generated", "net", "alphatab", "alphaskia", "test", 
+var javaTestFile = Path.Combine(rootDir, "test", "java", "src", "main", "generated", "alphaTab", "alphaSkia", "test", 
     "AlphaTabGeneratedRenderTest.java");
 Directory.CreateDirectory(Path.GetDirectoryName(javaTestFile)!);
 File.WriteAllText(javaTestFile, AlphaSkiaUnitTestGenerator.GenerateJava());

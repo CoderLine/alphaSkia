@@ -1,6 +1,4 @@
-package net.alphatab.alphaskia.test;
-
-import net.alphatab.alphaskia.*;
+package alphaTab.alphaSkia.test;
 
 public class AlphaTabGeneratedRenderTest extends AlphaTabGeneratedRenderTestBase
 {

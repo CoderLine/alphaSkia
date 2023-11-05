@@ -1,8 +1,8 @@
-package net.alphatab.alphaskia.test;
+package alphaTab.alphaSkia.test;
 
-import net.alphatab.alphaskia.AlphaSkiaTextAlign;
-import net.alphatab.alphaskia.AlphaSkiaTextBaseline;
-import net.alphatab.alphaskia.AlphaSkiaTypeface;
+import alphaTab.alphaSkia.AlphaSkiaTextAlign;
+import alphaTab.alphaSkia.AlphaSkiaTextBaseline;
+import alphaTab.alphaSkia.AlphaSkiaTypeface;
 
 import java.io.IOException;
 import java.nio.file.Files;
