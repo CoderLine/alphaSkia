@@ -9,6 +9,8 @@ on:
         type: boolean
         description: Use Skia Binary from cache
         default: false
+env:
+  IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
 
 jobs:
   build:
