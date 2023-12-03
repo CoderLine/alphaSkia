@@ -4,6 +4,8 @@
 #define STRINGIFY(s) _STRINGIFY(s)
 #define _STRINGIFY(s) #s
 
+bool g_is_trace_enabled;
+
 class ScopeLog
 {
 public:
@@ -18,7 +20,7 @@ private:
     const char *function_name_;
 };
 
-#define SCOPE_LOG() ScopeLog scope_log(__FUNCTION__);
+#define SCOPE_LOG() if(g_is_trace_enabled)  { ScopeLog scope_log(__FUNCTION__); }
 
 inline jlong
 get_handle(JNIEnv *env, jobject instance)

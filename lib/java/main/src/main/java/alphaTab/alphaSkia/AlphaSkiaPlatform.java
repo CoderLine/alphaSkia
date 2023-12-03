@@ -26,6 +26,11 @@ public final class AlphaSkiaPlatform {
     }
 
     /**
+     * Sets whether the internal tracing of alphaSkia should be enabled
+     */
+    public static native void setTracingEnabled(boolean isEnabled);
+
+    /**
      * Initiates the loading of native libraries from the given file paths assuming they are the correct ones for alphaSkia.
      *
      * @param nativeLibraryPaths The paths to the files to load.

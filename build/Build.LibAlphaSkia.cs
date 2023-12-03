@@ -149,6 +149,7 @@ partial class Build
                   configs += [ ":alphaskia_public" ]
                   sources = alphaskia_wrapper_sources
                   sources += [
+                    "../../lib/java/jni/src/AlphaSkiaPlatform.cpp",
                     "../../lib/java/jni/src/AlphaSkiaCanvas.cpp",
                     "../../lib/java/jni/src/AlphaSkiaData.cpp",
                     "../../lib/java/jni/src/AlphaSkiaImage.cpp",
