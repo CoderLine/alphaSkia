@@ -1,9 +1,27 @@
 #include <jni.h>
+#include <iostream>
 
 #define STRINGIFY(s) _STRINGIFY(s)
 #define _STRINGIFY(s) #s
 
-inline jlong get_handle(JNIEnv *env, jobject instance)
+class ScopeLog
+{
+public:
+    ScopeLog(const char *function_name) : function_name_(function_name)
+    {
+        std::cout << "Enter " << function_name << std::endl;
+    }
+    ~ScopeLog() {
+        std::cout << "Exit " << function_name_ << std::endl;
+    }
+private:
+    const char *function_name_;
+};
+
+#define SCOPE_LOG() ScopeLog scope_log(__FUNCTION__);
+
+inline jlong
+get_handle(JNIEnv *env, jobject instance)
 {
     jclass cls = env->FindClass("alphaTab/alphaSkia/AlphaSkiaNative");
     if (!cls)
@@ -36,7 +54,7 @@ inline void set_handle(JNIEnv *env, jobject instance, jlong handle)
         return returnValue;                                                                                                       \
     }
 
-#define CHECK_HANDLE(handle)                                                                                               \
+#define CHECK_HANDLE(handle)                                                                                                      \
     if (!handle)                                                                                                                  \
     {                                                                                                                             \
         if (!env->ExceptionCheck())                                                                                               \

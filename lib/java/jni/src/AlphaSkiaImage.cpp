@@ -8,6 +8,7 @@ extern "C"
 {
     JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_getWidth(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, 0)
         return alphaskia_image_get_width(reinterpret_cast<alphaskia_image_t>(handle));
@@ -15,6 +16,7 @@ extern "C"
 
     JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_getHeight(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, 0)
 
@@ -23,6 +25,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_close(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE(handle)
 
@@ -32,6 +35,7 @@ extern "C"
 
     JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_readPixels(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, nullptr)
 
@@ -53,6 +57,7 @@ extern "C"
 
     JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_toPng(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, nullptr)
 
@@ -74,6 +79,7 @@ extern "C"
 
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_createFromPixels(JNIEnv *env, jclass clz, jint width, jint height, jbyteArray pixels)
     {
+        SCOPE_LOG()
         jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
         alphaskia_image_t nativeImage = alphaskia_image_from_pixels(static_cast<int32_t>(width), static_cast<int32_t>(height), reinterpret_cast<const uint8_t *>(bytes));
         env->ReleaseByteArrayElements(pixels, bytes, 0);
@@ -82,6 +88,7 @@ extern "C"
 
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_allocateDecoded(JNIEnv *env, jclass clz, jbyteArray bytes)
     {
+        SCOPE_LOG()
         jbyte *raw = env->GetByteArrayElements(bytes, nullptr);
         alphaskia_image_t nativeImage = alphaskia_image_decode(reinterpret_cast<const uint8_t *>(raw), env->GetArrayLength(bytes));
         env->ReleaseByteArrayElements(bytes, raw, 0);

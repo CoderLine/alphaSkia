@@ -71,6 +71,7 @@ partial class Build
 
     Task GitSyncDepsCustom(string[] requiredDependencies)
     {
+        return Task.CompletedTask;
         var depsFile = SkiaPath / "DEPS";
         var depsData = ReadDeps(depsFile);
 
@@ -209,6 +210,8 @@ partial class Build
             var newValue = DepotPath + Path.PathSeparator + oldValue;
             Environment.SetEnvironmentVariable("PATH", newValue, EnvironmentVariableTarget.Process);
 
+
+return;
             PythonTool(
                 arguments: (SkiaPath / "bin" / "fetch-ninja").ToString(),
                 workingDirectory: SkiaPath
@@ -334,7 +337,7 @@ partial class Build
 
         if (TargetOs == TargetOperatingSystem.Windows)
         {
-            return variant.IsShared ? new[] { ".dll", ".lib" } : new[] { ".lib" };
+            return variant.IsShared ? new[] { ".dll", ".lib", ".pdb" } : new[] { ".lib", ".pdb" };
         }
 
         if (TargetOs == TargetOperatingSystem.Linux ||

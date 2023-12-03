@@ -22,6 +22,9 @@
         "DepotPath": {
           "type": "string"
         },
+        "Framework": {
+          "type": "string"
+        },
         "GitExe": {
           "type": "string"
         },
@@ -86,14 +89,6 @@
           "default": "Secrets must be entered via 'nuke :secrets [profile]'"
         },
         "NugetApiKey": {
-          "type": "string",
-          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
-        },
-        "OssrhPassword": {
-          "type": "string",
-          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
-        },
-        "OssrhUsername": {
           "type": "string",
           "default": "Secrets must be entered via 'nuke :secrets [profile]'"
         },
@@ -162,22 +157,6 @@
               "SetupDepotTools"
             ]
           }
-        },
-        "SonatypeSigningKey": {
-          "type": "string",
-          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
-        },
-        "SonatypeSigningKeyId": {
-          "type": "string",
-          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
-        },
-        "SonatypeSigningPassword": {
-          "type": "string",
-          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
-        },
-        "SonatypeStagingProfileId": {
-          "type": "string",
-          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
         },
         "Target": {
           "type": "array",

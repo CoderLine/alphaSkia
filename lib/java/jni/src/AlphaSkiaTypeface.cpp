@@ -7,16 +7,19 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_release(JNIEnv *, jobject, jlong handle)
     {
+        SCOPE_LOG()
         alphaskia_typeface_free(reinterpret_cast<alphaskia_typeface_t>(handle));
     }
 
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_register(JNIEnv *, jclass, jlong data)
     {
+        SCOPE_LOG()
         return static_cast<jlong>(reinterpret_cast<std::uintptr_t>(alphaskia_typeface_register(reinterpret_cast<alphaskia_data_t>(data))));
     }
 
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_makeFromName(JNIEnv *env, jclass, jstring name, jboolean bold, jboolean italic)
     {
+        SCOPE_LOG()
         const char *nativeName = env->GetStringUTFChars(name, nullptr);
         alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(nativeName, bold, italic);
         env->ReleaseStringUTFChars(name, nativeName);
@@ -25,6 +28,7 @@ extern "C"
 
     JNIEXPORT jboolean JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_isBold(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jboolean>(false))
 
@@ -34,6 +38,7 @@ extern "C"
 
     JNIEXPORT jboolean JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_isItalic(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jboolean>(false))
 
@@ -43,6 +48,7 @@ extern "C"
 
     JNIEXPORT jstring JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_loadFamilyName(JNIEnv *env, jclass, jlong handle)
     {
+        SCOPE_LOG()
         CHECK_HANDLE_RETURN(handle, nullptr)
 
         alphaskia_string_t family_name = alphaskia_typeface_get_family_name(reinterpret_cast<alphaskia_typeface_t>(handle));

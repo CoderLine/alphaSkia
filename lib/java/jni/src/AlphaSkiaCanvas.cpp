@@ -6,6 +6,7 @@ extern "C"
 {
     JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_getColor(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE_RETURN(canvas, 0)
 
@@ -14,6 +15,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_setColor(JNIEnv *env, jobject instance, jint color)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -22,6 +24,7 @@ extern "C"
 
     JNIEXPORT jfloat JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_getLineWidth(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE_RETURN(canvas, 0.0f)
 
@@ -30,6 +33,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_setLineWidth(JNIEnv *env, jobject instance, jfloat line_width)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -38,6 +42,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_close(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -47,6 +52,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_beginRender(JNIEnv *env, jobject instance, jint width, jint height, jfloat renderScale)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
         alphaskia_canvas_begin_render(canvas, width, height, static_cast<float>(renderScale));
@@ -54,6 +60,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_drawImage(JNIEnv *env, jobject instance, jobject image, jfloat x, jfloat y, jfloat w, jfloat h)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -72,6 +79,7 @@ extern "C"
 
     JNIEXPORT jobject JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_endRender(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE_RETURN(canvas, nullptr)
 
@@ -84,6 +92,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillRect(JNIEnv *env, jobject instance, jfloat x, jfloat y, jfloat w, jfloat h)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -91,12 +100,14 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_strokeRect(JNIEnv *env, jobject instance, jfloat x, jfloat y, jfloat w, jfloat h)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
         alphaskia_canvas_stroke_rect(canvas, x, y, w, h);
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_beginPath(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -104,6 +115,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_closePath(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -111,6 +123,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_moveTo(JNIEnv *env, jobject instance, jfloat x, jfloat y)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -118,6 +131,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_lineTo(JNIEnv *env, jobject instance, jfloat x, jfloat y)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -125,6 +139,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_quadraticCurveTo(JNIEnv *env, jobject instance, jfloat cpx, jfloat cpy, jfloat x, jfloat y)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -132,6 +147,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_bezierCurveTo(JNIEnv *env, jobject instance, jfloat cp1x, jfloat cp1y, jfloat cp2x, jfloat cp2y, jfloat x, jfloat y)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -139,6 +155,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillCircle(JNIEnv *env, jobject instance, jfloat x, jfloat y, jfloat r)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -146,6 +163,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_strokeCircle(JNIEnv *env, jobject instance, jfloat x, jfloat y, jfloat r)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -153,6 +171,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fill(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -160,6 +179,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_stroke(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -167,6 +187,7 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillText(JNIEnv *env, jobject instance, jstring str, jobject typeface, jfloat font_size, jfloat x, jfloat y, jobject text_align, jobject baseline)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -205,6 +226,7 @@ extern "C"
     }
     JNIEXPORT jfloat JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_measureText(JNIEnv *env, jobject instance, jstring str, jobject typeface, jfloat font_size)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE_RETURN(canvas, 0.0f)
 
@@ -221,6 +243,7 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_beginRotate(JNIEnv *env, jobject instance, jfloat x, jfloat y, jfloat angle)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
@@ -228,17 +251,20 @@ extern "C"
     }
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_endRotate(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
         alphaskia_canvas_end_rotate(canvas);
     }
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_alphaskiaCanvasAllocate(JNIEnv *env, jclass)
     {
+        SCOPE_LOG()
         alphaskia_canvas_t canvas = alphaskia_canvas_new();
         return static_cast<jlong>(reinterpret_cast<std::uintptr_t>(canvas));
     }
     JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_alphaskiaColorType(JNIEnv *, jclass)
     {
+        SCOPE_LOG()
         return static_cast<jint>(alphaskia_get_color_type());
     }
 }

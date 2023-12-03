@@ -8,14 +8,16 @@ extern "C"
 {
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_allocateCopy(JNIEnv *env, jclass cls, jbyteArray data)
     {
+        SCOPE_LOG()
         jbyte *bytes = env->GetByteArrayElements(data, nullptr);
         alphaskia_data_t nativeData = alphaskia_data_new_copy(reinterpret_cast<const uint8_t *>(bytes), env->GetArrayLength(data));
         env->ReleaseByteArrayElements(data, bytes, 0);
         return reinterpret_cast<jlong>(nativeData);
     }
-    
+
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_close(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE(handle)
 
@@ -26,6 +28,7 @@ extern "C"
 
     JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_toArray(JNIEnv *env, jobject instance)
     {
+        SCOPE_LOG()
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, nullptr)
 
