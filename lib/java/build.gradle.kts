@@ -137,6 +137,7 @@ subprojects {
                 afterEvaluate {
                     artifactId = tasks.withType<Jar>().first().archiveBaseName.get()
                     pom {
+                        name = tasks.withType<Jar>().first().archiveBaseName.get()
                         description = libDescription
                         url = libProjectUrl
                         licenses {
