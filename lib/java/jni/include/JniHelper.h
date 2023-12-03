@@ -4,7 +4,7 @@
 #define STRINGIFY(s) _STRINGIFY(s)
 #define _STRINGIFY(s) #s
 
-bool g_is_trace_enabled;
+extern bool g_is_trace_enabled;
 
 class ScopeLog
 {
