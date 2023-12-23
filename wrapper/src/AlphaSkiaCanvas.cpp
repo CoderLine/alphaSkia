@@ -202,11 +202,6 @@ void AlphaSkiaCanvas::end_rotate()
     surface_->getCanvas()->restore();
 }
 
-std::string AlphaSkiaCanvas::convert_utf16_to_utf8(const char16_t *text)
-{
-    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>().to_bytes(text);
-}
-
 using HBBlob = std::unique_ptr<hb_blob_t, SkFunctionObject<hb_blob_destroy>>;
 using HBFace = std::unique_ptr<hb_face_t, SkFunctionObject<hb_face_destroy>>;
 using HBFont = std::unique_ptr<hb_font_t, SkFunctionObject<hb_font_destroy>>;
@@ -301,8 +296,6 @@ void AlphaSkiaCanvas::text_run(const char16_t *text,
     font.setSubpixel(true);
     font.setHinting(SkFontHinting::kNormal);
 
-    std::string utf8(convert_utf16_to_utf8(text));
-
     HBFont harfBuzzFont(make_harfbuzz_font(font));
 
     SkTextBlobBuilder builder;
@@ -317,7 +310,7 @@ void AlphaSkiaCanvas::text_run(const char16_t *text,
     HBBuffer buffer(hb_buffer_create());
     hb_buffer_set_direction(buffer.get(), HB_DIRECTION_LTR);
     hb_buffer_set_language(buffer.get(), hb_language_get_default());
-    hb_buffer_add_utf8(buffer.get(), utf8.c_str(), -1, 0, -1);
+    hb_buffer_add_utf16(buffer.get(), reinterpret_cast<const uint16_t*>(text), -1, 0, -1);
 
     hb_shape(harfBuzzFont.get(), buffer.get(), nullptr, 0);
 

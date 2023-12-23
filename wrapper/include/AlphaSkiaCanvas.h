@@ -44,8 +44,6 @@ public:
 private:
     SkPaint create_paint();
 
-    std::string convert_utf16_to_utf8(const char16_t *text);
-
     SkColor color_;
     float line_width_;
     sk_sp<SkSurface> surface_;
