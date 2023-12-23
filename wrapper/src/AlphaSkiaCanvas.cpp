@@ -9,6 +9,7 @@
 #include "../../externals/skia/include/core/SkStream.h"
 #include "../../externals/skia/include/core/SkFontMetrics.h"
 #include "../../externals/skia/include/core/SkTextBlob.h"
+#include "../../externals/skia/include/core/SkRefCnt.h"
 
 #include "../../externals/skia/third_party/externals/harfbuzz/src/hb.h"
 #include "../../externals/skia/third_party/externals/harfbuzz/src/hb-ot.h"
@@ -214,33 +215,75 @@ using HBBuffer = std::unique_ptr<hb_buffer_t, SkFunctionObject<hb_buffer_destroy
 const int SkiaToHarfBuzzFontSize = 1 << 16;
 const float HarfBuzzToSkiaFontSize = 1.0f / SkiaToHarfBuzzFontSize;
 
+hb_blob_t* skhb_get_table(hb_face_t* face, hb_tag_t tag, void* user_data) 
+{
+    SkTypeface& typeface = *reinterpret_cast<SkTypeface*>(user_data);
+
+    auto data = typeface.copyTableData(tag);
+    if (!data) 
+    {
+        return nullptr;
+    }
+    SkData* rawData = data.release();
+    return hb_blob_create(reinterpret_cast<char*>(rawData->writable_data()), rawData->size(),
+                          HB_MEMORY_MODE_READONLY, rawData, [](void* ctx) {
+                              SkSafeUnref(((SkData*)ctx));
+                          });
+}
+
+
 HBFont make_harfbuzz_font(const SkFont &font)
 {
     int index = 0;
     std::unique_ptr<SkStreamAsset> typefaceAsset = font.getTypeface()->openExistingStream(&index);
 
-    size_t size = typefaceAsset->getLength();
+    HBFace hbFace;
 
-    HBBlob blob;
-    if (const void *base = typefaceAsset->getMemoryBase())
+    if (typefaceAsset)
     {
-        blob.reset(hb_blob_create((char *)base, SkToUInt(size),
-                                  HB_MEMORY_MODE_READONLY, typefaceAsset.release(),
-                                  [](void *p)
-                                  { delete (SkStreamAsset *)p; }));
-    }
-    else
-    {
-        void *ptr = size ? sk_malloc_throw(size) : nullptr;
-        typefaceAsset->read(ptr, size);
-        blob.reset(hb_blob_create((char *)ptr, SkToUInt(size),
-                                  HB_MEMORY_MODE_READONLY, ptr, sk_free));
-    }
-    hb_blob_make_immutable(blob.get());
+        size_t size = typefaceAsset->getLength();
 
-    HBFace hbFace(hb_face_create(blob.get(), index));
-    hb_face_set_index(hbFace.get(), index);
-    hb_face_set_upem(hbFace.get(), font.getTypeface()->getUnitsPerEm());
+        HBBlob blob;
+        if (const void *base = typefaceAsset->getMemoryBase())
+        {
+            blob.reset(hb_blob_create((char *)base, SkToUInt(size),
+                                    HB_MEMORY_MODE_READONLY, typefaceAsset.release(),
+                                    [](void *p)
+                                    { delete (SkStreamAsset *)p; }));
+        }
+        else
+        {
+            void *ptr = size ? sk_malloc_throw(size) : nullptr;
+            typefaceAsset->read(ptr, size);
+            blob.reset(hb_blob_create((char *)ptr, SkToUInt(size),
+                                    HB_MEMORY_MODE_READONLY, ptr, sk_free));
+        }
+        hb_blob_make_immutable(blob.get());
+
+        hbFace.reset(hb_face_create(blob.get(), index));
+        hb_face_set_index(hbFace.get(), index);
+        hb_face_set_upem(hbFace.get(), font.getTypeface()->getUnitsPerEm());
+    }
+    
+
+    if(!hbFace) 
+    {
+        hbFace.reset(hb_face_create_for_tables(
+            skhb_get_table,
+            const_cast<SkTypeface*>(SkRef(font.getTypeface())),
+            [](void* user_data){ SkSafeUnref(reinterpret_cast<SkTypeface*>(user_data)); }));
+        
+        if(hbFace)
+        {
+            hb_face_set_index(hbFace.get(), (unsigned)index);
+            hb_face_set_upem(hbFace.get(), font.getTypeface()->getUnitsPerEm());
+        }
+    }
+
+    if(!hbFace) 
+    {
+        return HBFont();
+    }
 
     HBFont hbFont(hb_font_create(hbFace.get()));
     float scale = font.getSize() * SkiaToHarfBuzzFontSize;
@@ -261,6 +304,16 @@ void AlphaSkiaCanvas::text_run(const char16_t *text,
     std::string utf8(convert_utf16_to_utf8(text));
 
     HBFont harfBuzzFont(make_harfbuzz_font(font));
+
+    SkTextBlobBuilder builder;
+    if(!harfBuzzFont)
+    {
+        auto runBuffer = builder.allocRunPos(font, 0);
+        realBlob = builder.make();
+        width = 0.0f;
+        return;
+    }
+
     HBBuffer buffer(hb_buffer_create());
     hb_buffer_set_direction(buffer.get(), HB_DIRECTION_LTR);
     hb_buffer_set_language(buffer.get(), hb_language_get_default());
@@ -275,7 +328,6 @@ void AlphaSkiaCanvas::text_run(const char16_t *text,
     hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(buffer.get(),
                                                                    &positionsLength);
 
-    SkTextBlobBuilder builder;
     auto runBuffer = builder.allocRunPos(font, infosLength);
 
     auto glyphSpan = runBuffer.glyphs;
