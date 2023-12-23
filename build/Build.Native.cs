@@ -317,6 +317,7 @@ partial class Build
         {
             gnArgs["ndk"] = NdkPath;
             AppendToFlagList(gnArgs, "extra_ldflags", $"'-llog'");
+            gnArgs["skia_enable_fontmgr_android"] = "true";
         }
 
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;
