@@ -7,7 +7,7 @@ alphaSkia is a special cross platform [Skia](https://skia.org/) wrapper used in 
 alphaSkia a slightly adapted [Semantic Versioning](https://semver.org/) scheme where the `PATCH` part indicates
 the Skia milestone version we have integrated. 
 
-Currently we are on [Skia m117](https://github.com/CoderLine/alphaSkia/blob/main/.gitmodules#L8)
+Currently we are on [Skia m120](https://github.com/CoderLine/alphaSkia/blob/main/.gitmodules#L8)
 
 Given a version number `MAJOR.MINOR.SKIA`:
 
