@@ -146,8 +146,10 @@ class AlphaSkiaTestCanvas : ICanvas
             ? _testSource.MakeEnumAccess("AlphaSkiaTextAlign", "Center")
             : _testSource.MakeEnumAccess("AlphaSkiaTextAlign", "Left");
         
+
+        var textPart = WithTextLength ? $"{text}, {text.Length}" :  $"{text}";
         _testSource.WriteCallCanvasMethod("FillText",
-            $"{text}, {_testSource.MakeTestGetProperty("MusicTypeface")}, {MakeGetMusicFontSize(scale)}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {textAlign}, {_testSource.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
+            $"{textPart}, {_testSource.MakeTestGetProperty("MusicTypeface")}, {MakeGetMusicFontSize(scale)}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {textAlign}, {_testSource.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
     }
 
     private string MakeGetMusicFontSize(double? scale = null) 
