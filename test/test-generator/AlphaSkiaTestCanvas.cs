@@ -147,7 +147,7 @@ class AlphaSkiaTestCanvas : ICanvas
             : _testSource.MakeEnumAccess("AlphaSkiaTextAlign", "Left");
         
 
-        var textPart = WithTextLength ? $"{text}, {text.Length}" :  $"{text}";
+        var textPart = WithTextLength ? $"{text}, {symbols.Count}" :  $"{text}";
         _testSource.WriteCallCanvasMethod("FillText",
             $"{textPart}, {_testSource.MakeTestGetProperty("MusicTypeface")}, {MakeGetMusicFontSize(scale)}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {textAlign}, {_testSource.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
     }
