@@ -163,7 +163,6 @@ partial class Build
         gnArgs["skia_use_sfntly"] = "false";
         gnArgs["skia_enable_skshaper"] = "true";
         gnArgs["skia_pdf_subset_harfbuzz"] = "false";
-        gnArgs["skia_use_expat"] = "false";
         gnArgs["skia_enable_pdf"] = "false";
         gnArgs["skia_use_dng_sdk"] = "false";
         gnArgs["skia_use_libjpeg_turbo_decode"] = "false";

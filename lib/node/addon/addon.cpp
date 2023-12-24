@@ -761,7 +761,7 @@ static napi_value node_alphaskia_canvas_fill_text(napi_env env, napi_callback_in
   GET_ARGUMENT_INT32(6, text_align);
   GET_ARGUMENT_INT32(7, baseline);
 
-  alphaskia_canvas_fill_text(canvas, text.c_str(), typeface, font_size, x, y, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
+  alphaskia_canvas_fill_text(canvas, text.c_str(), text.length(), typeface, font_size, x, y, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
 
   RETURN_UNDEFINED();
 }
@@ -776,7 +776,7 @@ static napi_value node_alphaskia_canvas_measure_text(napi_env env, napi_callback
   GET_ARGUMENT_HANDLE(2, alphaskia_typeface_t, typeface);
   GET_ARGUMENT_FLOAT(3, font_size);
 
-  float width = alphaskia_canvas_measure_text(canvas, text.c_str(), typeface, font_size);
+  float width = alphaskia_canvas_measure_text(canvas, text.c_str(), text.length(), typeface, font_size);
   napi_value width_node;
   status = napi_create_double(env, width, &width_node);
   ASSERT_STATUS();

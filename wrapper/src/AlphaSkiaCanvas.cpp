@@ -149,13 +149,13 @@ void AlphaSkiaCanvas::stroke()
     path_.reset();
 }
 
-void AlphaSkiaCanvas::fill_text(const char16_t *text, sk_sp<SkTypeface> type_face, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, sk_sp<SkTypeface> type_face, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
     sk_sp<SkTextBlob> realBlob;
     SkFont font(type_face, font_size);
 
     float width(0);
-    text_run(text, font, realBlob, width);
+    text_run(text, text_length, font, realBlob, width);
 
     switch (text_align)
     {
@@ -181,12 +181,12 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, sk_sp<SkTypeface> type_fac
     }
 }
 
-float AlphaSkiaCanvas::measure_text(const char16_t *text, sk_sp<SkTypeface> type_face, float font_size)
+float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, sk_sp<SkTypeface> type_face, float font_size)
 {
     sk_sp<SkTextBlob> realBlob;
     SkFont font(type_face, font_size);
     float width(0);
-    text_run(text, font, realBlob, width);
+    text_run(text, text_length, font, realBlob, width);
     return width;
 }
 
@@ -288,6 +288,7 @@ HBFont make_harfbuzz_font(const SkFont &font)
 }
 
 void AlphaSkiaCanvas::text_run(const char16_t *text,
+                               int text_length,
                                SkFont &font,
                                sk_sp<SkTextBlob> &realBlob,
                                float &width)
@@ -310,7 +311,7 @@ void AlphaSkiaCanvas::text_run(const char16_t *text,
     HBBuffer buffer(hb_buffer_create());
     hb_buffer_set_direction(buffer.get(), HB_DIRECTION_LTR);
     hb_buffer_set_language(buffer.get(), hb_language_get_default());
-    hb_buffer_add_utf16(buffer.get(), reinterpret_cast<const uint16_t*>(text), -1, 0, -1);
+    hb_buffer_add_utf16(buffer.get(), reinterpret_cast<const uint16_t*>(text), text_length, 0, -1);
 
     hb_shape(harfBuzzFont.get(), buffer.get(), nullptr, 0);
 

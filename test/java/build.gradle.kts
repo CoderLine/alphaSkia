@@ -32,7 +32,6 @@ dependencies {
     implementation("net.alphatab:alphaSkia-macos:$alphaSkiaVersion")
     implementation("net.alphatab:alphaSkia-windows:$alphaSkiaVersion")
     implementation("net.alphatab:alphaSkia-linux:$alphaSkiaVersion")
-    implementation("net.alphatab:alphaSkia-android:$alphaSkiaVersion")
 }
 
 java {
