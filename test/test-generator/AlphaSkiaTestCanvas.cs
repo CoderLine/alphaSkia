@@ -15,6 +15,8 @@ class AlphaSkiaTestCanvas : ICanvas
 
     private int _partialCounter = 1;
 
+    public bool WithTextLength { get; set; }
+
     public AlphaSkiaTestCanvas(TestSourceBuilder testSource)
     {
         _testSource = testSource;
@@ -115,8 +117,9 @@ class AlphaSkiaTestCanvas : ICanvas
 
     public void FillText(string text, double x, double y)
     {
+        var textPart = WithTextLength ? $"{_testSource.EncodeString(text)}, {text.Length}" :  $"{_testSource.EncodeString(text)}";
         _testSource.WriteCallCanvasMethod("FillText",
-            $"{_testSource.EncodeString(text)}, {_testSource.MakeTestGetProperty("Typeface")}, {_testSource.MakeTestGetProperty("FontSize")}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {_testSource.MakeTestGetProperty("TextAlign")}, {_testSource.MakeTestGetProperty("TextBaseline")}");
+            $"{textPart}, {_testSource.MakeTestGetProperty("Typeface")}, {_testSource.MakeTestGetProperty("FontSize")}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {_testSource.MakeTestGetProperty("TextAlign")}, {_testSource.MakeTestGetProperty("TextBaseline")}");
     }
 
     public double MeasureText(string text)
