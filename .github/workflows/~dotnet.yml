@@ -40,13 +40,13 @@ jobs:
         include: 
           - runs-on: ubuntu-latest
             architecture: x64
-            framework: net6.0
+            framework: net8.0
           - runs-on: macos-latest
             architecture: x64
-            framework: net6.0
+            framework: net8.0
           - runs-on: windows-latest
             architecture: x64
-            framework: net6.0
+            framework: net8.0
           - runs-on: windows-latest
             architecture: x64
             framework: net48

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "alphaTab.alphaSkia"
-version = "1.0.0-LOCAL"
+version = "2.0.0-LOCAL"
 // Use any latest version
 var alphaSkiaVersion = version
 
