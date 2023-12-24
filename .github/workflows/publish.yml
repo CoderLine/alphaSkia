@@ -11,6 +11,7 @@ on:
         default: false
 env:
   IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
+  ALPHASKIA_VERSION_TEMPLATE: "2.0"
 
 jobs:
   build:
