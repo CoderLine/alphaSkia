@@ -7,7 +7,7 @@ public class AlphaSkiaAndroid extends AlphaSkiaPlatform {
     public static final AlphaSkiaAndroid INSTANCE = new AlphaSkiaAndroid();
 
     @Override
-    public void inititalize() {
+    public void initialize() {
         System.loadLibrary("alphaskiajni");
         setNativeLibLoaded();
     }

@@ -29,7 +29,7 @@ public abstract class AlphaSkiaPlatform {
      * Initializes the alphaSkia platform specifics using the given context.
      * @throws IOException Thrown if some IO related errors occur while loading the libraries.
      */
-    public abstract void inititalize() throws IOException;
+    public abstract void initialize() throws IOException;
 
     /**
      * Maps the current CPU architecture to the alphaSkia internal architecture.

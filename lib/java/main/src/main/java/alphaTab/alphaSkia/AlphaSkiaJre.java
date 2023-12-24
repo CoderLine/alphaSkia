@@ -21,7 +21,7 @@ public abstract class AlphaSkiaJre extends AlphaSkiaPlatform {
 
     @SuppressWarnings("UnsafeDynamicallyLoadedCode")
     @Override
-    public void inititalize() throws IOException {
+    public void initialize() throws IOException {
         String[] libraries = getJavaResources();
 
         Path tmpDir = Files.createTempDirectory("alphaskia");
