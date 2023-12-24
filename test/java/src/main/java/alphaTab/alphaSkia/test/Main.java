@@ -175,13 +175,13 @@ public class Main {
     private static void initializeAlphaSkia() throws IOException {
         switch(getOperatingSystemRid()) {
             case "macos":
-                AlphaSkiaMacOs.INSTANCE.inititalize();
+                AlphaSkiaMacOs.INSTANCE.initialize();
                 break;
             case "win":
-                AlphaSkiaWindows.INSTANCE.inititalize();
+                AlphaSkiaWindows.INSTANCE.initialize();
                 break;
             case "linux":
-                AlphaSkiaLinux.INSTANCE.inititalize();
+                AlphaSkiaLinux.INSTANCE.initialize();
                 break;
         }
     }
