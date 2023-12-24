@@ -4,6 +4,11 @@ plugins {
     signing
 }
 
+dependencies {
+    implementation(project(":main"))
+}
+
+
 java {
     toolchain{
         languageVersion.set(JavaLanguageVersion.of(17))

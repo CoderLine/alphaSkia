@@ -1,38 +1,73 @@
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import com.android.build.gradle.internal.tasks.factory.dependsOn
+
 plugins {
-    id("java-library")
+    id("com.android.library")
     `maven-publish`
     signing
 }
 
-java {
-    toolchain{
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-    withSourcesJar()
-    withJavadocJar()
+dependencies {
+    implementation(project(":main"))
 }
 
-tasks.jar {
-    archiveBaseName = "alphaSkia-android"
+tasks.register<Copy>("copyJniForAndroid") {
+    // https://developer.android.com/studio/projects/gradle-external-native-builds#jniLibs
+    // https://developer.android.com/ndk/guides/abis#sa
 
-    into("native/android-x64/") {
+    into("src/main/jniLibs/x86_64") {
         from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-x64-jni/")) {
             include("*.so")
         }
     }
-    into("native/android-x86/") {
+    into("src/main/jniLibs/x86") {
         from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-x86-jni/")) {
             include("*.so")
         }
     }
-    into("native/android-arm64/") {
+    into("src/main/jniLibs/arm64-v8a") {
         from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-arm64-jni/")) {
             include("*.so")
         }
     }
-    into("native/android-arm/") {
+    into("src/main/jniLibs/armeabi-v7a") {
         from(rootProject.projectDir.resolve("../../dist/libalphaskiajni-android-arm-jni/")) {
             include("*.so")
         }
     }
+
+    destinationDir = projectDir
 }
+tasks.preBuild.dependsOn("copyJniForAndroid")
+
+
+android {
+    namespace = "net.alphatab.alphaskia.android"
+    compileSdk = 34
+
+    defaultConfig {
+        minSdk = 26
+        ndk {
+            abiFilters += listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
+        }
+        setProperty("archivesBaseName", "alphaSkia-android")
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+}
+

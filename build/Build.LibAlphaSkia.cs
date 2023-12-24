@@ -252,25 +252,35 @@ partial class Build
             var alphaSkiaInclude = DistBasePath / "include";
             var jniInclude = JavaHome / "include";
             AbsolutePath jniPlatformInclude;
-            if (OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
             {
                 jniPlatformInclude = jniInclude / "win32";
             }
-            else if (OperatingSystem.IsLinux())
+            else if (OperatingSystem.IsLinux() && TargetOs == TargetOperatingSystem.Linux)
             {
                 jniPlatformInclude = jniInclude / "linux";
             }
-            else if (OperatingSystem.IsMacOS())
+            else if (OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
             {
                 jniPlatformInclude = jniInclude / "darwin";
+            }
+            else if(TargetOs == TargetOperatingSystem.Android)
+            {
+                jniPlatformInclude = null;
             }
             else
             {
                 throw new PlatformNotSupportedException();
             }
 
-            AppendToFlagList(gnArgs, "extra_cflags",
-                $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
+            if(jniPlatformInclude != null)
+            {
+                AppendToFlagList(gnArgs, "extra_cflags", $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'");
+            }
+            else
+            {
+                AppendToFlagList(gnArgs, "extra_cflags", $"'-I{alphaSkiaInclude}'");
+            }
         }
         else if (Variant == Variant.Node)
         {

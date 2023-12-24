@@ -5,7 +5,7 @@
 [submodule "externals/skia"]
 	path = externals/skia
 	url = https://skia.googlesource.com/skia.git
-	branch = chrome/m117
+	branch = chrome/m120
 [submodule "externals/node-api-headers"]
 	path = externals/node-api-headers
 	url = https://github.com/nodejs/node-api-headers.git

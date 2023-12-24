@@ -1,16 +1,9 @@
 import java.io.FileInputStream
 import java.util.*
 
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-}
-
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+    id("com.android.library") version "8.1.0" apply false
 }
 
 var sonatypeSigningKeyId = ""
@@ -76,42 +69,17 @@ group = "net.alphatab"
 version = libVersion
 
 subprojects {
-    apply<JavaLibraryPlugin>()
     apply<MavenPublishPlugin>()
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
-
-    group = "net.alphatab"
-    version = libVersion
 
     repositories {
         google()
         mavenCentral()
     }
 
-    configure<JavaPluginExtension> {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
-        }
-        withSourcesJar()
-        withJavadocJar()
-    }
-
-    tasks.withType<JavaCompile> {
-        options.encoding = "UTF-8"
-    }
-
-    tasks.withType<Test> {
-        defaultCharacterEncoding = "UTF-8"
-    }
-
-    tasks.withType<JavaExec> {
-        defaultCharacterEncoding = "UTF-8"
-    }
-
-    tasks.withType<Javadoc> {
-        options.encoding = "UTF-8"
-    }
+    group = "net.alphatab"
+    version = libVersion
 
     configure<SigningExtension> {
         if (sonatypeSigningKeyId.isNotBlank() && sonatypeSigningKey.isNotBlank() && sonatypeSigningPassword.isNotBlank()) {
@@ -122,46 +90,75 @@ subprojects {
         }
     }
 
-    configure<PublishingExtension> {
-        repositories {
-            maven {
-                name = "DistPath"
-                url = rootProject.projectDir.resolve("dist").toURI()
+    if (!this.project.name.contains("android")) {
+        apply<JavaLibraryPlugin>()
+
+        configure<JavaPluginExtension> {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(17))
             }
+            withSourcesJar()
+            withJavadocJar()
         }
 
-        publications {
-            // this publication builds the library and is meant to publish to the local dist folder
-            create<MavenPublication>("mavenJava") {
-                from(components["java"])
-                afterEvaluate {
-                    artifactId = tasks.withType<Jar>().first().archiveBaseName.get()
-                    pom {
-                        name = tasks.withType<Jar>().first().archiveBaseName.get()
-                        description = libDescription
-                        url = libProjectUrl
-                        licenses {
-                            license {
-                                name = libLicenseSpdx
-                                url = libLicenseUrl
+        tasks.withType<JavaCompile> {
+            options.encoding = "UTF-8"
+        }
+
+        tasks.withType<Test> {
+            defaultCharacterEncoding = "UTF-8"
+        }
+
+        tasks.withType<JavaExec> {
+            defaultCharacterEncoding = "UTF-8"
+        }
+
+        tasks.withType<Javadoc> {
+            options.encoding = "UTF-8"
+        }
+    }
+
+    afterEvaluate {
+        configure<PublishingExtension> {
+            repositories {
+                maven {
+                    name = "DistPath"
+                    url = rootProject.projectDir.resolve("dist").toURI()
+                }
+            }
+
+            publications {
+                create<MavenPublication>("mavenJava") {
+                    afterEvaluate {
+                        from(components.findByName("java") ?: components["release"])
+                        artifactId = tasks.withType<Jar>().firstOrNull()?.archiveBaseName?.get()
+                        pom {
+                            name = artifactId
+                            description = libDescription
+                            url = libProjectUrl
+                            licenses {
+                                license {
+                                    name = libLicenseSpdx
+                                    url = libLicenseUrl
+                                }
                             }
-                        }
-                        developers {
-                            developer {
-                                id = libAuthorId
-                                name = libAuthorName
-                                organization = libCompany
-                                organizationUrl = libOrgUrl
+                            developers {
+                                developer {
+                                    id = libAuthorId
+                                    name = libAuthorName
+                                    organization = libCompany
+                                    organizationUrl = libOrgUrl
+                                }
                             }
-                        }
-                        scm {
-                            url = libGitUrlHttp
-                            connection = "scm:git:$libGitUrlGit"
-                            developerConnection = "scm:git:$libGitUrlGit"
-                        }
-                        issueManagement {
-                            system = "GitHub"
-                            url = libIssuesUrl
+                            scm {
+                                url = libGitUrlHttp
+                                connection = "scm:git:$libGitUrlGit"
+                                developerConnection = "scm:git:$libGitUrlGit"
+                            }
+                            issueManagement {
+                                system = "GitHub"
+                                url = libIssuesUrl
+                            }
                         }
                     }
                 }

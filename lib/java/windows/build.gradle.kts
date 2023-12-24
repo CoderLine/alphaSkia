@@ -4,6 +4,10 @@ plugins {
     signing
 }
 
+dependencies {
+    implementation(project(":main"))
+}
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
@@ -11,7 +15,6 @@ java {
     withSourcesJar()
     withJavadocJar()
 }
-
 
 tasks.jar {
     archiveBaseName = "alphaSkia-windows"

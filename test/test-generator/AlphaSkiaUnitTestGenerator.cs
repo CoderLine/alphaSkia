@@ -238,7 +238,7 @@ public class AlphaSkiaUnitTestGenerator
         var sourceCode = new CppTestSourceBuilder();
         AlphaTab.Environment.RenderEngines.Set(
             settings.Core.Engine,
-            new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode))
+            new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode) { WithTextLength = true })
         );
 
         sourceCode.Resume();

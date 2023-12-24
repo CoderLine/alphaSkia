@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "alphaTab.alphaSkia"
-version = "1.0.0-LOCAL"
+version = "2.0.0-LOCAL"
 // Use any latest version
 var alphaSkiaVersion = version
 
@@ -32,7 +32,6 @@ dependencies {
     implementation("net.alphatab:alphaSkia-macos:$alphaSkiaVersion")
     implementation("net.alphatab:alphaSkia-windows:$alphaSkiaVersion")
     implementation("net.alphatab:alphaSkia-linux:$alphaSkiaVersion")
-    implementation("net.alphatab:alphaSkia-android:$alphaSkiaVersion")
 }
 
 java {

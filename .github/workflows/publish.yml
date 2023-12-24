@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/~reusable-full-build.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: "1.0"
+      alphaskia-version: "2.0"
       is-release-build: ${{ inputs.is-release-build }}
     secrets: inherit
 

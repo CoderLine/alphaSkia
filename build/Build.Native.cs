@@ -316,6 +316,7 @@ partial class Build
         if (TargetOs == TargetOperatingSystem.Android)
         {
             gnArgs["ndk"] = NdkPath;
+            AppendToFlagList(gnArgs, "extra_ldflags", $"'-llog'");
         }
 
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;

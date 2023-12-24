@@ -150,6 +150,7 @@ internal static class NativeMethods
     public static extern void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, 
         [MarshalAs(UnmanagedType.LPWStr)]
         string text,
+        int text_length,
         alphaskia_typeface_t type_face, float font_size, float x, float y, AlphaSkiaTextAlign text_align,
         AlphaSkiaTextBaseline baseline);
 
@@ -157,6 +158,7 @@ internal static class NativeMethods
     public static extern float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, 
         [MarshalAs(UnmanagedType.LPWStr)]
         string text,
+        int text_length,
         alphaskia_typeface_t type_face, float font_size);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]

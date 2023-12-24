@@ -272,7 +272,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
         AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_text(Handle, text, typeface.Handle, fontSize, x, y, textAlign, baseline);
+        NativeMethods.alphaskia_canvas_fill_text(Handle, text, text.Length, typeface.Handle, fontSize, x, y, textAlign, baseline);
     }
 
     /// <summary>
@@ -285,7 +285,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public float MeasureText(string text, AlphaSkiaTypeface typeface, float fontSize)
     {
         CheckDisposed();
-        return NativeMethods.alphaskia_canvas_measure_text(Handle, text, typeface.Handle, fontSize);
+        return NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, typeface.Handle, fontSize);
     }
 
     /// <summary>

@@ -36,15 +36,13 @@ public:
     void stroke();
     void draw_image(sk_sp<SkImage> image, float x, float y, float w, float h);
    
-    void fill_text(const char16_t *text, sk_sp<SkTypeface> typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
-    float measure_text(const char16_t *text, sk_sp<SkTypeface> typeface, float font_size);
+    void fill_text(const char16_t *text, int text_length, sk_sp<SkTypeface> typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
+    float measure_text(const char16_t *text, int text_length, sk_sp<SkTypeface> typeface, float font_size);
     void begin_rotate(float center_x, float center_y, float angle);
     void end_rotate();
 
 private:
     SkPaint create_paint();
-
-    std::string convert_utf16_to_utf8(const char16_t *text);
 
     SkColor color_;
     float line_width_;
@@ -55,6 +53,7 @@ private:
     static const uint32_t layoutUnitFractionalBits_;
     static const int32_t fixedPointDenominator_;
     void text_run(const char16_t* text,
+                  int text_length,
                   SkFont &font,
                   sk_sp<SkTextBlob> &realBlob,
                   float &width);

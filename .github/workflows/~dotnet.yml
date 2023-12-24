@@ -19,6 +19,9 @@ jobs:
   dotnet:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8'
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
       with:
@@ -40,19 +43,22 @@ jobs:
         include: 
           - runs-on: ubuntu-latest
             architecture: x64
-            framework: net6.0
+            framework: net8.0
           - runs-on: macos-latest
             architecture: x64
-            framework: net6.0
+            framework: net8.0
           - runs-on: windows-latest
             architecture: x64
-            framework: net6.0
+            framework: net8.0
           - runs-on: windows-latest
             architecture: x64
             framework: net48
     runs-on: ${{ matrix.runs-on }}
     needs: [dotnet]
     steps:
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8'      
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
       with:

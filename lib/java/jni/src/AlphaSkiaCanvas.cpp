@@ -198,7 +198,8 @@ extern "C"
         alphaskia_text_align_t nativeTextAlign = static_cast<alphaskia_text_align_t>(env->CallIntMethod(text_align, textAlignGetValue));
         alphaskia_text_baseline_t nativeBaseline = static_cast<alphaskia_text_baseline_t>(env->CallIntMethod(baseline, baselineGetValue));
 
-        alphaskia_canvas_fill_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), nativeTypeface, static_cast<float>(font_size), static_cast<float>(x), static_cast<float>(y),
+        alphaskia_canvas_fill_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(env->GetStringLength(str)),
+                                   nativeTypeface, static_cast<float>(font_size), static_cast<float>(x), static_cast<float>(y),
                                    nativeTextAlign, nativeBaseline);
 
         env->ReleaseStringChars(str, nativeStr);
@@ -212,7 +213,7 @@ extern "C"
         alphaskia_typeface_t nativeTypeface = reinterpret_cast<alphaskia_typeface_t>(get_handle(env, typeface));
         CHECK_HANDLE_RETURN(nativeTypeface, 0.0f)
 
-        float width = alphaskia_canvas_measure_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), nativeTypeface, static_cast<float>(font_size));
+        float width = alphaskia_canvas_measure_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(env->GetStringLength(str)), nativeTypeface, static_cast<float>(font_size));
 
         env->ReleaseStringChars(str, nativeStr);
 

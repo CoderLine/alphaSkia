@@ -1,26 +1,21 @@
 package alphaTab.alphaSkia;
 
 /**
- * This class contains the information about the macOS runtime dependencies to use with AlphaSkiaPlatform.
+ * The alphaSkia initializer for macOS.
  */
-public final class AlphaSkiaMacOs {
+public class AlphaSkiaMacOs extends AlphaSkiaJre {
     /**
-     * The native libraries needed to run alphaSkia.
+     * The alphaSkia initializer for macOS.
      */
-    public static final String[] libraries = {
-            "/native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.dylib"
-    };
+    public static final AlphaSkiaMacOs INSTANCE = new AlphaSkiaMacOs();
 
-    private static String getCurrentArchitecture() {
-        var jarch = System.getProperty("os.arch");
-        return switch (jarch) {
-            case "x86", "i368", "i486", "i586", "i686" -> "x86";
-            case "x86_64", "amd64" -> "x64";
-            case "arm" -> "arm";
-            case "aarch64" -> "arm64";
-            default -> jarch;
-        };
+    private AlphaSkiaMacOs() {
     }
 
-    private AlphaSkiaMacOs() {}
+    @Override
+    protected String[] getJavaResources() {
+        return new String[] {
+            "/native/macos-" + getCurrentArchitecture() + "/libalphaskiajni.dylib"
+        };
+    }
 }

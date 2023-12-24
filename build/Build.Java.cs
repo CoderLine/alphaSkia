@@ -110,26 +110,24 @@ partial class Build
         get
         {
             string semVer;
-            if (IsLocalBuild)
-            {
-                semVer = $"{VersionInfo.FileVersion.ToString(3)}-LOCAL";
-            }
-            else if (!IsReleaseBuild)
-            {
-                semVer = $"{VersionInfo.FileVersion.ToString(3)}-SNAPSHOT";
-            }
-            else
+            if (IsReleaseBuild)
             {
                 semVer = $"{VersionInfo.FileVersion.ToString(3)}";
             }
-
+            else if (IsLocalBuild)
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}-LOCAL";
+            }
+            else
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}-SNAPSHOT";
+            }
             return semVer;
         }
     }
     
     public Target JavaPublish => _ => _
         .DependsOn(PrepareGitHubArtifacts)
-        .Requires(() => IsGitHubActions)
         .Executes(() =>
         {
             // workaround until we know how to upload existing maven packages

@@ -175,16 +175,13 @@ public class Main {
     private static void initializeAlphaSkia() throws IOException {
         switch(getOperatingSystemRid()) {
             case "macos":
-                AlphaSkiaPlatform.loadLibrary(AlphaSkiaMacOs.class);
+                AlphaSkiaMacOs.INSTANCE.inititalize();
                 break;
             case "win":
-                AlphaSkiaPlatform.loadLibrary(AlphaSkiaWindows.class);
-                break;
-            case "android":
-                AlphaSkiaPlatform.loadLibrary(AlphaSkiaAndroid.class);
+                AlphaSkiaWindows.INSTANCE.inititalize();
                 break;
             case "linux":
-                AlphaSkiaPlatform.loadLibrary(AlphaSkiaLinux.class);
+                AlphaSkiaLinux.INSTANCE.inititalize();
                 break;
         }
     }
@@ -198,11 +195,6 @@ public class Main {
             return "win";
         }
         if (os.startsWith("Linux")) {
-            // https://developer.android.com/reference/java/lang/System#getProperties()
-            if ("The Android Project".equalsIgnoreCase(System.getProperty("java.specification.vendor"))) {
-                return "android";
-            }
-
             return "linux";
         }
 
