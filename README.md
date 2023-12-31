@@ -27,24 +27,24 @@ The prerelease labels and tags we use:
 
 ## Supported platforms
 
-| Target              | .net | Java | Node.js |
-|---------------------|------|------|---------|
-| win-x64             | ✅    | ✅    | ✅       |
-| win-x86             | ✅    | ✅    | ✅       |
-| win-arm64           | ✅    | ✅    | ✅       |
-| linux-x64           | ✅    | ✅    | ✅       |
-| linux-x86           | ✅    | ✅    | ✅       |
-| linux-arm           | ✅    | ✅    | ✅       |
-| linux-arm64         | ✅    | ✅    | ✅       |
-| macos-x64           | ✅    | ✅    | ✅       |
-| macos-arm64         | ✅    | ✅    | ✅       |
-| android-x64         | ✅    | ✅    |         |
-| android-x86         | ✅    | ✅    |         |
-| android-arm         | ✅    | ✅    |         |
-| android-arm64       | ✅    | ✅    |         |
-| ios-arm64           | ✅    |      |         |
-| iossimulator-x64    | ✅    |      |         |
-| iossimulator-arm64  | ✅    |      |         |
+| Target              | .net | Java | Node.js | Kotlin/Native |
+|---------------------|------|------|---------|---------------|
+| win-x64             | ✅    | ✅    | ✅       | ✅              |
+| win-x86             | ✅    | ✅    | ✅       |                |
+| win-arm64           | ✅    | ✅    | ✅       |                |
+| linux-x64           | ✅    | ✅    | ✅       | ✅              |
+| linux-x86           | ✅    | ✅    | ✅       |                |
+| linux-arm           | ✅    | ✅    | ✅       |                |
+| linux-arm64         | ✅    | ✅    | ✅       |                |
+| macos-x64           | ✅    | ✅    | ✅       | ✅              |
+| macos-arm64         | ✅    | ✅    | ✅       | ✅              |
+| android-x64         | ✅    | ✅    |         |                |
+| android-x86         | ✅    | ✅    |         |                |
+| android-arm         | ✅    | ✅    |         |                |
+| android-arm64       | ✅    | ✅    |         |                |
+| ios-arm64           | ✅    |      |         | ✅              |
+| iossimulator-x64    | ✅    |      |         | ✅              |
+| iossimulator-arm64  | ✅    |      |         | ✅              |
 
 We don't have a full automatic test matrix for all packages and platforms. If you encounter any platform problems please report them in this repository.
 

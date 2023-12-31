@@ -1,0 +1,2 @@
+headers = alphaskia.h
+package = alphaTab.alphaSkia.cinterop

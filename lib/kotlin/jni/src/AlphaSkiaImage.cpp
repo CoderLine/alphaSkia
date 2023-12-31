@@ -1,40 +1,27 @@
-#include "../include/alphaTab_alphaSkia_AlphaSkiaImage.h"
-#include "../include/JniHelper.h"
+#include "../include/alphaTab_alphaSkia_NativeMethods.h"
 #include "../../../../wrapper/include/alphaskia.h"
 
 #include <cstring>
 
 extern "C"
 {
-    JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_getWidth(JNIEnv *env, jobject instance)
+    JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaImageGetWidth(JNIEnv * env, jclass clz, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE_RETURN(handle, 0)
         return alphaskia_image_get_width(reinterpret_cast<alphaskia_image_t>(handle));
     }
 
-    JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_getHeight(JNIEnv *env, jobject instance)
+    JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaImageGetHeight(JNIEnv * env, jclass clz, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE_RETURN(handle, 0)
-
         return alphaskia_image_get_height(reinterpret_cast<alphaskia_image_t>(handle));
     }
 
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_close(JNIEnv *env, jobject instance)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaImageFree(JNIEnv * env, jclass clz, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE(handle)
-
         alphaskia_image_free(reinterpret_cast<alphaskia_image_t>(handle));
-        set_handle(env, instance, 0);
     }
 
-    JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_readPixels(JNIEnv *env, jobject instance)
+    JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaImageReadPixels(JNIEnv * env, jclass clz, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE_RETURN(handle, nullptr)
-
         alphaskia_image_t image = reinterpret_cast<alphaskia_image_t>(handle);
         jsize rowBytes = alphaskia_image_get_width(image) * sizeof(int32_t);
         jbyteArray pixels = env->NewByteArray(
@@ -51,11 +38,8 @@ extern "C"
         return pixels;
     }
 
-    JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_toPng(JNIEnv *env, jobject instance)
+    JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaImageEncodePng(JNIEnv * env, jclass clz, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE_RETURN(handle, nullptr)
-
         alphaskia_image_t image = reinterpret_cast<alphaskia_image_t>(handle);
         alphaskia_data_t data = alphaskia_image_encode_png(image);
         uint8_t *raw = alphaskia_data_get_data(data);
@@ -72,7 +56,7 @@ extern "C"
         return png;
     }
 
-    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_createFromPixels(JNIEnv *env, jclass clz, jint width, jint height, jbyteArray pixels)
+    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaImageFromPixels(JNIEnv * env, jclass clz, jint width, jint height, jbyteArray pixels)
     {
         jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
         alphaskia_image_t nativeImage = alphaskia_image_from_pixels(static_cast<int32_t>(width), static_cast<int32_t>(height), reinterpret_cast<const uint8_t *>(bytes));
@@ -80,7 +64,7 @@ extern "C"
         return reinterpret_cast<jlong>(nativeImage);
     }
 
-    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_allocateDecoded(JNIEnv *env, jclass clz, jbyteArray bytes)
+    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaImageDecode(JNIEnv * env, jclass clz, jbyteArray bytes)
     {
         jbyte *raw = env->GetByteArrayElements(bytes, nullptr);
         alphaskia_image_t nativeImage = alphaskia_image_decode(reinterpret_cast<const uint8_t *>(raw), env->GetArrayLength(bytes));

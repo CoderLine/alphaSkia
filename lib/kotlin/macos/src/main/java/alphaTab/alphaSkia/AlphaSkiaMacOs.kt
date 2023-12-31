@@ -14,7 +14,7 @@ class AlphaSkiaMacOs private constructor() : AlphaSkiaJre() {
         /**
          * The alphaSkia initializer for Linux.
          */
-        @JvmStatic
+        @JvmField
         val INSTANCE = AlphaSkiaMacOs()
     }
 }

@@ -1,5 +1,7 @@
 package alphaTab.alphaSkia
 
+import kotlin.jvm.JvmStatic
+
 /**
  * Represents a final rendered image.
  */
@@ -9,31 +11,38 @@ class AlphaSkiaImage internal constructor(handle: Long) : AlphaSkiaNative(handle
      *
      * @return the width of the image
      */
-    external fun getWidth(): Int
+    val width: Int
+        get() = NativeMethods.alphaskiaImageGetWidth(this.handle)
 
     /**
      * Gets the height of the image.
      *
      * @return the height of the image
      */
-    external fun getHeight(): Int
+    val height: Int
+        get() = NativeMethods.alphaskiaImageGetHeight(this.handle)
 
-    @Override
-    external override fun close()
+    override fun close() {
+        NativeMethods.alphaskiaImageFree(this.handle)
+    }
 
     /**
      * Reads the raw pixel data of this image as byte array.
      *
      * @return A copy of the raw pixel data.
      */
-    external fun readPixels(): ByteArray?
+    fun readPixels(): ByteArray? {
+        return NativeMethods.alphaskiaImageReadPixels(this.handle)
+    }
 
     /**
      * Encodes the image to a PNG.
      *
      * @return The raw PNG bytes for further usage.
      */
-    external fun toPng(): ByteArray?
+    fun toPng(): ByteArray? {
+        return NativeMethods.alphaskiaImageEncodePng(this.handle)
+    }
 
     companion object {
         /**
@@ -43,12 +52,9 @@ class AlphaSkiaImage internal constructor(handle: Long) : AlphaSkiaNative(handle
          */
         @JvmStatic
         fun decode(bytes: ByteArray): AlphaSkiaImage? {
-            val handle = allocateDecoded(bytes)
+            val handle = NativeMethods.alphaskiaImageDecode(bytes)
             return if (handle == 0L) null else AlphaSkiaImage(handle)
         }
-
-        @JvmStatic
-        private external fun allocateDecoded(bytes: ByteArray): Long
 
         /**
          * Creates an image from the raw pixels assuming the default internal pixel format of alphaSkia.
@@ -59,11 +65,8 @@ class AlphaSkiaImage internal constructor(handle: Long) : AlphaSkiaNative(handle
          */
         @JvmStatic
         fun fromPixels(width: Int, height: Int, pixels: ByteArray): AlphaSkiaImage? {
-            val handle = createFromPixels(width, height, pixels)
+            val handle = NativeMethods.alphaskiaImageFromPixels(width, height, pixels)
             return if (handle == 0L) null else AlphaSkiaImage(handle)
         }
-
-        @JvmStatic
-        private external fun createFromPixels(width: Int, height: Int, pixels: ByteArray): Long
     }
 }

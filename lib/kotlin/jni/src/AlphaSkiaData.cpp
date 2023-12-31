@@ -1,34 +1,20 @@
-#include "../include/alphaTab_alphaSkia_AlphaSkiaData.h"
-#include "../include/JniHelper.h"
+#include "../include/alphaTab_alphaSkia_NativeMethods.h"
 #include "../../../../wrapper/include/alphaskia.h"
 
 #include <cstring>
 
 extern "C"
 {
-    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_allocateCopy(JNIEnv *env, jclass cls, jbyteArray data)
+    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaDataNewCopy(JNIEnv * env, jclass clz, jbyteArray data)
     {
         jbyte *bytes = env->GetByteArrayElements(data, nullptr);
         alphaskia_data_t nativeData = alphaskia_data_new_copy(reinterpret_cast<const uint8_t *>(bytes), env->GetArrayLength(data));
         env->ReleaseByteArrayElements(data, bytes, 0);
         return reinterpret_cast<jlong>(nativeData);
     }
-    
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_close(JNIEnv *env, jobject instance)
+
+    JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaDataGetData(JNIEnv * env, jclass clz, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE(handle)
-
-        alphaskia_data_t data = reinterpret_cast<alphaskia_data_t>(handle);
-        alphaskia_data_free(data);
-        set_handle(env, instance, 0);
-    }
-
-    JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_toArray(JNIEnv *env, jobject instance)
-    {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE_RETURN(handle, nullptr)
-
         alphaskia_data_t data = reinterpret_cast<alphaskia_data_t>(handle);
         uint8_t *raw = alphaskia_data_get_data(data);
 
@@ -42,5 +28,11 @@ extern "C"
         alphaskia_data_free(data);
 
         return png;
+    }
+
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_NativeMethods_alphaskiaDataFree(JNIEnv * env, jclass clz, jlong handle)
+    {
+        alphaskia_data_t data = reinterpret_cast<alphaskia_data_t>(handle);
+        alphaskia_data_free(data);
     }
 }

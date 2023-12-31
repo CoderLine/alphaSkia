@@ -6,12 +6,20 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":mpp"))
+    implementation(project(":alphaSkia"))
 }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenKotlin") {
+            from(components.findByName("java"))
+        }
+    }
 }
 
 tasks.jar {

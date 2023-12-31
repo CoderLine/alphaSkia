@@ -10,7 +10,11 @@ plugins {
     alias(libs.plugins.nexusPublish)
 }
 
-val jvmTarget = 17
+repositories {
+    google()
+    mavenCentral()
+}
+
 val javaVersion = JavaVersion.VERSION_17
 
 var sonatypeSigningKeyId = ""

@@ -22,13 +22,13 @@ Directory.CreateDirectory(Path.GetDirectoryName(csharpTestFile)!);
 File.WriteAllText(csharpTestFile, AlphaSkiaUnitTestGenerator.GenerateCSharp());
 Console.WriteLine("Updated C# source in {0}", csharpTestFile);
 
-var javaTestFile = Path.Combine(rootDir, "test", "java", "src", "main", "generated", "alphaTab", "alphaSkia", "test", 
-    "AlphaTabGeneratedRenderTest.java");
-Directory.CreateDirectory(Path.GetDirectoryName(javaTestFile)!);
-File.WriteAllText(javaTestFile, AlphaSkiaUnitTestGenerator.GenerateJava());
-Console.WriteLine("Updated Java source in {0}", javaTestFile);
+var kotlinTestFile = Path.Combine(rootDir, "test", "kotlin", "src", "main", "generated", "alphaTab", "alphaSkia", "test", 
+    "AlphaTabGeneratedRenderTest.kt");
+Directory.CreateDirectory(Path.GetDirectoryName(kotlinTestFile)!);
+File.WriteAllText(kotlinTestFile, AlphaSkiaUnitTestGenerator.GenerateKotlin());
+Console.WriteLine("Updated Kotlin source in {0}", kotlinTestFile);
 
 var typeScriptTestFile = Path.Combine(rootDir, "test", "node", "AlphaTabGeneratedRenderTest.ts");
 Directory.CreateDirectory(Path.GetDirectoryName(typeScriptTestFile)!);
 File.WriteAllText(typeScriptTestFile, AlphaSkiaUnitTestGenerator.GenerateTypeScript());
-Console.WriteLine("Updated TypeScript source in {0}", javaTestFile);
+Console.WriteLine("Updated TypeScript source in {0}", kotlinTestFile);

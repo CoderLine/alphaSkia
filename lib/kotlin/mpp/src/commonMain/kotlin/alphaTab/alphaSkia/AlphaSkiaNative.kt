@@ -1,4 +1,4 @@
-package alphaTab.alphaSkia;
+package alphaTab.alphaSkia
 
 /**
  * The base class for AlphaSkia objects wrapping native Skia objects.

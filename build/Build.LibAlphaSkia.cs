@@ -149,10 +149,10 @@ partial class Build
                   configs += [ ":alphaskia_public" ]
                   sources = alphaskia_wrapper_sources
                   sources += [
-                    "../../lib/java/jni/src/AlphaSkiaCanvas.cpp",
-                    "../../lib/java/jni/src/AlphaSkiaData.cpp",
-                    "../../lib/java/jni/src/AlphaSkiaImage.cpp",
-                    "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
+                    "../../lib/kotlin/jni/src/AlphaSkiaCanvas.cpp",
+                    "../../lib/kotlin/jni/src/AlphaSkiaData.cpp",
+                    "../../lib/kotlin/jni/src/AlphaSkiaImage.cpp",
+                    "../../lib/kotlin/jni/src/AlphaSkiaTypeface.cpp"
                   ]
                 }
                 alphaskia_build("libalphaskianode") {

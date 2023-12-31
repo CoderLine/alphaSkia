@@ -39,7 +39,7 @@ jobs:
           path: dist/.organize/nupkgs
       - run: ./build.sh DotNetPublish
 
-  java-publish: 
+  kotlin-publish: 
     runs-on: ubuntu-latest
     needs: [build]
     env:
@@ -66,7 +66,7 @@ jobs:
           # name: maven
           # path: dist/.organize/maven
           path: dist/.organize
-      - run: ./build.sh JavaPublish
+      - run: ./build.sh KotlinPublish
 
   node-publish: 
     runs-on: ubuntu-latest

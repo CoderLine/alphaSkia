@@ -6,7 +6,15 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":mpp"))
+    implementation(project(":alphaSkia"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenKotlin") {
+            from(components.findByName("java"))
+        }
+    }
 }
 
 java {

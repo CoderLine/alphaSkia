@@ -118,61 +118,54 @@ public class AlphaSkiaUnitTestGenerator
         return sourceCode.ToString();
     }
 
-    public static string GenerateJava()
+    public static string GenerateKotlin()
     {
         var settings = new Settings
         {
             Core =
             {
-                Engine = "JavaTestCode"
+                Engine = "KotlinTestCode"
             }
         };
-        var sourceCode = new JavaTestSourceBuilder();
+        var sourceCode = new KotlinTestSourceBuilder();
         AlphaTab.Environment.RenderEngines.Set(
             settings.Core.Engine,
             new RenderEngineFactory(false, () => new AlphaSkiaTestCanvas(sourceCode))
         );
 
         sourceCode.Resume();
-        sourceCode.WriteLine("package alphaTab.alphaSkia.test;");
+        sourceCode.WriteLine("package alphaTab.alphaSkia.test");
         sourceCode.WriteLine();
-        sourceCode.WriteLine("import alphaTab.alphaSkia.*;");
+        sourceCode.WriteLine("import alphaTab.alphaSkia.*");
         sourceCode.WriteLine();
-        sourceCode.WriteLine("public class AlphaTabGeneratedRenderTest extends AlphaTabGeneratedRenderTestBase");
+        sourceCode.WriteLine("class AlphaTabGeneratedRenderTest : AlphaTabGeneratedRenderTestBase()");
+        sourceCode.BeginBlock();
+        sourceCode.Write("companion object ");
         sourceCode.BeginBlock();
         sourceCode.Suspend();
+        
+        
 
         var result = GenerateTestCode(settings);
 
         sourceCode.Resume();
-        sourceCode.WriteLine("public static float[][] getPartPositions()");
-        sourceCode.BeginBlock();
+        sourceCode.WriteLine("val partPositions: Array<FloatArray> = arrayOf(");
         {
-            sourceCode.WriteLine("return new float[][]");
-            sourceCode.BeginBlock();
-            {
-                sourceCode.WriteLine(string.Join(", ",
-                    result.partialPositions.Select(p => "{" + string.Join(", ", p.Select(v => $"(float){v}")) + "}")));
-            }
-            sourceCode.EndBlock(true);
+            sourceCode.WriteLine(string.Join(", ",
+                result.partialPositions.Select(p => "floatArrayOf(" + string.Join(", ", p.Select(v => $"{v}.toFloat()")) + ")")));
         }
-        sourceCode.EndBlock();
+        sourceCode.WriteLine(")");
 
-        sourceCode.WriteLine($"public static int getTotalWidth() {{ return (int){result.totalWidth}; }}");
-        sourceCode.WriteLine($"public static int getTotalHeight() {{ return (int){result.totalHeight}; }}");
-        sourceCode.WriteLine("public static RenderFunction[] getAllParts()");
-        sourceCode.BeginBlock();
+        sourceCode.WriteLine($"val totalWidth: Int = {result.totalWidth}.toInt()");
+        sourceCode.WriteLine($"val totalHeight: Int = {result.totalHeight}.toInt()");
+        sourceCode.WriteLine("val allParts: Array<RenderFunction> = arrayOf(");
         {
-            sourceCode.WriteLine("return new RenderFunction[]");
-            sourceCode.BeginBlock();
-            {
-                var parts = result.partialPositions.Select((_, i) => $"AlphaTabGeneratedRenderTest::drawMusicSheetPart{i + 1}");
-                sourceCode.WriteLine(string.Join(", ", parts));
-            }
-            sourceCode.EndBlock(true);
+            var parts = result.partialPositions.Select((_, i) => $"AlphaTabGeneratedRenderTest::drawMusicSheetPart{i + 1}");
+            sourceCode.WriteLine(string.Join(", ", parts));
         }
-        sourceCode.EndBlock();
+        sourceCode.WriteLine(")");
 
+        sourceCode.EndBlock();
         sourceCode.EndBlock();
         sourceCode.Suspend();
 

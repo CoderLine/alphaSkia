@@ -1,16 +1,13 @@
 package alphaTab.alphaSkia
 
-internal class AlphaSkiaData : AlphaSkiaNative {
-    constructor(handle: Long) : super(handle)
+internal class AlphaSkiaData(raw: ByteArray) :
+    AlphaSkiaNative(NativeMethods.alphaskiaDataNewCopy(raw)) {
 
-    constructor(raw: ByteArray) : super(allocateCopy(raw))
-
-    companion object {
-        @JvmStatic
-        external fun allocateCopy(raw: ByteArray): Long
+    override fun close() {
+        NativeMethods.alphaskiaDataFree(this.handle)
     }
 
-
-    external override fun close()
-    external fun toArray(): ByteArray
+    fun toArray(): ByteArray {
+        return NativeMethods.alphaskiaDataGetData(this.handle)
+    }
 }

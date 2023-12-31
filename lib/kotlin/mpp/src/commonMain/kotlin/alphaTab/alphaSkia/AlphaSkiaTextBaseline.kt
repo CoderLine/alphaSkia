@@ -3,7 +3,7 @@ package alphaTab.alphaSkia
 /**
  * Lists all vertical text baseline alignments which can be used to draw text.
  */
-enum class AlphaSkiaTextBaseline(val value: Int) {
+enum class AlphaSkiaTextBaseline(val value: alphaskia_text_baseline_t) {
     /**
      * The text is drawn using the alphabetic baseline.
      */

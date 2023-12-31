@@ -14,7 +14,7 @@ class AlphaSkiaWindows private constructor() : AlphaSkiaJre() {
         /**
          * The alphaSkia initializer for Windows.
          */
-        @JvmStatic
+        @JvmField
         val INSTANCE = AlphaSkiaWindows()
     }
 }

@@ -1,5 +1,7 @@
 package alphaTab.alphaSkia
 
+import kotlin.jvm.JvmStatic
+
 /**
  * Lists all known color type with which AlphaSkia creates images.
  */

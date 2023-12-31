@@ -1,6 +1,11 @@
 #pragma once
 
-#include <cstdint>
+#ifdef __cplusplus
+	#include <cstdint>
+#else 
+	#include <stdint.h>
+	typedef uint16_t char16_t;
+#endif
 
 #if !defined(AS_API)
 #if defined(ALPHASKIA_DLL)
@@ -18,8 +23,10 @@
 #endif
 #endif
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
     AS_API int32_t alphaskia_get_color_type();
 
     typedef AS_API void *alphaskia_data_t;
@@ -95,4 +102,7 @@ extern "C"
     AS_API float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_typeface_t typeface, float font_size);
     AS_API void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y, float angle);
     AS_API void alphaskia_canvas_end_rotate(alphaskia_canvas_t canvas);
+
+#ifdef __cplusplus
 }
+#endif
