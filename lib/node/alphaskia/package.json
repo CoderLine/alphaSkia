@@ -2,9 +2,15 @@
   "name": "@coderline/alphaskia",
   "version": "2.0.0",
   "description": "A Skia based rendering backend for alphaTab.",
-  "module": "dist/alphaskia.mjs",
-  "typings": "dist/alphaskia.d.ts",
-  "exports": "./dist/alphaskia.mjs",
+  "module": "./dist/alphaskia.mjs",
+  "typings": "./dist/alphaskia.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/alphaskia.mjs",
+      "require": "./dist/alphaskia.min.js",
+      "types": "./dist/alphaskia.d.ts"
+    }
+  },
   "engines": {
     "node": ">=18.0.0"
   },
