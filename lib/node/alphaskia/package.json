@@ -7,7 +7,7 @@
   "exports": {
     ".": {
       "import": "./dist/alphaskia.mjs",
-      "require": "./dist/alphskia.js",
+      "require": "./dist/alphaskia.js",
       "types": "./dist/alphaskia.d.ts"
     }
   },
