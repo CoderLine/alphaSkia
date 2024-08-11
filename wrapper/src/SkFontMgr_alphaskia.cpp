@@ -9,6 +9,9 @@
 #if defined(ALPHASKIA_FONTMGR_WINDOWS)
 #include "../../externals/skia/include/ports/SkTypeface_win.h"
 #define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_DirectWrite()
+#elif defined(ALPHASKIA_FONTMGR_LINUX)
+#include "../../externals/skia/include/ports/SkFontMgr_fontconfig.h"
+#define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_FontConfig(nullptr)
 #elif defined(ALPHASKIA_FONTMGR_ANDROID)
 #include "../../externals/skia/include/ports/SkFontMgr_android.h"
 #define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_Android(nullptr)

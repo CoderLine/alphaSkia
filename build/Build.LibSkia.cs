@@ -215,9 +215,12 @@ partial class Build
                 newSources += "    \"../../wrapper/include/SkFontMgr_alphaskia.h\",\n";
                 newSources += "  ]\n";
                 newSources += "  public = [ \"../../wrapper/include/SkFontMgr_alphaskia.h\" ]";
-                newSources += "  defines = []";
+                newSources += "  defines = []\n";
                 newSources += "  if (is_win) {\n";
                 newSources += "    defines += [ \"ALPHASKIA_FONTMGR_WINDOWS\" ]\n";
+                newSources += "  }\n";
+                newSources += "  if (is_linux) {\n";
+                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_LINUX\" ]\n";
                 newSources += "  }\n";
                 newSources += "  if (is_android) {\n";
                 newSources += "    defines += [ \"ALPHASKIA_FONTMGR_ANDROID\" ]\n";
