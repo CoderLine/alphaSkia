@@ -5,6 +5,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <stdio.h>
+#include <string.h>
+
 #ifndef ALPHASKIA_TEST_RID
 #error "Missing alphaSkia runtime identifier, please specify ALPHASKIA_TEST_RID";
 #endif
