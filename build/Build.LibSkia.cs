@@ -136,7 +136,7 @@ partial class Build
             {
                 var newSources = "# AlphaSkia Patch FreeType\n";
                 // ensure we have freetype available
-                newSources += "  include_dirs = [ \"../externals/freetype/include\" ]\n";
+                newSources += "  include_dirs = [ \"externals/freetype/include\" ]\n";
                 newSources += "  sources += [\n";
                 newSources += "    \"src/ports/SkFontHost_FreeType.cpp\",\n";
                 newSources += "    \"src/ports/SkFontHost_FreeType_common.cpp\",\n";

@@ -391,8 +391,11 @@ partial class Build
         var toolChainBuildFile = SkiaPath / "gn" / "toolchain" / "BUILD.gn";
         var oldToolChainSource = toolChainBuildFile.ReadAllText();
         toolChainBuildFile.WriteAllText(oldToolChainSource.Replace(
-            "env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86",
-            "# env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86"
+            "  env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86",
+            "  # env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86"
+        ).Replace(
+            "  env_setup = \"$shell set \\\"PATH=%PATH%;$win_vc\\\\Tools\\\\MSVC\\\\$win_toolchain_version\\\\bin\\\\HostX64\\\\x64\\\" && \"",
+            "  # env_setup = \"$shell set \\\"PATH=%PATH%;$win_vc\\\\Tools\\\\MSVC\\\\$win_toolchain_version\\\\bin\\\\HostX64\\\\x64\\\" && \""
         ));
     }
 }
