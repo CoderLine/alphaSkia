@@ -125,7 +125,7 @@ partial class Build
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
             }
 
-            var sourcesEnd = buildFileSource.IndexOf("libs = []", sourcesStart, StringComparison.Ordinal);
+            var sourcesEnd = buildFileSource.IndexOf("if (is_fuchsia)", sourcesStart, StringComparison.Ordinal);
             if (sourcesEnd == -1)
             {
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
