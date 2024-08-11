@@ -13,6 +13,10 @@ internal static class NativeMethods
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern int alphaskia_get_color_type();
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void alphaskia_switch_to_freetype_fonts();
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void alphaskia_switch_to_operating_system_fonts();
 
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]

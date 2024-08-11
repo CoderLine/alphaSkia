@@ -70,6 +70,8 @@ export enum AlphaSkiaColorType {
  */
 export interface AlphaSkiaNodeAddon {
     alphaskia_get_color_type(): AlphaSkiaColorType;
+    alphaskia_switch_to_freetype_fonts(): void;
+    alphaskia_switch_to_operating_system_fonts(): void;
 
     alphaskia_data_new_copy(data: ArrayBuffer): AlphaSkiaDataHandle | undefined;
     alphaskia_data_get_data(data: AlphaSkiaDataHandle): ArrayBuffer;
