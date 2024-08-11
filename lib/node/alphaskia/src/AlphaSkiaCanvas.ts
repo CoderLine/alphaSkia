@@ -35,7 +35,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      * This results in a platform independent display of any rendered texts achieving consistent rendering. 
      * Operating system fonts cannot be used in this mode.
      */
-    public static SwitchToFreeTypeFonts(): void {
+    public static switchToFreeTypeFonts(): void {
         loadAddon().alphaskia_switch_to_freetype_fonts();
     }
     

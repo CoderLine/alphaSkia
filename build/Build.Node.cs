@@ -170,9 +170,17 @@ partial class Build
             NpmTasks.NpmInstall(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetForce(true));
+            
+            Log.Information("Testing with Node with (OS fonts)", JavaHome, JavaVersion);
             NpmTasks.NpmRun(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetCommand("start"));
+            
+            Log.Information("Testing with Node with (FreeType fonts)", JavaHome, JavaVersion);
+            NpmTasks.NpmRun(_ => _
+                .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
+                .SetCommand("start")
+                .SetArguments("--freetype"));
         });
 
     void CopyNodeAddonsToPackages()

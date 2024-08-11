@@ -218,17 +218,17 @@ JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_alphaskiaColorTyp
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
  * Method:    switchToFreeTypeFonts
- * Signature: ()I
+ * Signature: ()V
  */
-JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToFreeTypeFonts
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToFreeTypeFonts
   (JNIEnv *, jclass);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
  * Method:    switchToOperatingSystemFonts
- * Signature: ()I
+ * Signature: ()V
  */
-JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToOperatingSystemFonts
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToOperatingSystemFonts
   (JNIEnv *, jclass);
 
 #ifdef __cplusplus

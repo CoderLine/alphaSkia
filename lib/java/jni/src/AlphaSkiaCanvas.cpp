@@ -243,11 +243,11 @@ extern "C"
         return static_cast<jint>(alphaskia_get_color_type());
     }
 
-    JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToFreeTypeFonts(JNIEnv *, jclass) {
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToFreeTypeFonts(JNIEnv *, jclass) {
         alphaskia_switch_to_freetype_fonts();
     }
 
-    JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToOperatingSystemFonts(JNIEnv *, jclass) {
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToOperatingSystemFonts(JNIEnv *, jclass) {
         alphaskia_switch_to_operating_system_fonts();
     }
 }
