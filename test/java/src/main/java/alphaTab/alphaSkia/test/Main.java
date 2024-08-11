@@ -52,12 +52,18 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        System.exit(mainWithExitCode());
+        System.exit(mainWithExitCode(args));
     }
 
-    private static int mainWithExitCode() {
+    private static int mainWithExitCode(String[] args) {
         try {
             initializeAlphaSkia();
+            boolean isFreeType = Arrays.stream(args).anyMatch("--freetype"::equals);
+            if(isFreeType) {
+                System.out.println("Switching to FreeType Fonts");
+                AlphaSkiaCanvas.switchToFreeTypeFonts();
+            }
+
             double tolerancePercent = 1;
 
             var repositoryRoot = findRepositoryRoot(Paths.get(".").toAbsolutePath());
@@ -97,7 +103,9 @@ public class Main {
                 //noinspection ResultOfMethodCallIgnored
                 testOutputPath.toFile().mkdirs();
 
-                var testOutputFile = testOutputPath.resolve(getAlphaSkiaTestRid() + ".png");
+                var testOutputFileBase = isFreeType ? "freetype" : getAlphaSkiaTestRid();
+
+                var testOutputFile = testOutputPath.resolve(testOutputFileBase + ".png");
                 var pngData = actualImage.toPng();
                 if (pngData == null) {
                     throw new IllegalStateException("Failed to encode final image to png");
@@ -107,7 +115,7 @@ public class Main {
                 System.out.println("Image saved to " + testOutputFile);
 
                 // load reference image
-                var testReferencePath = testDataPath.resolve("reference/" + getAlphaSkiaTestRid() + ".png");
+                var testReferencePath = testDataPath.resolve("reference/" + testOutputFileBase + ".png");
                 System.out.println("Loading reference image " + testReferencePath);
 
                 var testReferenceData = Files.readAllBytes(testReferencePath);
@@ -154,7 +162,7 @@ public class Main {
                         try (var diffImage = AlphaSkiaImage.fromPixels(actualWidth, actualHeight, diffPixels)) {
                             var diffImagePngData = diffImage.toPng();
 
-                            var diffOutputPath = testOutputPath.resolve(getAlphaSkiaTestRid() + ".diff.png");
+                            var diffOutputPath = testOutputPath.resolve(testOutputFileBase + ".diff.png");
                             Files.write(diffOutputPath, diffImagePngData);
                             System.out.println("Error diff image saved to " + diffOutputPath);
                             return 1;

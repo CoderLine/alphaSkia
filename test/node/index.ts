@@ -66,6 +66,11 @@ function main(): number {
     const tolerancePercent = 1;
     try {
         const repositoryRoot = findRepositoryRoot(path.resolve('.'));
+        const isFreeType = process.argv.includes("--freetype");
+        if(isFreeType) {
+            console.log("Switching to FreeType Fonts");
+            AlphaSkiaCanvas.switchToFreeTypeFonts();
+        }
 
         // Load all fonts for rendering
         console.log("Loading fonts");
@@ -101,7 +106,9 @@ function main(): number {
         let testOutputPath = path.join(repositoryRoot, "test", "test-outputs", "dotnet");
         fs.mkdirSync(testOutputPath, { recursive: true })
 
-        let testOutputFile = path.join(testOutputPath, alphaSkiaTestRid + ".png");
+        const testOutputFileBase = isFreeType ? "freetype" : alphaSkiaTestRid;
+
+        let testOutputFile = path.join(testOutputPath, testOutputFileBase + ".png");
         let pngData = actualImage.toPng();
         if (!pngData) {
             throw new Error("Failed to encode final image to png");
@@ -111,7 +118,7 @@ function main(): number {
         console.log(`Image saved to ${testOutputFile}`);
 
         // load reference image
-        let testReferencePath = path.join(testDataPath, "reference", alphaSkiaTestRid + ".png");
+        let testReferencePath = path.join(testDataPath, "reference", testOutputFileBase + ".png");
         console.log(`Loading reference image ${testReferencePath}`);
 
         let testReferenceData = fs.readFileSync(testReferencePath);
@@ -159,7 +166,7 @@ function main(): number {
             using diffImage = AlphaSkiaImage.fromPixels(actualWidth, actualHeight, diffPixels)!;
             let diffImagePngData = diffImage.toPng()!;
 
-            let diffOutputPath = path.join(testOutputPath, alphaSkiaTestRid + ".diff.png");
+            let diffOutputPath = path.join(testOutputPath, testOutputFileBase + ".diff.png");
             fs.writeFileSync(diffOutputPath, diffImagePngData);
             console.log(`Error diff image saved to ${diffOutputPath}`);
             return 1;

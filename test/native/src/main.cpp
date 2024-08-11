@@ -81,8 +81,20 @@ bool write_data_to_file_and_free(alphaskia_data_t data, std::string path)
     return true;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    bool isFreeType = false;
+
+    for (int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "--freetype") == 0)
+        {
+            isFreeType = true;
+            std::cout << "Switching to FreeType Fonts" << std::endl;
+            alphaskia_switch_to_freetype_fonts();
+        }
+    }
+
     const double tolerance_percent = 1;
     bool found(false);
     std::filesystem::path repository_root = find_repository_root(std::filesystem::current_path(), found);
@@ -116,7 +128,9 @@ int main()
     std::filesystem::path test_output_path = repository_root / "test" / "test-outputs" / "native";
     std::filesystem::create_directories(test_output_path);
 
-    std::filesystem::path test_output_file = test_output_path / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".png");
+    std::string test_output_file_base = isFreeType ? "freetype" : STRINGIFY(ALPHASKIA_TEST_RID);
+
+    std::filesystem::path test_output_file = test_output_path / (test_output_file_base + ".png");
     alphaskia_data_t png_data = alphaskia_image_encode_png(actual_image);
     if (!png_data)
     {
@@ -127,7 +141,7 @@ int main()
     std::cout << "Image saved to " << test_output_file.generic_string() << std::endl;
 
     // load reference image
-    std::filesystem::path test_reference_path = test_data_path / "reference" / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".png");
+    std::filesystem::path test_reference_path = test_data_path / "reference" / (test_output_file_base + ".png");
     std::cout << "Loading reference image " << test_reference_path.generic_string() << std::endl;
     std::vector<uint8_t> test_reference_data;
     read_file(test_reference_path.generic_string(), test_reference_data);
@@ -185,16 +199,16 @@ int main()
         alphaskia_data_t diff_image_png_data = alphaskia_image_encode_png(diff_image);
         alphaskia_image_free(diff_image);
 
-        auto diff_output_path = test_output_path / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".diff.png");
+        auto diff_output_path = test_output_path / (test_output_file_base + ".diff.png");
         write_data_to_file_and_free(diff_image_png_data, diff_output_path.generic_string());
         std::cout << "Error diff image saved to " << diff_output_path.generic_string() << std::endl;
- 
+
         // for the sake of comparing directly, we also store the old image (we had cases where linux detected differences on the exact same file)
         alphaskia_image_t old_image = alphaskia_image_from_pixels(actual_width, actual_height, expected_pixels.data());
         alphaskia_data_t old_image_png_data = alphaskia_image_encode_png(old_image);
         alphaskia_image_free(old_image);
 
-        auto old_output_path = test_output_path / (std::string(STRINGIFY(ALPHASKIA_TEST_RID)) + ".old.png");
+        auto old_output_path = test_output_path / (test_output_file_base + ".old.png");
         write_data_to_file_and_free(old_image_png_data, old_output_path.generic_string());
         std::cout << "Error old image saved to " << old_output_path.generic_string() << std::endl;
 
