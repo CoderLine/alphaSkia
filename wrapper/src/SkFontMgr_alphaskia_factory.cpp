@@ -1,7 +1,6 @@
-#include "../../externals/skia/include/core/SkFontMgr.h"
-#include "../../externals/skia/include/ports/SkTypeface_win.h"
+#include "../include/SkFontMgr_alphaskia.h"
 
-sk_sp<SkFontMgr> SkFontMgr::Factory() {
-    // TODO: functions for dynamic changing
-    return SkFontMgr_New_DirectWrite();
+sk_sp<SkFontMgr> SkFontMgr::Factory()
+{
+    return sk_make_sp<SkFontMgr_AlphaSkia>();
 }

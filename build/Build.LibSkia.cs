@@ -125,7 +125,7 @@ partial class Build
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
             }
 
-            var sourcesEnd = buildFileSource.IndexOf("defines = []", sourcesStart, StringComparison.Ordinal);
+            var sourcesEnd = buildFileSource.IndexOf("libs = []", sourcesStart, StringComparison.Ordinal);
             if (sourcesEnd == -1)
             {
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
@@ -153,13 +153,16 @@ partial class Build
                 newSources += "    sources += [\n";
                 newSources += "      \"include/ports/SkFontMgr_indirect.h\",\n";
                 newSources += "      \"include/ports/SkRemotableFontMgr.h\",\n";
+                newSources += "      \"src/fonts/SkFontMgr_indirect.cpp\",\n";
                 newSources += "      \"src/ports/SkFontMgr_win_dw.cpp\",\n";
+                newSources += "      \"src/ports/SkScalerContext_win_dw.cpp\",\n";
                 newSources += "      \"src/ports/SkScalerContext_win_dw.h\",\n";
                 newSources += "      \"src/ports/SkTypeface_win_dw.cpp\",\n";
                 newSources += "      \"src/ports/SkTypeface_win_dw.h\",\n";
                 newSources += "    ]\n";
                 newSources += "  }\n";
                 newSources += "  if (is_android) {\n";
+                newSources += "    deps += [ \"//third_party/expat\" ]\n";
                 newSources += "    sources += [\n";
                 newSources += "      \"src/ports/SkFontMgr_android.cpp\",\n";
                 newSources += "      \"src/ports/SkFontMgr_android_parser.cpp\",\n";
@@ -205,8 +208,26 @@ partial class Build
             var emptyFactoryIndex = buildFileSource.IndexOf(emptyFactoryFile);
             if(emptyFactoryIndex >= 0) 
             {
+                var newSources = "  sources = [\n";
+                newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia_factory.cpp\",\n";
+                newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia.cpp\",\n";
+                newSources += "  ]\n";
+                newSources += "  defines = []";
+                newSources += "  if (is_win) {\n";
+                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_WINDOWS\" ]\n";
+                newSources += "  }\n";
+                newSources += "  if (is_android) {\n";
+                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_ANDROID\" ]\n";
+                newSources += "  }\n";
+                newSources += "  if (is_mac) {\n";
+                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_MAC\" ]\n";
+                newSources += "  }\n";
+                newSources += "  if (is_ios) {\n";
+                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_IOS\" ]\n";
+                newSources += "  }\n";
+
                 buildFileSource = buildFileSource[..emptyFactoryIndex]
-                                + "  sources = [ \"../../wrapper/src/SkFontMgr_alphaskia_factory.cpp\" ] "
+                                + newSources
                                 + buildFileSource[(emptyFactoryIndex + emptyFactoryFile.Length)..];
             }
 
