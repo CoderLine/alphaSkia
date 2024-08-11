@@ -2,7 +2,7 @@
 
 #include "../../externals/skia/include/core/SkFontMgr.h"
 
-class SkFontMgr_AlphaSkia : public SkFontMgr
+class SK_API SkFontMgr_AlphaSkia : public SkFontMgr
 {
 public:
     explicit SkFontMgr_AlphaSkia();
