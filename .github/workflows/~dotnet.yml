@@ -45,7 +45,7 @@ jobs:
             architecture: x64
             framework: net8.0
           - runs-on: macos-latest
-            architecture: x64
+            architecture: arm64
             framework: net8.0
           - runs-on: windows-latest
             architecture: x64
