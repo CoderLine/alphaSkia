@@ -12,7 +12,10 @@ public class TargetOperatingSystem : Enumeration
         SkiaTargetOs = "win",
         SkiaGnArgs =
         {
-            ["skia_enable_fontmgr_win_gdi"] = "false"
+            ["skia_enable_fontmgr_win_gdi"] = "false",
+            ["skia_enable_fontmgr_win"] = "false",
+            ["skia_enable_fontmgr_empty"] = "false",
+            ["skia_use_system_freetype2"] = "false"
         },
         RuntimeIdentifier = "win",
         DotNetRid = "win"
@@ -24,7 +27,9 @@ public class TargetOperatingSystem : Enumeration
         SkiaTargetOs = "linux",
         SkiaGnArgs =
         {
-            ["skia_use_system_freetype2"] = "false"
+            ["skia_use_system_freetype2"] = "false",
+            ["skia_use_fontconfig"] = "false",
+            ["skia_enable_fontmgr_empty"] = "false",
         },
         RuntimeIdentifier = "linux",
         DotNetRid = "linux"
@@ -36,7 +41,10 @@ public class TargetOperatingSystem : Enumeration
         SkiaTargetOs = "android",
         SkiaGnArgs =
         {
-            ["skia_use_system_freetype2"] = "false"
+            ["skia_use_system_freetype2"] = "false",
+            ["skia_enable_fontmgr_android"] = "false",
+            ["skia_enable_fontmgr_empty"] = "false",
+            ["skia_use_fontconfig"] = "false"
         },
         RuntimeIdentifier = "android",
         DotNetRid = "android"
@@ -49,8 +57,9 @@ public class TargetOperatingSystem : Enumeration
         SkiaGnArgs =
         {
             ["skia_use_system_freetype2"] = "false",
-            ["skia_use_fonthost_mac"] = "true",
-            ["skia_use_metal"] = "true"
+            ["skia_use_fonthost_mac"] = "false",
+            ["skia_enable_fontmgr_empty"] = "false",
+            ["skia_use_metal"] = "true",
         },
         RuntimeIdentifier = "macos",
         DotNetRid = "osx"

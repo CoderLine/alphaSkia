@@ -84,7 +84,7 @@ partial class Build
         .After(LibSkiaGitSyncDeps)
         .Executes(() =>
         {
-            // add harfbuzz as dependency as we want it for alphaSkia
+            // add harfbuzz and freetype as dependency as we want it for alphaSkia
             var buildFile = SkiaPath / "BUILD.gn";
             var buildFileSource = buildFile.ReadAllText();
             var skiaComponentStart = buildFileSource.IndexOf("skia_component(\"skia\")", StringComparison.Ordinal);
@@ -110,12 +110,107 @@ partial class Build
             var depsList = buildFileSource.Substring(depsListStart, depsListEnd - depsListStart);
             if (!depsList.Contains("//third_party/harfbuzz"))
             {
-                var newDepsList = depsList.TrimEnd('\r', '\n', '\t', ' ', ',') + ", \"//third_party/harfbuzz\", ";
-                var newBuildFileSource = buildFileSource[..depsListStart]
+                var newDepsList = depsList.TrimEnd('\r', '\n', '\t', ' ', ',') 
+                + ", \"//third_party/harfbuzz\", \"//third_party/freetype2\", "
+                ;
+                buildFileSource = buildFileSource[..depsListStart]
                                          + newDepsList
                                          + buildFileSource[depsListEnd..];
-                buildFile.WriteAllText(newBuildFileSource);
             }
+
+            var sourcesStartMarker = "sources = []";
+            var sourcesStart = buildFileSource.IndexOf(sourcesStartMarker, depsListStart, StringComparison.Ordinal);
+            if (sourcesStart == -1)
+            {
+                throw new IOException("BUILD.gn of skia changed, cannot patch files");
+            }
+
+            var sourcesEnd = buildFileSource.IndexOf("defines = []", sourcesStart, StringComparison.Ordinal);
+            if (sourcesEnd == -1)
+            {
+                throw new IOException("BUILD.gn of skia changed, cannot patch files");
+            }
+
+            var sources = buildFileSource.Substring(sourcesStart, sourcesEnd);
+            if (!sources.Contains("# AlphaSkia Patch FreeType"))
+            {
+                var newSources = "# AlphaSkia Patch FreeType\n";
+                // ensure we have freetype available
+                newSources += "  include_dirs = [ \"../externals/freetype/include\" ]\n";
+                newSources += "  sources += [\n";
+                newSources += "    \"src/ports/SkFontHost_FreeType.cpp\",\n";
+                newSources += "    \"src/ports/SkFontHost_FreeType_common.cpp\",\n";
+                newSources += "    \"src/ports/SkFontHost_FreeType_common.h\",\n";
+                newSources += "  ]\n";
+                // ensure we have the custom embedded FontMgr available (for in-memory freetype usage)
+                newSources += "  sources += [\n";
+                newSources += "    \"src/ports/SkFontMgr_custom.h\",\n";
+                newSources += "    \"src/ports/SkFontMgr_custom.cpp\",\n";
+                newSources += "    \"src/ports/SkFontMgr_custom_embedded.cpp\",\n";
+                newSources += "  ]\n";
+                // ensure we have the OS specific font managers available
+                newSources += "  if (is_win) {\n";
+                newSources += "    sources += [\n";
+                newSources += "      \"include/ports/SkFontMgr_indirect.h\",\n";
+                newSources += "      \"include/ports/SkRemotableFontMgr.h\",\n";
+                newSources += "      \"src/ports/SkFontMgr_win_dw.cpp\",\n";
+                newSources += "      \"src/ports/SkScalerContext_win_dw.h\",\n";
+                newSources += "      \"src/ports/SkTypeface_win_dw.cpp\",\n";
+                newSources += "      \"src/ports/SkTypeface_win_dw.h\",\n";
+                newSources += "    ]\n";
+                newSources += "  }\n";
+                newSources += "  if (is_android) {\n";
+                newSources += "    sources += [\n";
+                newSources += "      \"src/ports/SkFontMgr_android.cpp\",\n";
+                newSources += "      \"src/ports/SkFontMgr_android_parser.cpp\",\n";
+                newSources += "      \"src/ports/SkFontMgr_android_parser.h\",\n";
+                newSources += "    ]\n";
+                newSources += "  }\n";
+                newSources += "  if (is_mac) {\n";
+                newSources += "    frameworks += [\n";
+                newSources += "      \"AppKit.framework\",\n";
+                newSources += "      \"ApplicationServices.framework\",\n";
+                newSources += "    ]\n";
+                newSources += "    sources += [\n";
+                newSources += "      \"src/ports/SkFontMgr_mac_ct.cpp\",\n";
+                newSources += "      \"src/ports/SkScalerContext_mac_ct.cpp\",\n";
+                newSources += "      \"src/ports/SkScalerContext_mac_ct.h\",\n";
+                newSources += "      \"src/ports/SkTypeface_mac_ct.cpp\",\n";
+                newSources += "      \"src/ports/SkTypeface_mac_ct.h\",\n";
+                newSources += "    ]\n";
+                newSources += "  }\n";
+                newSources += "  if (is_ios) {\n";
+                newSources += "    frameworks += [\n";
+                newSources += "      \"CoreFoundation.framework\",\n";
+                newSources += "      \"CoreGraphics.framework\",\n";
+                newSources += "      \"CoreText.framework\",\n";
+                newSources += "      \"UIKit.framework\",\n";
+                newSources += "    ]\n";
+                newSources += "    sources += [\n";
+                newSources += "      \"src/ports/SkFontMgr_mac_ct.cpp\",\n";
+                newSources += "      \"src/ports/SkScalerContext_mac_ct.cpp\",\n";
+                newSources += "      \"src/ports/SkScalerContext_mac_ct.h\",\n";
+                newSources += "      \"src/ports/SkTypeface_mac_ct.cpp\",\n";
+                newSources += "      \"src/ports/SkTypeface_mac_ct.h\",\n";
+                newSources += "    ]\n";
+                newSources += "  }\n";
+                newSources += "  ";
+
+                buildFileSource = buildFileSource[..sourcesEnd]
+                                         + newSources
+                                         + buildFileSource[sourcesEnd..];
+            }
+
+            const string emptyFactoryFile = "  sources = [ \"src/ports/SkFontMgr_empty_factory.cpp\" ]";
+            var emptyFactoryIndex = buildFileSource.IndexOf(emptyFactoryFile);
+            if(emptyFactoryIndex >= 0) 
+            {
+                buildFileSource = buildFileSource[..emptyFactoryIndex]
+                                + "  sources = [ \"../../wrapper/src/SkFontMgr_alphaskia_factory.cpp\" ] "
+                                + buildFileSource[(emptyFactoryIndex + emptyFactoryFile.Length)..];
+            }
+
+            buildFile.WriteAllText(buildFileSource);
 
             PatchSkiaToolchain();
             PatchSkiaMacOsVersion();
