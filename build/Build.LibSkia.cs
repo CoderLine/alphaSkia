@@ -161,6 +161,12 @@ partial class Build
                 newSources += "      \"src/ports/SkTypeface_win_dw.h\",\n";
                 newSources += "    ]\n";
                 newSources += "  }\n";
+                newSources += "  if (is_linux) {\n";
+                newSources += "    public_deps = [ \"//third_party:fontconfig\" ]\n";
+                newSources += "    sources += [\n";
+                newSources += "      \"src/ports/SkFontMgr_fontconfig.cpp\",\n";
+                newSources += "    ]\n";
+                newSources += "  }\n";
                 newSources += "  if (is_android) {\n";
                 newSources += "    deps += [ \"//third_party/expat\" ]\n";
                 newSources += "    sources += [\n";
