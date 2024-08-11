@@ -170,7 +170,7 @@ partial class Build
                 newSources += "    ]\n";
                 newSources += "  }\n";
                 newSources += "  if (is_mac) {\n";
-                newSources += "    frameworks += [\n";
+                newSources += "    frameworks = [\n";
                 newSources += "      \"AppKit.framework\",\n";
                 newSources += "      \"ApplicationServices.framework\",\n";
                 newSources += "    ]\n";
@@ -183,7 +183,7 @@ partial class Build
                 newSources += "    ]\n";
                 newSources += "  }\n";
                 newSources += "  if (is_ios) {\n";
-                newSources += "    frameworks += [\n";
+                newSources += "    frameworks = [\n";
                 newSources += "      \"CoreFoundation.framework\",\n";
                 newSources += "      \"CoreGraphics.framework\",\n";
                 newSources += "      \"CoreText.framework\",\n";
