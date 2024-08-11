@@ -68,7 +68,8 @@ jobs:
         path: dist/.organize/maven
     - run: ./build.cmd JavaTest
     - uses: actions/upload-artifact@v3
+      if: always()
       with:
-        name: Java Test Results
+        name: javatest-${{ matrix.runs-on }}
         path: |
           test/test-outputs/**/*.*    

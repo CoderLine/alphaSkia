@@ -54,6 +54,6 @@ jobs:
     - run: ./build.cmd NodeTest
     - uses: actions/upload-artifact@v3
       with:
-        name: Node Test Results
+        name: nodetest-${{ matrix.runs-on }}-${{ matrix.node }}
         path: |
           test/test-outputs/**/*.*
