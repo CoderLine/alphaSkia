@@ -162,7 +162,7 @@ partial class Build
                 newSources += "    ]\n";
                 newSources += "  }\n";
                 newSources += "  if (is_linux) {\n";
-                newSources += "    public_deps = [ \"//third_party:fontconfig\" ]\n";
+                newSources += "    public_deps += [ \"//third_party:fontconfig\" ]\n";
                 newSources += "    sources += [\n";
                 newSources += "      \"src/ports/SkFontMgr_fontconfig.cpp\",\n";
                 newSources += "    ]\n";
