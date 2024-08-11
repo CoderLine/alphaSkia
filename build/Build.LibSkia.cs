@@ -212,7 +212,9 @@ partial class Build
                 var newSources = "  sources = [\n";
                 newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia_factory.cpp\",\n";
                 newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia.cpp\",\n";
+                newSources += "    \"../../wrapper/include/SkFontMgr_alphaskia.h\",\n";
                 newSources += "  ]\n";
+                newSources += "  public = [ \"../../wrapper/include/SkFontMgr_alphaskia.h\" ]";
                 newSources += "  defines = []";
                 newSources += "  if (is_win) {\n";
                 newSources += "    defines += [ \"ALPHASKIA_FONTMGR_WINDOWS\" ]\n";

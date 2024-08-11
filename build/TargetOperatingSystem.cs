@@ -30,6 +30,13 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_system_freetype2"] = "false",
             ["skia_use_fontconfig"] = "false",
             ["skia_enable_fontmgr_empty"] = "false",
+
+            ["skia_enable_fontmgr_empty"] = "false",
+            ["skia_enable_fontmgr_FontConfigInterface"] = "false",
+            ["skia_enable_fontmgr_fontconfig"] = "false",
+            ["skia_enable_fontmgr_custom_directory"] = "false",
+            ["skia_enable_fontmgr_custom_embedded"] = "false",
+            ["skia_enable_fontmgr_custom_empty"] = "false",
         },
         RuntimeIdentifier = "linux",
         DotNetRid = "linux"
@@ -44,6 +51,12 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_system_freetype2"] = "false",
             ["skia_enable_fontmgr_android"] = "false",
             ["skia_enable_fontmgr_empty"] = "false",
+            ["skia_enable_fontmgr_fuchsia"] = "false",
+            ["skia_enable_fontmgr_FontConfigInterface"] = "false",
+            ["skia_enable_fontmgr_fontconfig"] = "false",
+            ["skia_enable_fontmgr_custom_directory"] = "false",
+            ["skia_enable_fontmgr_custom_embedded"] = "false",
+            ["skia_enable_fontmgr_custom_empty"] = "false",
             ["skia_use_fontconfig"] = "false"
         },
         RuntimeIdentifier = "android",
@@ -73,6 +86,8 @@ public class TargetOperatingSystem : Enumeration
         SkiaGnArgs =
         {
             ["skia_use_system_freetype2"] = "false",
+            ["skia_use_fonthost_mac"] = "false",
+            ["skia_enable_fontmgr_empty"] = "false",
             ["skia_use_metal"] = "true"
         },
         RuntimeIdentifier = "ios"
@@ -86,6 +101,8 @@ public class TargetOperatingSystem : Enumeration
         SkiaGnArgs =
         {
             ["skia_use_system_freetype2"] = "false",
+            ["skia_use_fonthost_mac"] = "false",
+            ["skia_enable_fontmgr_empty"] = "false",
             ["skia_use_metal"] = "true",
             ["ios_use_simulator"] = "true"
         },
