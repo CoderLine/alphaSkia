@@ -50,10 +50,14 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version:  ${{ matrix.node }}
-    - run: node -e "console.log(process)"
     - run: ./build.cmd NodeTest
+    - id: sanitize-node-version
+      if: always()
+      run:  echo "NODE_VERSION=${{ matrix.node }}" | sed 's/[*\/]//g' >> "$GITHUB_OUTPUT"
+      shell: bash
     - uses: actions/upload-artifact@v3
+      if: always()
       with:
-        name: Node Test Results
+        name: nodetest-${{ matrix.runs-on }}-${{ steps.sanitize-node-version.outputs.NODE_VERSION }}
         path: |
           test/test-outputs/**/*.*

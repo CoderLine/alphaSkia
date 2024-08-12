@@ -74,7 +74,7 @@ partial class Build
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
-            Log.Debug("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion}", JavaHome, JavaVersion);
+            Log.Information("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion} (OS fonts)", JavaHome, JavaVersion);
             GradlewTool("run",
                 environmentVariables:  Variables
                     .ToDictionary(x => x.Key, x => x.Value)
@@ -82,6 +82,16 @@ partial class Build
                     .SetKeyValue("ALPHASKIA_TEST_VERSION", JavaVersion)
                     .AsReadOnly(),
                 workingDirectory: RootDirectory / "test" / "java");
+            
+            Log.Information("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion} (FreeType fonts)", JavaHome, JavaVersion);
+            GradlewTool("run --args=--freetype",
+                environmentVariables:  Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .SetKeyValue("ALPHASKIA_TEST_VERSION", JavaVersion)
+                    .AsReadOnly(),
+                workingDirectory: RootDirectory / "test" / "java");
+
         });
 
     void JavaWriteVersionInfoProperties()

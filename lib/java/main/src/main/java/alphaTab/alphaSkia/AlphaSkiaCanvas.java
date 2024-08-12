@@ -244,4 +244,18 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
     private native static long alphaskiaCanvasAllocate();
 
     private static native int alphaskiaColorType();
+    
+    /**
+     * Switches the rendering to use the operating system font manager and font rendering. 
+     * This results in a platform specific display of any rendered texts and allows using of any
+     * fonts installed on the system.
+     */
+    public static native void switchToFreeTypeFonts();
+    
+    /**
+     * Switches the rendering to use the FreeType font manager and font rendering. 
+     * This results in a platform independent display of any rendered texts achieving consistent rendering. 
+     * Operating system fonts cannot be used in this mode.
+     */
+    public static native void switchToOperatingSystemFonts();
 }

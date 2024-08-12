@@ -21,6 +21,26 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     }
 
     /// <summary>
+    /// Switches the rendering to use the operating system font manager and font rendering. 
+    /// This results in a platform specific display of any rendered texts and allows using of any
+    /// fonts installed on the system.
+    /// </summary>
+    public static void SwitchToOperatingSystemFonts()
+    {
+        NativeMethods.alphaskia_switch_to_operating_system_fonts();
+    }
+
+    /// <summary>
+    /// Switches the rendering to use the FreeType font manager and font rendering. 
+    /// This results in a platform independent display of any rendered texts achieving consistent rendering. 
+    /// Operating system fonts cannot be used in this mode.
+    /// </summary>
+    public static void SwitchToFreeTypeFonts()
+    {
+        NativeMethods.alphaskia_switch_to_freetype_fonts();
+    }
+
+    /// <summary>
     /// Initializes a new empty instance of the <see cref="AlphaSkiaCanvas"/> class.
     /// </summary>
     public AlphaSkiaCanvas()

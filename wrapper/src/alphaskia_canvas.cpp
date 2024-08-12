@@ -1,4 +1,7 @@
 #include "../include/AlphaSkiaCanvas.h"
+#include "../include/SkFontMgr_alphaskia.h"
+
+#include "../../externals/skia/include/core/SkFontMgr.h"
 
 // C - API
 extern "C"
@@ -13,6 +16,20 @@ extern "C"
     {
         AlphaSkiaCanvas *internal = reinterpret_cast<AlphaSkiaCanvas *>(canvas);
         delete internal;
+    }
+
+    AS_API void alphaskia_switch_to_freetype_fonts()
+    {
+        sk_sp<SkFontMgr> fm = SkFontMgr::RefDefault();
+        SkFontMgr_AlphaSkia *afm = reinterpret_cast<SkFontMgr_AlphaSkia *>(fm.get());
+        afm->switch_to_freetype_fonts();
+    }
+
+    AS_API void alphaskia_switch_to_operating_system_fonts()
+    {
+        sk_sp<SkFontMgr> fm = SkFontMgr::RefDefault();
+        SkFontMgr_AlphaSkia *afm = reinterpret_cast<SkFontMgr_AlphaSkia *>(fm.get());
+        afm->switch_to_operating_system_fonts();
     }
 
     AS_API int32_t alphaskia_get_color_type()

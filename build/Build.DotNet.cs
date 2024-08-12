@@ -103,12 +103,23 @@ partial class Build
         .Requires(() => Framework)
         .Executes(() =>
         {
+            Log.Information($"Running DotNet tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (OS fonts)");
             DotNetTasks.DotNetRun(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
                 .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
                             (Architecture ?? Architecture.Current))
                 .SetFramework(Framework)
                 .AddProcessEnvironmentVariable("NUGET_PACKAGES", TemporaryDirectory / "packages")
+            );
+            
+            Log.Information($"Running DotNet tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (FreeType fonts)");
+            DotNetTasks.DotNetRun(_ => _
+                .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
+                .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
+                            (Architecture ?? Architecture.Current))
+                .SetFramework(Framework)
+                .AddProcessEnvironmentVariable("NUGET_PACKAGES", TemporaryDirectory / "packages")
+                .SetApplicationArguments("--freetype")
             );
         });
 

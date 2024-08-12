@@ -64,7 +64,7 @@ partial class Build
         var files = new System.Collections.Generic.List<string>();
         foreach (var tgz in (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz"))
         {
-            // coderline-alphaskia-2.1.0-local.0.tgz
+            // coderline-alphaskia-2.2.0-local.0.tgz
             var nameWithoutVersion = string.Join("-",
                                          tgz.NameWithoutExtension.Split('-').TakeWhile(p => !char.IsDigit(p[0])))
                                      + tgz.Extension;
@@ -170,9 +170,17 @@ partial class Build
             NpmTasks.NpmInstall(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetForce(true));
+            
+            Log.Information("Testing with Node with (OS fonts)", JavaHome, JavaVersion);
             NpmTasks.NpmRun(_ => _
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetCommand("start"));
+            
+            Log.Information("Testing with Node with (FreeType fonts)", JavaHome, JavaVersion);
+            NpmTasks.NpmRun(_ => _
+                .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
+                .SetCommand("start")
+                .SetArguments("--freetype"));
         });
 
     void CopyNodeAddonsToPackages()

@@ -20,37 +20,31 @@ package alphaTab.alphaSkia.test;
 
 final class PixelMatch {
     // blend semi-transparent color with white
-    private static byte blend(byte c, byte a)
-    {
-        return (byte)(255 + (c - 255) * a);
+    private static byte blend(byte c, byte a) {
+        return (byte) (255 + ((c & 0xFF) - 255) * (a & 0xFF));
     }
 
-    private static double rgb2Y(byte r, byte g, byte b)
-    {
-        return r * 0.29889531 + g * 0.58662247 + b * 0.11448223;
+    private static double rgb2Y(byte r, byte g, byte b) {
+        return (r & 0xFF) * 0.29889531 + (g & 0xFF) * 0.58662247 + (b & 0xFF) * 0.11448223;
     }
 
-    private static double rgb2I(byte r, byte g, byte b)
-    {
-        return r * 0.59597799 - g * 0.2741761 - b * 0.32180189;
+    private static double rgb2I(byte r, byte g, byte b) {
+        return (r & 0xFF) * 0.59597799 - (g & 0xFF) * 0.2741761 - (b & 0xFF) * 0.32180189;
     }
 
-    private static double rgb2Q(byte r, byte g, byte b)
-    {
-        return r * 0.21147017 - g * 0.52261711 + b * 0.31114694;
+    private static double rgb2Q(byte r, byte g, byte b) {
+        return (r & 0xFF) * 0.21147017 - (g & 0xFF) * 0.52261711 + (b & 0xFF) * 0.31114694;
     }
 
-    private static void drawPixel(byte[] output, int pos, PixelMatchColor color)
-    {
+    private static void drawPixel(byte[] output, int pos, PixelMatchColor color) {
         //noinspection PointlessArithmeticExpression
         output[pos + 0] = color.b();
         output[pos + 1] = color.g();
         output[pos + 2] = color.r();
-        output[pos + 3] = (byte)255;
+        output[pos + 3] = (byte) 255;
     }
 
-    private static double colorDelta(byte[] img1, byte[] img2, int k, int m, boolean yOnly)
-    {
+    private static double colorDelta(byte[] img1, byte[] img2, int k, int m, boolean yOnly) {
         //noinspection PointlessArithmeticExpression
         var r1 = img1[k + 0];
         var g1 = img1[k + 1];
@@ -66,17 +60,15 @@ final class PixelMatch {
         if (a1 == a2 && r1 == r2 && g1 == g2 && b1 == b2)
             return 0;
 
-        if (a1 < (byte)255)
-        {
-            a1 /= (byte)255;
+        if (a1 < (byte) 255) {
+            a1 /= (byte) 255;
             r1 = blend(r1, a1);
             g1 = blend(g1, a1);
             b1 = blend(b1, a1);
         }
 
-        if (a2 < (byte)255)
-        {
-            a2 /= (byte)255;
+        if (a2 < (byte) 255) {
+            a2 /= (byte) 255;
             r2 = blend(r2, a2);
             g2 = blend(g2, a2);
             b2 = blend(b2, a2);
@@ -94,8 +86,7 @@ final class PixelMatch {
     }
 
     // check if a pixel has 3+ adjacent pixels of the same color.
-    private static boolean hasManySiblings(byte[] img, int x1, int y1, int width, int height)
-    {
+    private static boolean hasManySiblings(byte[] img, int x1, int y1, int width, int height) {
         var distance = 1;
         var x0 = Math.max(x1 - distance, 0);
         var y0 = Math.max(y1 - distance, 0);
@@ -105,10 +96,8 @@ final class PixelMatch {
         var zeroes = x1 == x0 || x1 == x2 || y1 == y0 || y1 == y2 ? 1 : 0;
 
         // go through 8 adjacent pixels
-        for (var x = x0; x <= x2; x++)
-        {
-            for (var y = y0; y <= y2; y++)
-            {
+        for (var x = x0; x <= x2; x++) {
+            for (var y = y0; y <= y2; y++) {
                 if (x == x1 && y == y1)
                     continue;
 
@@ -117,8 +106,7 @@ final class PixelMatch {
                         img[pos] == img[pos2] &&
                                 img[pos + 1] == img[pos2 + 1] &&
                                 img[pos + 2] == img[pos2 + 2] &&
-                                img[pos + 3] == img[pos2 + 3])
-                {
+                                img[pos + 3] == img[pos2 + 3]) {
                     zeroes++;
                 }
 
@@ -133,8 +121,7 @@ final class PixelMatch {
     // check if a pixel is likely a part of anti-aliasing;
     // based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
 
-    private static boolean Antialiased(byte[] img, int x1, int y1, int width, int height, byte[] img2)
-    {
+    private static boolean antialiased(byte[] img, int x1, int y1, int width, int height, byte[] img2) {
         var distance = 1;
         var x0 = Math.max(x1 - distance, 0);
         var y0 = Math.max(y1 - distance, 0);
@@ -150,12 +137,9 @@ final class PixelMatch {
         var maxY = 0;
 
         // go through 8 adjacent pixels
-        for (var x = x0; x <= x2; x++)
-        {
-            for (var y = y0; y <= y2; y++)
-            {
-                if (x == x1 && y == y1)
-                {
+        for (var x = x0; x <= x2; x++) {
+            for (var y = y0; y <= y2; y++) {
+                if (x == x1 && y == y1) {
                     continue;
                 }
 
@@ -163,25 +147,20 @@ final class PixelMatch {
                 var delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
 
                 // count the number of equal, darker and brighter adjacent pixels
-                if (delta == 0)
-                {
+                if (delta == 0) {
                     zeroes++;
                     // if found more than 2 equal siblings, it's definitely not anti-aliasing
                     if (zeroes > 2)
                         return false;
 
                     // remember the darkest pixel
-                }
-                else if (delta < min)
-                {
+                } else if (delta < min) {
                     min = delta;
                     minX = x;
                     minY = y;
 
                     // remember the brightest pixel
-                }
-                else if (delta > max)
-                {
+                } else if (delta > max) {
                     max = delta;
                     maxX = x;
                     maxY = y;
@@ -190,8 +169,7 @@ final class PixelMatch {
         }
 
         // if there are no both darker and brighter pixels among siblings, it's not anti-aliasing
-        if (min == 0 || max == 0)
-        {
+        if (min == 0 || max == 0) {
             return false;
         }
 
@@ -205,15 +183,12 @@ final class PixelMatch {
     }
 
     public static PixelMatchResult match(byte[] img1, byte[] img2, byte[] diffPixels, int width, int height,
-                                         PixelMatchOptions options)
-    {
-        if (img1.length != img2.length || diffPixels.length != img1.length)
-        {
+                                         PixelMatchOptions options) {
+        if (img1.length != img2.length || diffPixels.length != img1.length) {
             throw new IllegalStateException("Image sizes do not match");
         }
 
-        if (img1.length != width * height * 4)
-        {
+        if (img1.length != width * height * 4) {
             throw new IllegalStateException("Image data size does not match width/height.");
         }
 
@@ -222,8 +197,7 @@ final class PixelMatch {
         var identical = true;
         var transparentPixels = 0;
 
-        for (var i = 0; i < len; i++)
-        {
+        for (var i = 0; i < len; i++) {
             //noinspection PointlessArithmeticExpression
             var img1R = img1[(i * 4) + 0];
             var img1G = img1[(i * 4) + 1];
@@ -236,20 +210,17 @@ final class PixelMatch {
             var img2B = img2[(i * 4) + 2];
             var img2A = img2[(i * 4) + 3];
 
-            if (img1R != img2R || img1G != img2G || img1B != img2B || img1A != img2A)
-            {
+            if (img1R != img2R || img1G != img2G || img1B != img2B || img1A != img2A) {
                 identical = false;
                 break;
             }
 
-            if (img1A == 0)
-            {
+            if (img1A == 0) {
                 transparentPixels++;
             }
         }
 
-        if (identical)
-        {
+        if (identical) {
             return new PixelMatchResult(len, 0, transparentPixels);
         }
 
@@ -262,14 +233,11 @@ final class PixelMatch {
         var diff = 0;
 
         // compare each pixel of one image against the other one
-        for (var y = 0; y < height; y++)
-        {
-            for (var x = 0; x < width; x++)
-            {
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
                 var pos = (y * width + x) * 4;
 
-                if (img1[pos + 3] == 0)
-                {
+                if (img1[pos + 3] == 0) {
                     transparentPixels++;
                 }
 
@@ -277,17 +245,13 @@ final class PixelMatch {
                 var delta = colorDelta(img1, img2, pos, pos, false);
 
                 // the color difference is above the threshold
-                if (delta > maxDelta)
-                {
+                if (delta > maxDelta) {
                     // check it's a real rendering difference or just anti-aliasing
                     //noinspection StatementWithEmptyBody
-                    if ((Antialiased(img1, x, y, width, height, img2) ||
-                            Antialiased(img2, x, y, width, height, img1)))
-                    {
+                    if ((antialiased(img1, x, y, width, height, img2) ||
+                            antialiased(img2, x, y, width, height, img1))) {
                         // match
-                    }
-                    else
-                    {
+                    } else {
                         // found substantial difference not caused by anti-aliasing; draw it as red
                         drawPixel(diffPixels, pos, options.diffColor());
                         diff++;
@@ -300,7 +264,8 @@ final class PixelMatch {
         return new PixelMatchResult(len, diff, transparentPixels);
     }
 
-    private PixelMatch() { }
+    private PixelMatch() {
+    }
 }
 
 

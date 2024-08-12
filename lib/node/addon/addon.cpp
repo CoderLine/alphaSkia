@@ -183,6 +183,24 @@ static napi_value node_alphaskia_get_color_type(napi_env env, napi_callback_info
   return node_color_type;
 }
 
+static napi_value node_alphaskia_switch_to_freetype_fonts(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  alphaskia_switch_to_freetype_fonts();
+
+  RETURN_UNDEFINED();
+}
+
+static napi_value node_alphaskia_switch_to_operating_system_fonts(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  alphaskia_switch_to_operating_system_fonts();
+
+  RETURN_UNDEFINED();
+}
+
 static napi_value node_alphaskia_data_new_copy(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
@@ -824,6 +842,8 @@ napi_value init(napi_env env, napi_value exports)
   std::vector<napi_property_descriptor> methods;
 
   EXPORT_NODE_FUNCTION(alphaskia_get_color_type);
+  EXPORT_NODE_FUNCTION(alphaskia_switch_to_freetype_fonts);
+  EXPORT_NODE_FUNCTION(alphaskia_switch_to_operating_system_fonts);
 
   EXPORT_NODE_FUNCTION(alphaskia_data_new_copy);
   EXPORT_NODE_FUNCTION(alphaskia_data_get_data);

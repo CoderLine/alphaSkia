@@ -21,6 +21,8 @@
 extern "C"
 {
     AS_API int32_t alphaskia_get_color_type();
+    AS_API void alphaskia_switch_to_freetype_fonts();
+    AS_API void alphaskia_switch_to_operating_system_fonts();
 
     typedef AS_API void *alphaskia_data_t;
     AS_API alphaskia_data_t alphaskia_data_new_copy(const uint8_t *data, uint64_t length);

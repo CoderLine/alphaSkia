@@ -22,6 +22,24 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
     }
 
     /**
+     * Switches the rendering to use the operating system font manager and font rendering. 
+     * This results in a platform specific display of any rendered texts and allows using of any
+     * fonts installed on the system.
+     */
+    public static switchToOperatingSystemFonts(): void {
+        loadAddon().alphaskia_switch_to_operating_system_fonts();
+    }
+
+    /**
+     * Switches the rendering to use the FreeType font manager and font rendering. 
+     * This results in a platform independent display of any rendered texts achieving consistent rendering. 
+     * Operating system fonts cannot be used in this mode.
+     */
+    public static switchToFreeTypeFonts(): void {
+        loadAddon().alphaskia_switch_to_freetype_fonts();
+    }
+    
+    /**
      * Gets the color to use for drawing operations in the native canvas.
      * See also {@link rgbaToColor}
      * @return The color to use for drawing operations in the native canvas

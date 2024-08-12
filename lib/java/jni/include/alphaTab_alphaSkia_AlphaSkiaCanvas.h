@@ -215,6 +215,22 @@ JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_alphaskiaCanvasA
 JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_alphaskiaColorType
   (JNIEnv *, jclass);
 
+/*
+ * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
+ * Method:    switchToFreeTypeFonts
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToFreeTypeFonts
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
+ * Method:    switchToOperatingSystemFonts
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToOperatingSystemFonts
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

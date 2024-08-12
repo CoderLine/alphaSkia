@@ -46,8 +46,15 @@ public static class Program
         return fullImage!;
     }
 
-    public static int Main()
+    public static int Main(string[] args)
     {
+        var isFreeType = args.Contains("--freetype");
+        if(isFreeType) 
+        {
+            Console.WriteLine("Switching to FreeType Fonts");
+            AlphaSkiaCanvas.SwitchToFreeTypeFonts();
+        }
+
         const double tolerancePercent = 1;
         try
         {
@@ -88,7 +95,10 @@ public static class Program
             var testOutputPath = Path.Combine(repositoryRoot, "test", "test-outputs", "dotnet");
             Directory.CreateDirectory(testOutputPath);
 
-            var testOutputFile = Path.Combine(testOutputPath, AlphaSkiaTestRid + ".png");
+
+            var testOutputFileBase = isFreeType ? "freetype" : AlphaSkiaTestRid;
+
+            var testOutputFile = Path.Combine(testOutputPath, testOutputFileBase + ".png");
             var pngData = actualImage.ToPng();
             if (pngData == null)
             {
@@ -99,7 +109,7 @@ public static class Program
             Console.WriteLine($"Image saved to {testOutputFile}");
 
             // load reference image
-            var testReferencePath = Path.Combine(testDataPath, "reference", AlphaSkiaTestRid + ".png");
+            var testReferencePath = Path.Combine(testDataPath, "reference", testOutputFileBase + ".png");
             Console.WriteLine($"Loading reference image {testReferencePath}");
 
             var testReferenceData = File.ReadAllBytes(testReferencePath);
@@ -151,7 +161,7 @@ public static class Program
                 using var diffImage = AlphaSkiaImage.FromPixels(actualWidth, actualHeight, diffPixels)!;
                 var diffImagePngData = diffImage.ToPng()!;
 
-                var diffOutputPath = Path.Combine(testOutputPath, AlphaSkiaTestRid + ".diff.png");
+                var diffOutputPath = Path.Combine(testOutputPath, testOutputFileBase + ".diff.png");
                 File.WriteAllBytes(diffOutputPath, diffImagePngData);
                 Console.WriteLine($"Error diff image saved to {diffOutputPath}");
                 return 1;

@@ -45,7 +45,7 @@ jobs:
             architecture: x64
             framework: net8.0
           - runs-on: macos-latest
-            architecture: x64
+            architecture: arm64
             framework: net8.0
           - runs-on: windows-latest
             architecture: x64
@@ -66,7 +66,8 @@ jobs:
         path: dist/.organize/nupkgs
     - run: ./build.cmd DotNetTest --architecture ${{ matrix.architecture }} --framework ${{ matrix.framework }}
     - uses: actions/upload-artifact@v3
+      if: always()
       with:
-        name: DotNet Test Results
+        name: dotnettest-${{ matrix.runs-on }}-${{ matrix.architecture }}--${{ matrix.framework  }}
         path: |
           test/test-outputs/**/*.*
