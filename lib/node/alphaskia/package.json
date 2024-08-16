@@ -1,6 +1,6 @@
 {
   "name": "@coderline/alphaskia",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "A Skia based rendering backend for alphaTab.",
   "module": "./dist/alphaskia.mjs",
   "typings": "./dist/alphaskia.d.ts",
@@ -34,9 +34,9 @@
   },
   "homepage": "https://github.com/CoderLine/alphaSkia",
   "optionalDependencies": {
-    "@coderline/alphaskia-linux": "^2.2.0",
-    "@coderline/alphaskia-macos": "^2.2.0",
-    "@coderline/alphaskia-windows": "^2.2.0"
+    "@coderline/alphaskia-linux": "^2.3.0",
+    "@coderline/alphaskia-macos": "^2.3.0",
+    "@coderline/alphaskia-windows": "^2.3.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",

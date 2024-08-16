@@ -11,14 +11,14 @@ on:
         default: false
 env:
   IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
-  ALPHASKIA_VERSION_TEMPLATE: "2.1"
+  ALPHASKIA_VERSION_TEMPLATE: "2.3"
 
 jobs:
   build:
     uses: ./.github/workflows/~reusable-full-build.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: "2.2"
+      alphaskia-version: "2.3"
       is-release-build: ${{ inputs.is-release-build }}
     secrets: inherit
 
