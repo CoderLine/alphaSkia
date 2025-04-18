@@ -21,10 +21,18 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
     }
 
     /**
-     * Gets a value indicating whether the typeface is bold.
+     * Gets a value indicating whether the typeface is bold (weight >= 600, 600=>SemiBold).
      * @return true if the font is bold, otherwise false.
      */
-    public native boolean isBold();
+    public boolean isBold() {
+        return this.getWeight() >= 600 /* kSemiBold_Weight */; 
+    }
+
+    /**
+     * Gets the weight of the font.
+     * @return the weight of the font.
+     */
+    public native int getWeight();
 
     /**
      * Gets a value indicating whether the typeface is italic.
@@ -72,18 +80,29 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
      * Creates a typeface using the provided information.
      *
      * @param name   The name of the typeface.
-     * @param bold   Whether the bold version of the typeface should be loaded.
+     * @param weight The weight of the typeface.
      * @param italic Whether the italic version of the typeface should be loaded.
      * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code null}.
      */
-    public static AlphaSkiaTypeface create(String name, boolean bold, boolean italic) {
-        var typeface = makeFromName(name, bold, italic);
+    public static AlphaSkiaTypeface create(String name, int weight, boolean italic) {
+        var typeface = makeFromName(name, weight, italic);
         if (typeface == 0) {
             return null;
         }
 
         return new AlphaSkiaTypeface(typeface, null);
     }
+    /**
+     * Creates a typeface using the provided information.
+     *
+     * @param name   The name of the typeface.
+     * @param bold   Whether the bold version of the typeface should be loaded.
+     * @param italic Whether the italic version of the typeface should be loaded.
+     * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code null}.
+     */
+    public static AlphaSkiaTypeface create(String name, boolean bold, boolean italic) {
+        return create(name, 700, italic);
+    }
 
-    private static native long makeFromName(String name, boolean bold, boolean italic);
+    private static native long makeFromName(String name, int weight, boolean italic);
 }

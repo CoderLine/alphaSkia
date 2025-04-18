@@ -172,8 +172,8 @@ extern "C"
 
         const jchar *nativeStr = env->GetStringChars(str, nullptr);
 
-        alphaskia_typeface_t nativeTypeface = reinterpret_cast<alphaskia_typeface_t>(get_handle(env, typeface));
-        CHECK_HANDLE(nativeTypeface)
+        alphaskia_textstyle_t nativeTextStyle = reinterpret_cast<alphaskia_textstyle_t>(get_handle(env, typeface));
+        CHECK_HANDLE(nativeTextStyle)
 
         jmethodID textAlignGetValue = env->GetMethodID(env->GetObjectClass(text_align), "getValue", "()I");
         if (!textAlignGetValue)
@@ -199,7 +199,7 @@ extern "C"
         alphaskia_text_baseline_t nativeBaseline = static_cast<alphaskia_text_baseline_t>(env->CallIntMethod(baseline, baselineGetValue));
 
         alphaskia_canvas_fill_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(env->GetStringLength(str)),
-                                   nativeTypeface, static_cast<float>(font_size), static_cast<float>(x), static_cast<float>(y),
+                                   nativeTextStyle, static_cast<float>(font_size), static_cast<float>(x), static_cast<float>(y),
                                    nativeTextAlign, nativeBaseline);
 
         env->ReleaseStringChars(str, nativeStr);
@@ -210,10 +210,10 @@ extern "C"
         CHECK_HANDLE_RETURN(canvas, 0.0f)
 
         const jchar *nativeStr = env->GetStringChars(str, nullptr);
-        alphaskia_typeface_t nativeTypeface = reinterpret_cast<alphaskia_typeface_t>(get_handle(env, typeface));
-        CHECK_HANDLE_RETURN(nativeTypeface, 0.0f)
+        alphaskia_textstyle_t nativeTextStyle = reinterpret_cast<alphaskia_textstyle_t>(get_handle(env, typeface));
+        CHECK_HANDLE_RETURN(nativeTextStyle, 0.0f)
 
-        float width = alphaskia_canvas_measure_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(env->GetStringLength(str)), nativeTypeface, static_cast<float>(font_size));
+        float width = alphaskia_canvas_measure_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(env->GetStringLength(str)), nativeTextStyle, static_cast<float>(font_size));
 
         env->ReleaseStringChars(str, nativeStr);
 
