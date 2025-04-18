@@ -1,6 +1,12 @@
 #pragma once
 
 #include "../../externals/skia/include/core/SkFontMgr.h"
+#include "../../externals/skia/src/core/SkTHash.h"
+
+#include <set>
+#include <vector>
+
+class SkFontStyleSet_Custom;
 
 class SK_API SkFontMgr_AlphaSkia : public SkFontMgr
 {
@@ -30,7 +36,14 @@ protected:
 
 
 private:
+    void registerTypeface(const sk_sp<SkTypeface> &typeface) const;
+
     sk_sp<SkFontMgr> currentFontMgr_;
+    skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>> *currentFontMgrFontStyleSets_;
+
     sk_sp<SkFontMgr> freeTypeFontMgr_;
+    skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>> freeTypeFontStyleSets_;
+
     sk_sp<SkFontMgr> operatingSystemTypeFontMgr_;
+    skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>> operatingSystemFontStyleSets_;
 };
