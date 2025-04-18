@@ -34,9 +34,14 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
     }
 
     /// <summary>
-    /// Gets a value indicating whether the typeface is bold.
+    /// Gets a value indicating whether the typeface is bold (weight >= 600, 600=>SemiBold)
     /// </summary>
-    public bool IsBold => NativeMethods.alphaskia_typeface_is_bold(Handle) != 0;
+    public bool IsBold => Weight >= 600 /* kSemiBold_Weight */;
+
+    /// <summary>
+    /// Gets the weight of the font.
+    /// </summary>
+    public ushort Weight =>  NativeMethods.alphaskia_typeface_get_weight(Handle);
 
     /// <summary>
     /// Gets a value indicating whether the typeface is italic.
@@ -81,18 +86,30 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
     /// Creates a typeface using the provided information.
     /// </summary>
     /// <param name="name">The name of the typeface.</param>
-    /// <param name="bold">Whether the bold version of the typeface should be loaded.</param>
+    /// <param name="weight">The weight of the typeface.</param>
     /// <param name="italic">Whether the italic version of the typeface should be loaded.</param>
     /// <returns>The typeface if it can be found in the already loaded fonts or the system fonts, otherwise <code>null</code>.</returns>
-    public static AlphaSkiaTypeface? Create(string name, bool bold, bool italic)
+    public static AlphaSkiaTypeface? Create(string name, ushort weight, bool italic)
     {
         var typeface =
-            NativeMethods.alphaskia_typeface_make_from_name(name, bold ? (byte)1 : (byte)0, italic ? (byte)1 : (byte)0);
+            NativeMethods.alphaskia_typeface_make_from_name(name, weight, italic ? (byte)1 : (byte)0);
         if (typeface == IntPtr.Zero)
         {
             return null;
         }
 
         return new AlphaSkiaTypeface(typeface);
+    }
+
+    /// <summary>
+    /// Creates a typeface using the provided information.
+    /// </summary>
+    /// <param name="name">The name of the typeface.</param>
+    /// <param name="bold">Whether the bold version of the typeface should be loaded.</param>
+    /// <param name="italic">Whether the italic version of the typeface should be loaded.</param>
+    /// <returns>The typeface if it can be found in the already loaded fonts or the system fonts, otherwise <code>null</code>.</returns>
+    public static AlphaSkiaTypeface? Create(string name, bool bold, bool italic)
+    {
+        return Create(name, 700, italic);
     }
 }

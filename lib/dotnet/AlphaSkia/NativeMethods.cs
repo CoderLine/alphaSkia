@@ -41,22 +41,35 @@ internal static class NativeMethods
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern alphaskia_string_t alphaskia_typeface_get_family_name(alphaskia_typeface_t typeface);
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern byte alphaskia_typeface_is_bold(alphaskia_typeface_t typeface);
+    public static extern ushort alphaskia_typeface_get_weight(alphaskia_typeface_t typeface);
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern byte alphaskia_typeface_is_italic(alphaskia_typeface_t typeface);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_typeface_free(alphaskia_typeface_t type_face);
 
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern alphaskia_textstyle_t alphaskia_textstyle_new(byte family_name_count, string[] family_names, ushort weight, byte italic);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern byte alphaskia_textstyle_get_family_name_count(alphaskia_textstyle_t textstyle);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern alphaskia_string_t alphaskia_textstyle_get_family_name(alphaskia_textstyle_t textstyle, byte index);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern ushort alphaskia_textstyle_get_weight(alphaskia_textstyle_t textstyle);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern byte alphaskia_textstyle_is_italic(alphaskia_textstyle_t textstyle);
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void alphaskia_textstyle_free(alphaskia_textstyle_t textstyle);
+
     [DllImport(AlphaSkiaNativeLibName)]
     public static extern alphaskia_typeface_t alphaskia_typeface_make_from_name(
-        #if NETSTANDARD2_0
+#if NETSTANDARD2_0
         [MarshalAs(UnmanagedType.LPStr)]
-        #else
+#else
         [MarshalAs(UnmanagedType.LPUTF8Str)]
         #endif
         string utf8Name,
-        byte bold, byte italic);
+        ushort weight, byte italic);
 
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
@@ -151,19 +164,19 @@ internal static class NativeMethods
 
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, 
+    public static extern void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas,
         [MarshalAs(UnmanagedType.LPWStr)]
         string text,
         int text_length,
-        alphaskia_typeface_t type_face, float font_size, float x, float y, AlphaSkiaTextAlign text_align,
+        alphaskia_textstyle_t textstyle, float font_size, float x, float y, AlphaSkiaTextAlign text_align,
         AlphaSkiaTextBaseline baseline);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, 
+    public static extern float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas,
         [MarshalAs(UnmanagedType.LPWStr)]
         string text,
         int text_length,
-        alphaskia_typeface_t type_face, float font_size);
+        alphaskia_textstyle_t textstyle, float font_size);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y,
