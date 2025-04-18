@@ -40,8 +40,16 @@ extern "C"
     AS_API void alphaskia_typeface_free(alphaskia_typeface_t typeface);
     AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint8_t bold, uint8_t italic);
     AS_API alphaskia_string_t alphaskia_typeface_get_family_name(alphaskia_typeface_t typeface);
-    AS_API uint8_t alphaskia_typeface_is_bold(alphaskia_typeface_t typeface);
+    AS_API uint16_t alphaskia_typeface_get_weigth(alphaskia_typeface_t typeface);
     AS_API uint8_t alphaskia_typeface_is_italic(alphaskia_typeface_t typeface);
+
+    typedef AS_API void *alphaskia_textstyle_t;
+    AS_API alphaskia_textstyle_t alphaskia_textstyle_new(uint8_t family_name_count, const char** family_names, uint16_t weight, uint8_t italic, float font_size);
+    AS_API uint8_t alphaskia_textstyle_get_family_name_count(alphaskia_textstyle_t textstyle);
+    AS_API alphaskia_string_t alphaskia_textstyle_get_family_name(alphaskia_textstyle_t textstyle, uint8_t index);
+    AS_API uint16_t alphaskia_textstyle_get_weight(alphaskia_textstyle_t textstyle);
+    AS_API uint8_t alphaskia_textstyle_is_italic(alphaskia_textstyle_t textstyle);
+    AS_API void alphaskia_textstyle_free(alphaskia_textstyle_t textstyle);
 
     typedef AS_API void *alphaskia_image_t;
     AS_API int32_t alphaskia_image_get_width(alphaskia_image_t image);
@@ -93,8 +101,10 @@ extern "C"
         alphaskia_text_baseline_bottom = 3
     } alphaskia_text_baseline_t;
     AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_typeface_t typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
+    AS_API void alphaskia_canvas_fill_text_style(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
 
     AS_API float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_typeface_t typeface, float font_size);
+    AS_API float alphaskia_canvas_measure_text_style(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size);
     AS_API void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y, float angle);
     AS_API void alphaskia_canvas_end_rotate(alphaskia_canvas_t canvas);
 }

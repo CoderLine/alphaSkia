@@ -2,6 +2,7 @@
 #include "../include/SkFontMgr_alphaskia.h"
 #include "../../externals/skia/include/core/SkTypeface.h"
 #include "../../externals/skia/include/core/SkData.h"
+#include "../../externals/skia/include/core/SkFontMgr.h"
 
 extern "C"
 {
@@ -56,10 +57,10 @@ extern "C"
         return reinterpret_cast<alphaskia_string_t>(skFamilyName);
     }
 
-    AS_API uint8_t alphaskia_typeface_is_bold(alphaskia_typeface_t typeface)
+    AS_API uint16_t alphaskia_typeface_get_weigth(alphaskia_typeface_t typeface)
     {
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
-        return (*skTypeface)->isBold() ? 1 : 0;
+        return static_cast<uint16_t>((*skTypeface)->fontStyle().weight());
     }
 
     AS_API uint8_t alphaskia_typeface_is_italic(alphaskia_typeface_t typeface)

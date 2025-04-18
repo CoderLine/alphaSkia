@@ -10,9 +10,8 @@
 #include "../../externals/skia/include/core/SkFontMetrics.h"
 #include "../../externals/skia/include/core/SkTextBlob.h"
 #include "../../externals/skia/include/core/SkRefCnt.h"
-
-#include "../../externals/skia/third_party/externals/harfbuzz/src/hb.h"
-#include "../../externals/skia/third_party/externals/harfbuzz/src/hb-ot.h"
+#include "../../externals/skia/modules/skparagraph/include/FontCollection.h"
+#include "../../externals/skia/modules/skparagraph/include/ParagraphBuilder.h"
 
 #include <codecvt>
 #include <locale>
@@ -22,6 +21,8 @@
 AlphaSkiaCanvas::AlphaSkiaCanvas()
     : color_(SK_ColorWHITE), line_width_(1.0f)
 {
+    font_collection_ = sk_make_sp<skia::textlayout::FontCollection>();
+    font_collection_->setDefaultFontManager(SkFontMgr::RefDefault());
 }
 
 SkPaint AlphaSkiaCanvas::create_paint()
@@ -53,11 +54,14 @@ void AlphaSkiaCanvas::set_line_width(float line_width)
 
 void AlphaSkiaCanvas::begin_render(int32_t width, int32_t height, float render_scale)
 {
+    SkSurfaceProps props(0, kRGB_H_SkPixelGeometry);
+
     surface_ = SkSurfaces::Raster(SkImageInfo::Make(
-        width * render_scale,
-        height * render_scale,
-        kN32_SkColorType,
-        kPremul_SkAlphaType));
+                                      width * render_scale,
+                                      height * render_scale,
+                                      kN32_SkColorType,
+                                      kPremul_SkAlphaType),
+                                  &props);
 
     surface_->getCanvas()->scale(render_scale, render_scale);
     path_.transform(SkMatrix::Scale(1 / render_scale, 1 / render_scale));
@@ -149,45 +153,104 @@ void AlphaSkiaCanvas::stroke()
     path_.reset();
 }
 
-void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, sk_sp<SkTypeface> type_face, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(const char16_t *text, int text_length, const AlphaSkiaTextStyle &textstyle, float font_size, alphaskia_text_align_t text_align)
 {
-    sk_sp<SkTextBlob> realBlob;
-    SkFont font(type_face, font_size);
+    skia::textlayout::TextStyle style;
 
-    float width(0);
-    text_run(text, text_length, font, realBlob, width);
+    SkPaint foregroundColor;
+    foregroundColor.setColor(color_);
+    style.setForegroundColor(foregroundColor);
+
+    style.setFontFamilies(std::vector<SkString>(textstyle.get_family_names()));
+    style.setFontStyle(textstyle.get_font_style());
+    style.setFontSize(font_size);
+
+    skia::textlayout::ParagraphStyle paraStyle;
+    paraStyle.setTextHeightBehavior(skia::textlayout::TextHeightBehavior::kDisableAll);
+    paraStyle.setTextStyle(style);
 
     switch (text_align)
     {
     case alphaskia_text_align_left:
+        paraStyle.setTextAlign(skia::textlayout::TextAlign::kLeft);
         break;
     case alphaskia_text_align_center:
-        x -= width / 2;
+        paraStyle.setTextAlign(skia::textlayout::TextAlign::kCenter);
         break;
     case alphaskia_text_align_right:
-        x -= width;
+        paraStyle.setTextAlign(skia::textlayout::TextAlign::kRight);
         break;
     }
 
-    y += get_font_baseline(font, baseline);
+    auto builder = skia::textlayout::ParagraphBuilder::make(paraStyle, font_collection_);
+    builder->SetUnicode(SkUnicode::Make());
+    builder->addText(text);
 
-    if (realBlob)
-    {
-        SkPaint paint(create_paint());
-        paint.setStyle(SkPaint::kFill_Style);
-        surface_->getCanvas()->drawTextBlob(realBlob, x,
-                                            y,
-                                            paint);
-    }
+    return builder->Build();
 }
 
-float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, sk_sp<SkTypeface> type_face, float font_size)
+void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &textstyle, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    sk_sp<SkTextBlob> realBlob;
-    SkFont font(type_face, font_size);
-    float width(0);
-    text_run(text, text_length, font, realBlob, width);
-    return width;
+    auto paragraph(build_paragraph(text, text_length, textstyle, font_size, text_align));
+
+    // layout with enough space for our text to definitely fit
+    const float layoutWidth = surface_->width() * 2;
+    paragraph->layout(surface_->width() * 2);
+
+    // NOTE: SkParagraph has no support for font/line specific baselines, first font is better than nothing
+    y += get_font_baseline(paragraph->getFontAt(0), baseline);
+
+    switch (text_align)
+    {
+    case alphaskia_text_align_left:
+        // doesn't matter
+        break;
+    case alphaskia_text_align_center:
+        x -= layoutWidth / 2;
+        break;
+    case alphaskia_text_align_right:
+        // text is aligned at layoutWidth, shift it left
+        x -= layoutWidth;
+        break;
+    }
+
+    paragraph->paint(surface_->getCanvas(), x, y);
+}
+
+void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, sk_sp<SkTypeface> typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+{
+    AlphaSkiaTextStyle textstyle(
+        typeface->fontStyle().weight(),
+        typeface->fontStyle().slant(),
+        1);
+
+    SkString familyName;
+    typeface->getFamilyName(&familyName);
+    textstyle.get_family_names().emplace_back(familyName);
+    fill_text(text, text_length, textstyle, font_size, x, y, text_align, baseline);
+}
+
+float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &textstyle, float font_size)
+{
+    auto paragraph(build_paragraph(text, text_length, textstyle, font_size, alphaskia_text_align_t::alphaskia_text_align_left));
+
+    paragraph->layout(10000);
+
+    return static_cast<float>(paragraph->getMaxIntrinsicWidth());
+}
+
+float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, sk_sp<SkTypeface> typeface, float font_size)
+{
+    AlphaSkiaTextStyle textstyle(
+        typeface->fontStyle().weight(),
+        typeface->fontStyle().slant(),
+        1);
+
+    SkString familyName;
+    typeface->getFamilyName(&familyName);
+    textstyle.get_family_names().emplace_back(familyName);
+
+    return measure_text(text, text_length, textstyle, font_size);
 }
 
 void AlphaSkiaCanvas::begin_rotate(float center_x, float center_y, float angle)
@@ -202,144 +265,10 @@ void AlphaSkiaCanvas::end_rotate()
     surface_->getCanvas()->restore();
 }
 
-using HBBlob = std::unique_ptr<hb_blob_t, SkFunctionObject<hb_blob_destroy>>;
-using HBFace = std::unique_ptr<hb_face_t, SkFunctionObject<hb_face_destroy>>;
-using HBFont = std::unique_ptr<hb_font_t, SkFunctionObject<hb_font_destroy>>;
-using HBBuffer = std::unique_ptr<hb_buffer_t, SkFunctionObject<hb_buffer_destroy>>;
-
-const int SkiaToHarfBuzzFontSize = 1 << 16;
-const float HarfBuzzToSkiaFontSize = 1.0f / SkiaToHarfBuzzFontSize;
-
-hb_blob_t* skhb_get_table(hb_face_t* face, hb_tag_t tag, void* user_data) 
+void AlphaSkiaCanvas::draw_image(sk_sp<SkImage> image, float x, float y, float w, float h)
 {
-    SkTypeface& typeface = *reinterpret_cast<SkTypeface*>(user_data);
-
-    auto data = typeface.copyTableData(tag);
-    if (!data) 
-    {
-        return nullptr;
-    }
-    SkData* rawData = data.release();
-    return hb_blob_create(reinterpret_cast<char*>(rawData->writable_data()), rawData->size(),
-                          HB_MEMORY_MODE_READONLY, rawData, [](void* ctx) {
-                              SkSafeUnref(((SkData*)ctx));
-                          });
-}
-
-
-HBFont make_harfbuzz_font(const SkFont &font)
-{
-    int index = 0;
-    std::unique_ptr<SkStreamAsset> typefaceAsset = font.getTypeface()->openExistingStream(&index);
-
-    HBFace hbFace;
-
-    if (typefaceAsset)
-    {
-        size_t size = typefaceAsset->getLength();
-
-        HBBlob blob;
-        if (const void *base = typefaceAsset->getMemoryBase())
-        {
-            blob.reset(hb_blob_create((char *)base, SkToUInt(size),
-                                    HB_MEMORY_MODE_READONLY, typefaceAsset.release(),
-                                    [](void *p)
-                                    { delete (SkStreamAsset *)p; }));
-        }
-        else
-        {
-            void *ptr = size ? sk_malloc_throw(size) : nullptr;
-            typefaceAsset->read(ptr, size);
-            blob.reset(hb_blob_create((char *)ptr, SkToUInt(size),
-                                    HB_MEMORY_MODE_READONLY, ptr, sk_free));
-        }
-        hb_blob_make_immutable(blob.get());
-
-        hbFace.reset(hb_face_create(blob.get(), index));
-        hb_face_set_index(hbFace.get(), index);
-        hb_face_set_upem(hbFace.get(), font.getTypeface()->getUnitsPerEm());
-    }
-    
-
-    if(!hbFace) 
-    {
-        hbFace.reset(hb_face_create_for_tables(
-            skhb_get_table,
-            const_cast<SkTypeface*>(SkRef(font.getTypeface())),
-            [](void* user_data){ SkSafeUnref(reinterpret_cast<SkTypeface*>(user_data)); }));
-        
-        if(hbFace)
-        {
-            hb_face_set_index(hbFace.get(), (unsigned)index);
-            hb_face_set_upem(hbFace.get(), font.getTypeface()->getUnitsPerEm());
-        }
-    }
-
-    if(!hbFace) 
-    {
-        return HBFont();
-    }
-
-    HBFont hbFont(hb_font_create(hbFace.get()));
-    float scale = font.getSize() * SkiaToHarfBuzzFontSize;
-    hb_font_set_scale(hbFont.get(), scale, scale);
-    hb_ot_font_set_funcs(hbFont.get());
-    return hbFont;
-}
-
-void AlphaSkiaCanvas::text_run(const char16_t *text,
-                               int text_length,
-                               SkFont &font,
-                               sk_sp<SkTextBlob> &realBlob,
-                               float &width)
-{
-    font.setEdging(SkFont::Edging::kAntiAlias);
-    font.setSubpixel(true);
-    font.setHinting(SkFontHinting::kNormal);
-
-    HBFont harfBuzzFont(make_harfbuzz_font(font));
-
-    SkTextBlobBuilder builder;
-    if(!harfBuzzFont)
-    {
-        auto runBuffer = builder.allocRunPos(font, 0);
-        realBlob = builder.make();
-        width = 0.0f;
-        return;
-    }
-
-    HBBuffer buffer(hb_buffer_create());
-    hb_buffer_set_direction(buffer.get(), HB_DIRECTION_LTR);
-    hb_buffer_set_language(buffer.get(), hb_language_get_default());
-    hb_buffer_add_utf16(buffer.get(), reinterpret_cast<const uint16_t*>(text), text_length, 0, -1);
-
-    hb_shape(harfBuzzFont.get(), buffer.get(), nullptr, 0);
-
-    uint32_t infosLength(0);
-    hb_glyph_info_t *infos = hb_buffer_get_glyph_infos(buffer.get(),
-                                                       &infosLength);
-    uint32_t positionsLength(0);
-    hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(buffer.get(),
-                                                                   &positionsLength);
-
-    auto runBuffer = builder.allocRunPos(font, infosLength);
-
-    auto glyphSpan = runBuffer.glyphs;
-    auto positionSpan = runBuffer.points();
-
-    width = 0.0f;
-    for (uint32_t i = 0; i < infosLength; i++)
-    {
-        glyphSpan[i] = (SkGlyphID)infos[i].codepoint;
-
-        auto xOffset = width + HarfBuzzToSkiaFontSize * positions[i].x_offset;
-        auto yOffset = HarfBuzzToSkiaFontSize * -positions[i].y_offset;
-        positionSpan[i] = {xOffset, yOffset};
-
-        width += HarfBuzzToSkiaFontSize * positions[i].x_advance;
-    }
-
-    realBlob = builder.make();
+    SkSamplingOptions sampling;
+    surface_->getCanvas()->drawImageRect(image, SkRect::MakeXYWH(x, y, w, h), sampling);
 }
 
 float float_ascent(const SkFontMetrics &metrics)
@@ -372,22 +301,22 @@ std::pair<int16_t, int16_t> typo_ascender_and_descender(SkTypeface *typeface)
     return std::make_pair(0, 0);
 }
 
-const uint32_t AlphaSkiaCanvas::layoutUnitFractionalBits_ = 6;
-const int AlphaSkiaCanvas::fixedPointDenominator_ = 1 << layoutUnitFractionalBits_;
+const uint32_t layoutUnitFractionalBits_ = 6;
+const int fixedPointDenominator_ = 1 << layoutUnitFractionalBits_;
 
-int AlphaSkiaCanvas::float_to_layout_unit(float value)
+int float_to_layout_unit(float value)
 {
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&ss=chromium%2Fchromium%2Fsrc
     return static_cast<int>(roundf(value * fixedPointDenominator_));
 }
 
-float AlphaSkiaCanvas::layout_unit_to_float(int value)
+float layout_unit_to_float(int value)
 {
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&sq=&ss=chromium%2Fchromium%2Fsrc    return static_cast<int>(roundf(value * kFixedPointDenominator))
     return static_cast<float>(value) / fixedPointDenominator_;
 }
 
-bool AlphaSkiaCanvas::try_set_normalized_typo_ascent_and_descent(float em_height, float typo_ascent, float typo_descent, int &ascent, int &descent)
+bool try_set_normalized_typo_ascent_and_descent(float em_height, float typo_ascent, float typo_descent, int &ascent, int &descent)
 {
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=422;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=NormalizedTypoAscentAndDescent&ss=chromium%2Fchromium%2Fsrc
     const float height = typo_ascent + typo_descent;
@@ -401,7 +330,7 @@ bool AlphaSkiaCanvas::try_set_normalized_typo_ascent_and_descent(float em_height
     return true;
 }
 
-void AlphaSkiaCanvas::normalized_typo_ascent_and_descent(const SkFont &font, int &ascent, int &descent)
+void normalized_typo_ascent_and_descent(const SkFont &font, int &ascent, int &descent)
 {
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=366;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=NormalizedTypoAscentAndDescent&ss=chromium%2Fchromium%2Fsrc
     SkTypeface *typeface = font.getTypeface();
@@ -428,34 +357,37 @@ float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_base
     SkFontMetrics metrics;
     font.getMetrics(&metrics);
 
+    float baselineOffset = 0;
     int ascent(0);
     int descent(0);
 
     switch (baseline)
     {
     case alphaskia_text_baseline_alphabetic: // kAlphabeticTextBaseline
-        return 0;
+        baselineOffset = 0;
+        break;
     case alphaskia_text_baseline_top: // kHangingTextBaseline
 #define kHangingAsPercentOfAscent 80
-        return float_ascent(metrics) * kHangingAsPercentOfAscent / 100.0f;
+        baselineOffset = float_ascent(metrics) * kHangingAsPercentOfAscent / 100.0f;
         break;
     case alphaskia_text_baseline_middle: // kMiddleTextBaseline
     {
         normalized_typo_ascent_and_descent(font, ascent, descent);
         auto middle = (layout_unit_to_float(ascent) - layout_unit_to_float(descent)) / 2.0f;
-        return middle;
+        baselineOffset = middle;
+        break;
     }
     case alphaskia_text_baseline_bottom: // kBottomTextBaseline
         normalized_typo_ascent_and_descent(font, ascent, descent);
-        return -layout_unit_to_float(descent);
+        baselineOffset = -layout_unit_to_float(descent);
         break;
     }
 
-    return 0;
-}
+    // SkParagraph defines its baseline() as (fLeading / 2 - fAscent)
+    // see: Run.h -> InternalLineMetrics::baseline()
+    // we reset this here
+    const float skParagraphBaseline = metrics.fLeading / 2 + float_ascent(metrics);
+    baselineOffset -= skParagraphBaseline;
 
-void AlphaSkiaCanvas::draw_image(sk_sp<SkImage> image, float x, float y, float w, float h)
-{
-    SkSamplingOptions sampling;
-    surface_->getCanvas()->drawImageRect(image, SkRect::MakeXYWH(x, y, w, h), sampling);
+    return baselineOffset;
 }

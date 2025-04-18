@@ -142,6 +142,18 @@ extern "C"
         return reinterpret_cast<AlphaSkiaCanvas *>(canvas)->measure_text(text, text_length, *skTypeface, font_size);
     }
 
+    AS_API void alphaskia_canvas_fill_text_style(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+    {
+        AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(textstyle);
+        reinterpret_cast<AlphaSkiaCanvas *>(canvas)->fill_text(text, text_length, *skTextstyle, font_size, x, y, text_align, baseline);
+    }
+
+    AS_API float alphaskia_canvas_measure_text_style(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size)
+    {
+        AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(textstyle);
+        return reinterpret_cast<AlphaSkiaCanvas *>(canvas)->measure_text(text, text_length, *skTextstyle, font_size);
+    }
+
     AS_API void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y, float angle)
     {
         reinterpret_cast<AlphaSkiaCanvas *>(canvas)->begin_rotate(center_x, center_y, angle);
