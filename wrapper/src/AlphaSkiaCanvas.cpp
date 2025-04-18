@@ -217,19 +217,6 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
     paragraph->paint(surface_->getCanvas(), x, y);
 }
 
-void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, sk_sp<SkTypeface> typeface, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
-{
-    AlphaSkiaTextStyle textstyle(
-        typeface->fontStyle().weight(),
-        typeface->fontStyle().slant(),
-        1);
-
-    SkString familyName;
-    typeface->getFamilyName(&familyName);
-    textstyle.get_family_names().emplace_back(familyName);
-    fill_text(text, text_length, textstyle, font_size, x, y, text_align, baseline);
-}
-
 float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &textstyle, float font_size)
 {
     auto paragraph(build_paragraph(text, text_length, textstyle, font_size, alphaskia_text_align_t::alphaskia_text_align_left));
@@ -237,20 +224,6 @@ float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const
     paragraph->layout(10000);
 
     return static_cast<float>(paragraph->getMaxIntrinsicWidth());
-}
-
-float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, sk_sp<SkTypeface> typeface, float font_size)
-{
-    AlphaSkiaTextStyle textstyle(
-        typeface->fontStyle().weight(),
-        typeface->fontStyle().slant(),
-        1);
-
-    SkString familyName;
-    typeface->getFamilyName(&familyName);
-    textstyle.get_family_names().emplace_back(familyName);
-
-    return measure_text(text, text_length, textstyle, font_size);
 }
 
 void AlphaSkiaCanvas::begin_rotate(float center_x, float center_y, float angle)

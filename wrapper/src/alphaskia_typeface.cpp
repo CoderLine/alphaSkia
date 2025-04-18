@@ -15,7 +15,6 @@ extern "C"
         {
             return nullptr;
         }
-
         return reinterpret_cast<alphaskia_typeface_t>(new sk_sp<SkTypeface>(skTypeface));
     }
 
@@ -30,11 +29,11 @@ extern "C"
         delete skTypeface;
     }
 
-    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint8_t bold, uint8_t italic)
+    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint16_t weight, uint8_t italic)
     {
         auto fontMgr = SkFontMgr_AlphaSkia::instance();
 
-        SkFontStyle style(bold ? SkFontStyle::kBold_Weight : SkFontStyle::kNormal_Weight,
+        SkFontStyle style(weight,
                           SkFontStyle::kNormal_Width,
                           italic ? SkFontStyle::kItalic_Slant : SkFontStyle::kUpright_Slant);
         sk_sp<SkTypeface> skTypeface = fontMgr->legacyMakeTypeface(family_name, style);

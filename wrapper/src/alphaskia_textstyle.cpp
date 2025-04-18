@@ -3,7 +3,7 @@
 
 extern "C"
 {
-    AS_API alphaskia_textstyle_t alphaskia_textstyle_new(uint8_t family_name_count, const char **family_names, uint16_t weight, uint8_t italic, float font_size)
+    AS_API alphaskia_textstyle_t alphaskia_textstyle_new(uint8_t family_name_count, const char **family_names, uint16_t weight, uint8_t italic)
     {
         SkFontStyle::Weight skWeight;
         switch (weight)
