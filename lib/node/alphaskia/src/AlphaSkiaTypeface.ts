@@ -25,7 +25,14 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
      * Gets a value indicating whether the typeface is bold.
      */
     public get isBold(): boolean {
-        return loadAddon().alphaskia_typeface_is_bold(this.handle!);
+        return this.weight >= 600;
+    }
+
+    /**
+     * Gets the weight of the font.
+     */
+    public get weight(): number {
+        return loadAddon().alphaskia_typeface_get_weight(this.handle!)
     }
 
     /**
@@ -77,8 +84,36 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
      * @param italic Whether the italic version of the typeface should be loaded.
      * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code undefined}.
      */
-    public static create(name: string, bold: boolean, italic: boolean): AlphaSkiaTypeface | undefined {
-        const typeface = loadAddon().alphaskia_typeface_make_from_name(name, bold, italic);
+    public static create(name: string, bold: boolean, italic: boolean): AlphaSkiaTypeface | undefined;
+    /**
+    * Creates a typeface using the provided information.
+    * @param name The name of the typeface.
+    * @param weight The weight of the typeface
+    * @param italic Whether the italic version of the typeface should be loaded.
+    * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code undefined}.
+    */
+    public static create(name: string, weight: boolean, italic: boolean): AlphaSkiaTypeface | undefined;
+    /**
+    * Creates a typeface using the provided information.
+    * @param name The name of the typeface.
+    * @param weightOrBold The weight of the typeface or a boolean to indicate classical bold fonts.
+    * @param italic Whether the italic version of the typeface should be loaded.
+    * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code undefined}.
+    */
+    public static create(name: string, weightOrBold: number | boolean, italic: boolean): AlphaSkiaTypeface | undefined {
+        let weight: number;
+        switch (typeof weightOrBold) {
+            case 'number':
+                weight = weightOrBold | 0;
+                break;
+            case 'boolean':
+                weight = weightOrBold ? 700 : 400;
+                break;
+            default:
+                throw new TypeError('either a numeric weight or a boolean for bold has to be provided');
+        }
+
+        const typeface = loadAddon().alphaskia_typeface_make_from_name(name, weight, italic);
         if (!typeface) {
             return undefined;
         }
