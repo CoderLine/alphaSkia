@@ -101,7 +101,7 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
      * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code null}.
      */
     public static AlphaSkiaTypeface create(String name, boolean bold, boolean italic) {
-        return create(name, 700, italic);
+        return create(name, bold ? 700 : 400, italic);
     }
 
     private static native long makeFromName(String name, int weight, boolean italic);
