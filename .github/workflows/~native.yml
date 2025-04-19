@@ -48,6 +48,9 @@ jobs:
       matrix:
         architecture: ${{ fromJson( inputs.architectures ) }}
     steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9'      
       - name: Cloning Repository
         uses: actions/checkout@v4
 
@@ -92,6 +95,9 @@ jobs:
         architecture: ${{ fromJson( inputs.architectures ) }}
         variant: ${{ fromJson( inputs.variants ) }}
     steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9'      
       - name: Cloning Repository
         uses: actions/checkout@v4
         with:

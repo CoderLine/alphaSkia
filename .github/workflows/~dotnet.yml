@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8'
+        dotnet-version: '9'
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
@@ -43,13 +43,13 @@ jobs:
         include: 
           - runs-on: ubuntu-latest
             architecture: x64
-            framework: net8.0
+            framework: net9.0
           - runs-on: macos-latest
             architecture: arm64
-            framework: net8.0
+            framework: net9.0
           - runs-on: windows-latest
             architecture: x64
-            framework: net8.0
+            framework: net9.0
           - runs-on: windows-latest
             architecture: x64
             framework: net48
@@ -58,7 +58,7 @@ jobs:
     steps:
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8'      
+        dotnet-version: '9'      
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
