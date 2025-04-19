@@ -31,6 +31,9 @@ partial class Build
                 "third_party/externals/zlib",
                 "third_party/externals/wuffs",
                 "third_party/externals/vulkanmemoryallocator",
+                "third_party/externals/libgrapheme",
+                "third_party/externals/icu",
+                "third_party/externals/unicodetools",
 
                 // Android font manager
                 "third_party/externals/expat"
