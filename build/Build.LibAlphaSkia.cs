@@ -530,7 +530,8 @@ partial class Build
             // https://nodejs.org/dist/latest/win-x64/node.lib
             // https://nodejs.org/dist/latest/win-x86/node.lib
             // https://nodejs.org/dist/latest/win-arm64/node.lib
-            var url = $"https://nodejs.org/dist/latest/{TargetOs.RuntimeIdentifier}-{Architecture}/node.lib";
+            // NOTE: Node v23 has no win-x86 either, remove in future: https://github.com/nodejs/node/issues/42543
+            var url = $"https://nodejs.org/dist/v22.9.0/{TargetOs.RuntimeIdentifier}-{Architecture}/node.lib";
             var libDir = TemporaryDirectory / $"libnode-{TargetOs.RuntimeIdentifier}-{Architecture}";
             HttpTasks.HttpDownloadFile(url,
                 libDir / "node.lib");

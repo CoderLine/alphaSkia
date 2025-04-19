@@ -25,6 +25,16 @@
 #error "Unsupported operating system - extend font mgr"
 #endif
 
+sk_sp<SkFontMgr_AlphaSkia> SkFontMgr_AlphaSkia::instance()
+{
+    static SkOnce once;
+    static sk_sp<SkFontMgr_AlphaSkia> singleton;
+
+    once([]
+         { singleton = std::move(sk_make_sp<SkFontMgr_AlphaSkia>()); });
+    return singleton;
+}
+
 SkFontMgr_AlphaSkia::SkFontMgr_AlphaSkia()
 {
     operatingSystemTypeFontMgr_ = CREATE_OPERATING_SYSTEM_FONTMGR;
@@ -65,14 +75,14 @@ sk_sp<SkFontStyleSet> SkFontMgr_AlphaSkia::onMatchFamily(const char familyName[]
 }
 
 sk_sp<SkTypeface> SkFontMgr_AlphaSkia::onMatchFamilyStyle(const char familyName[],
-                                                        const SkFontStyle &fontStyle) const
+                                                          const SkFontStyle &fontStyle) const
 {
     return currentFontMgr_->matchFamilyStyle(familyName, fontStyle);
 }
 
 sk_sp<SkTypeface> SkFontMgr_AlphaSkia::onMatchFamilyStyleCharacter(const char familyName[], const SkFontStyle &style,
-                                                                 const char *bcp47[], int bcp47Count,
-                                                                 SkUnichar character) const
+                                                                   const char *bcp47[], int bcp47Count,
+                                                                   SkUnichar character) const
 {
     return currentFontMgr_->matchFamilyStyleCharacter(familyName, style, bcp47, bcp47Count, character);
 }

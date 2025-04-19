@@ -1,4 +1,5 @@
 #include "../include/alphaskia.h"
+#include "../include/SkFontMgr_alphaskia.h"
 #include "../../externals/skia/include/core/SkTypeface.h"
 #include "../../externals/skia/include/core/SkData.h"
 
@@ -7,7 +8,8 @@ extern "C"
     AS_API alphaskia_typeface_t alphaskia_typeface_register(alphaskia_data_t data)
     {
         sk_sp<SkData> *skData = reinterpret_cast<sk_sp<SkData> *>(data);
-        sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromData(*skData, 0);
+        auto fontMgr = SkFontMgr_AlphaSkia::instance();
+        sk_sp<SkTypeface> skTypeface = fontMgr->makeFromData(*skData, 0);
         if (!skTypeface)
         {
             return nullptr;
@@ -29,10 +31,12 @@ extern "C"
 
     AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint8_t bold, uint8_t italic)
     {
+        auto fontMgr = SkFontMgr_AlphaSkia::instance();
+
         SkFontStyle style(bold ? SkFontStyle::kBold_Weight : SkFontStyle::kNormal_Weight,
                           SkFontStyle::kNormal_Width,
                           italic ? SkFontStyle::kItalic_Slant : SkFontStyle::kUpright_Slant);
-        sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromName(family_name, style);
+        sk_sp<SkTypeface> skTypeface = fontMgr->legacyMakeTypeface(family_name, style);
 
         if (!skTypeface)
         {
@@ -46,7 +50,7 @@ extern "C"
     {
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
 
-        SkString* skFamilyName = new SkString();
+        SkString *skFamilyName = new SkString();
         (*skTypeface)->getFamilyName(skFamilyName);
 
         return reinterpret_cast<alphaskia_string_t>(skFamilyName);

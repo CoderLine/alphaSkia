@@ -6,12 +6,13 @@ using System.Text;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using Serilog;
 
 partial class Build
 {
     Target InstallDependenciesLinux => _ => _
         .Unlisted()
-        .OnlyWhenStatic(()=> OperatingSystem.IsLinux() && IsGitHubActions)
+        .OnlyWhenStatic(() => OperatingSystem.IsLinux() && IsGitHubActions)
         .After(PrepareGitHubArtifacts,
             LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles,
             LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
@@ -39,29 +40,64 @@ partial class Build
                 installDependencies.AppendLine($"echo Adding Arch {linuxArch}");
                 installDependencies.AppendLine($"dpkg --add-architecture {linuxArch}");
 
-                installDependencies.AppendLine("echo Modifying sources.list");
-                installDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
-                installDependencies.AppendLine(
-                    "sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
+                // NOTE: This happens within Nuke, not in the shell script
+                // https://github.com/actions/runner-images/issues/10901
+                var ubuntu24Sources = TemporaryDirectory / "ubuntu.sources";
+                ubuntu24Sources.WriteAllText(
+                    """
+                    Types: deb
+                    URIs: http://archive.ubuntu.com/ubuntu/
+                    Suites: noble
+                    Components: main restricted universe
+                    Architectures: amd64,i386
+
+                    Types: deb
+                    URIs: http://security.ubuntu.com/ubuntu/
+                    Suites: noble-security
+                    Components: main restricted universe
+                    Architectures: amd64,i386
+
+                    Types: deb
+                    URIs: http://archive.ubuntu.com/ubuntu/
+                    Suites: noble-updates
+                    Components: main restricted universe
+                    Architectures: amd64,i386
+                    """
+                );
 
                 if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
                 {
-                    installDependencies.AppendLine($"echo Adding new {linuxArch} sources");
+                    ubuntu24Sources.AppendAllText(content:
+                        $"""
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
 
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble main multiverse universe' >> /etc/apt/sources.list");
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble-security main multiverse universe' >> /etc/apt/sources.list");
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble-backports main multiverse universe' >> /etc/apt/sources.list");
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble-updates main multiverse universe' >> /etc/apt/sources.list");
-                }
-                else
-                {
-                    installDependencies.AppendLine($"echo No additional package sources for {linuxArch}");
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble-security
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
+
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble-backports
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
+
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble-updates
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
+                         """
+                    );
                 }
 
+                installDependencies.AppendLine("echo Updating APT sources");
+                installDependencies.AppendLine($"mv {ubuntu24Sources} /etc/apt/sources.list.d/ubuntu.sources");
                 installDependencies.AppendLine("echo Updating Packages");
                 installDependencies.AppendLine("apt-get update");
                 installDependencies.AppendLine("echo Installing main build tools");
@@ -79,6 +115,8 @@ partial class Build
             installDependencies.AppendLine("echo Installing libs");
             installDependencies.AppendLine(
                 $"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix}");
+            installDependencies.AppendLine(
+                $"aptitude install -y libfontconfig-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev");
 
             var scriptFile = TemporaryDirectory / "install_dependencies.sh";
             File.WriteAllText(scriptFile, installDependencies.ToString());

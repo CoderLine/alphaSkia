@@ -10,6 +10,8 @@ public:
     void switch_to_operating_system_fonts();
     void switch_to_freetype_fonts();
 
+    static sk_sp<SkFontMgr_AlphaSkia> instance();
+
 protected:
     int onCountFamilies() const override;
     void onGetFamilyName(int index, SkString *familyName) const override;
@@ -25,6 +27,7 @@ protected:
     sk_sp<SkTypeface> onMakeFromStreamArgs(std::unique_ptr<SkStreamAsset>, const SkFontArguments &) const override;
     sk_sp<SkTypeface> onMakeFromFile(const char path[], int ttcIndex) const override;
     sk_sp<SkTypeface> onLegacyMakeTypeface(const char familyName[], SkFontStyle style) const override;
+
 
 private:
     sk_sp<SkFontMgr> currentFontMgr_;
