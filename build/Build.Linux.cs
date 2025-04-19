@@ -49,13 +49,13 @@ partial class Build
                     installDependencies.AppendLine($"echo Adding new {linuxArch} sources");
 
                     installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble main multiverse universe' >> /etc/apt/sources.list");
                     installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble-security main multiverse universe' >> /etc/apt/sources.list");
                     installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble-backports main multiverse universe' >> /etc/apt/sources.list");
                     installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
+                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ noble-updates main multiverse universe' >> /etc/apt/sources.list");
                 }
                 else
                 {
