@@ -58,8 +58,9 @@ class AlphaSkiaTestCanvas : ICanvas
         get => _font;
         set
         {
-            _testSource.WriteSetTestProperty("Typeface", _testSource.MakeCallTestMethod("GetTypeface",
-                $"\"{value.Families[0]}\", {(value.IsBold ? "true" : "false")}, {(value.IsItalic ? "true" : "false")}",
+            var familyArgs = _testSource.MakeStringArray(value.Families);
+            _testSource.WriteSetTestProperty("TextStyle", _testSource.MakeCallTestMethod("GetTextStyle",
+                $"{familyArgs}, {(value.IsBold ? "700" : "400")}, {(value.IsItalic ? "true" : "false")}",
                 false
             ));
             _testSource.WriteSetTestProperty("FontSize", $"{_testSource.MakeCastToFloat(value.Size)}");
@@ -119,16 +120,16 @@ class AlphaSkiaTestCanvas : ICanvas
     {
         var textPart = WithTextLength ? $"{_testSource.EncodeString(text)}, {text.Length}" :  $"{_testSource.EncodeString(text)}";
         _testSource.WriteCallCanvasMethod("FillText",
-            $"{textPart}, {_testSource.MakeTestGetProperty("Typeface")}, {_testSource.MakeTestGetProperty("FontSize")}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {_testSource.MakeTestGetProperty("TextAlign")}, {_testSource.MakeTestGetProperty("TextBaseline")}");
+            $"{textPart}, {_testSource.MakeTestGetProperty("TextStyle")}, {_testSource.MakeTestGetProperty("FontSize")}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {_testSource.MakeTestGetProperty("TextAlign")}, {_testSource.MakeTestGetProperty("TextBaseline")}");
     }
 
-    public double MeasureText(string text)
+    public MeasuredText MeasureText(string text)
     {
         return SkiaSharpTextMeasurer.MeasureText(_font, text);
     }
 
     public void FillMusicFontSymbol(double x, double y, double scale, MusicFontSymbol symbol,
-        bool centerAtPosition = false)
+        bool? centerAtPosition = null)
     {
         FillMusicFontSymbols(x, y, scale, new List<MusicFontSymbol>
         {
@@ -137,19 +138,19 @@ class AlphaSkiaTestCanvas : ICanvas
     }
 
     public void FillMusicFontSymbols(double x, double y, double scale, IList<MusicFontSymbol> symbols,
-        bool centerAtPosition = false)
+        bool? centerAtPosition = null)
     {
         var text = _testSource.EncodeString(
             new string(symbols.Select(s => (char)((int)s)).ToArray()));
 
-        var textAlign = centerAtPosition
+        var textAlign = centerAtPosition.GetValueOrDefault()
             ? _testSource.MakeEnumAccess("AlphaSkiaTextAlign", "Center")
             : _testSource.MakeEnumAccess("AlphaSkiaTextAlign", "Left");
         
 
         var textPart = WithTextLength ? $"{text}, {symbols.Count}" :  $"{text}";
         _testSource.WriteCallCanvasMethod("FillText",
-            $"{textPart}, {_testSource.MakeTestGetProperty("MusicTypeface")}, {MakeGetMusicFontSize(scale)}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {textAlign}, {_testSource.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
+            $"{textPart}, {_testSource.MakeTestGetProperty("MusicTextStyle")}, {MakeGetMusicFontSize(scale)}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}, {textAlign}, {_testSource.MakeEnumAccess("AlphaSkiaTextBaseline", "Alphabetic")}");
     }
 
     private string MakeGetMusicFontSize(double? scale = null) 
@@ -234,5 +235,9 @@ class AlphaSkiaTestCanvas : ICanvas
     public void QuadraticCurveTo(double cpx, double cpy, double x, double y)
     {
         _testSource.WriteCallCanvasMethod("QuadraticCurveTo", $"{_testSource.MakeCastToFloat(cpx)}, {_testSource.MakeCastToFloat(cpy)}, {_testSource.MakeCastToFloat(x)}, {_testSource.MakeCastToFloat(y)}");
+    }
+
+    public void Destroy()
+    {
     }
 }

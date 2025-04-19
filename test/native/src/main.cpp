@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <CRTDBG.h>
+
 #ifndef ALPHASKIA_TEST_RID
 #error "Missing alphaSkia runtime identifier, please specify ALPHASKIA_TEST_RID";
 #endif
@@ -106,18 +108,33 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    std::cout << "Enter to continue" << std::endl;
+    std::string skip;
+    std::getline(std::cin, skip);
+
     // Load all fonts for rendering
     std::cout << "Loading fonts" << std::endl;
     std::filesystem::path test_data_path = repository_root / "test" / "test-data";
-    music_typeface = alphaskia_load_typeface("Bravura", false, false, (test_data_path / "font" / "bravura" / "Bravura.ttf").generic_string());
-    alphaskia_load_typeface("Roboto", false, false, (test_data_path / "font" / "roboto" / "Roboto-Regular.ttf").generic_string());
-    alphaskia_load_typeface("Roboto", true, false, (test_data_path / "font" / "roboto" / "Roboto-Bold.ttf").generic_string());
-    alphaskia_load_typeface("Roboto", false, true, (test_data_path / "font" / "roboto" / "Roboto-Italic.ttf").generic_string());
-    alphaskia_load_typeface("Roboto", true, true, (test_data_path / "font" / "roboto" / "Roboto-BoldItalic.ttf").generic_string());
-    alphaskia_load_typeface("PT Serif", false, false, (test_data_path / "font" / "ptserif" / "PTSerif-Regular.ttf").generic_string());
-    alphaskia_load_typeface("PT Serif", true, false, (test_data_path / "font" / "ptserif" / "PTSerif-Bold.ttf").generic_string());
-    alphaskia_load_typeface("PT Serif", false, true, (test_data_path / "font" / "ptserif" / "PTSerif-Italic.ttf").generic_string());
-    alphaskia_load_typeface("PT Serif", true, true, (test_data_path / "font" / "ptserif" / "PTSerif-BoldItalic.ttf").generic_string());
+    auto music_typeface = alphaskia_load_typeface((test_data_path / "font" / "bravura" / "Bravura.otf").generic_string());
+    auto music_typeface_name = alphaskia_typeface_get_family_name(music_typeface);
+    auto music_typeface_weight = alphaskia_typeface_get_weight(music_typeface);
+    auto music_typeface_italic = alphaskia_typeface_is_italic(music_typeface);
+    auto music_typeface_name_raw = alphaskia_string_get_utf8(music_typeface_name);
+    music_text_style = alphaskia_textstyle_new(1, &music_typeface_name_raw, music_typeface_weight, music_typeface_italic);
+    alphaskia_string_free(music_typeface_name);
+
+    alphaskia_load_typeface((test_data_path / "font" / "noto-sans" / "NotoSans-Regular.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-sans" / "NotoSans-Bold.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-sans" / "NotoSans-Italic.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-sans" / "NotoSans-BoldItalic.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-serif" / "NotoSerif-Regular.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-serif" / "NotoSerif-Bold.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-serif" / "NotoSerif-Italic.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-serif" / "NotoSerif-BoldItalic.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-serif" / "NotoSerif-BoldItalic.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-music" / "NotoMusic-Regular.otf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-color-emoji" / "NotoColorEmoji-Regular.ttf").generic_string());
+
     std::cout << "Fonts loaded" << std::endl;
 
     // render full image

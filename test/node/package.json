@@ -10,6 +10,7 @@
     "@coderline/alphaskia-linux": "file:../../dist/nodetars/coderline-alphaskia-linux.tgz",
     "@coderline/alphaskia-macos": "file:../../dist/nodetars/coderline-alphaskia-macos.tgz",
     "@coderline/alphaskia-windows": "file:../../dist/nodetars/coderline-alphaskia-windows.tgz",
+    "@types/node": "^22.14.1",
     "tsx": "^3.13.0"
   }
 }

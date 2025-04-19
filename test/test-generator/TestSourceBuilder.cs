@@ -132,4 +132,6 @@ abstract partial class TestSourceBuilder
     {
         _suspended = true;
     }
+
+    public abstract string MakeStringArray(IList<string> values);
 }

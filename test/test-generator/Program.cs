@@ -1,10 +1,14 @@
 ﻿using System.Globalization;
+using System.Reflection;
 using TestGenerator;
 
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
+// TODO: make public again
+// typeof(AlphaTab.Environment).GetProperty("HighDpiFactor", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, 1.5);
 
 var rootDir = PathUtils.RepositoryRoot;
 

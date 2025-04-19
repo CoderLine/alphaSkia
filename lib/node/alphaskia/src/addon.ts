@@ -125,8 +125,8 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_canvas_stroke(canvas: AlphaSkiaCanvasHandle): void;
     alphaskia_canvas_draw_image(canvas: AlphaSkiaCanvasHandle, image: AlphaSkiaImageHandle, x: number, y: number, w: number, h: number): void;
 
-    alphaskia_canvas_fill_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number, x: number, y: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void;
-    alphaskia_canvas_measure_text(canvas: AlphaSkiaCanvasHandle, text: string, typeface: AlphaSkiaTypefaceHandle, font_size: number): number;
+    alphaskia_canvas_fill_text(canvas: AlphaSkiaCanvasHandle, text: string, textStyle: AlphaSkiaTextStyleHandle, font_size: number, x: number, y: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void;
+    alphaskia_canvas_measure_text(canvas: AlphaSkiaCanvasHandle, text: string, textStyle: AlphaSkiaTextStyleHandle, font_size: number): number;
     alphaskia_canvas_begin_rotate(canvas: AlphaSkiaCanvasHandle, center_x: number, center_y: number, angle: number): void;
     alphaskia_canvas_end_rotate(canvas: AlphaSkiaCanvasHandle): void;
 }

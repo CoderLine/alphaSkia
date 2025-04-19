@@ -30,10 +30,10 @@ public sealed class AlphaSkiaTextStyle : AlphaSkiaNative
     /// Initializes a new instance of the <see cref="AlphaSkiaTextStyle"/> class.
     /// </summary>
     /// <param name="fontFamilies">The list of font family names.</param>
-    /// <param name="weight">The font weight typefaces should have..</param>
+    /// <param name="weight">The font weight typefaces should have.</param>
     /// <param name="isItalic">Whether typefaces should be italic.</param>
     public AlphaSkiaTextStyle(string[] fontFamilies, ushort weight, bool isItalic)
-        : base(NativeMethods.alphaskia_textstyle_new((byte)fontFamilies.Length, fontFamilies, weight, isItalic ? 1 : 0), NativeMethods.alphaskia_textstyle_free)
+        : base(NativeMethods.alphaskia_textstyle_new((byte)fontFamilies.Length, fontFamilies, weight, isItalic ? (byte)1 : (byte)0), NativeMethods.alphaskia_textstyle_free)
     {
         FontFamilies = fontFamilies;
         Weight = weight;

@@ -1,6 +1,6 @@
 import { AlphaSkiaImage } from './AlphaSkiaImage';
 import { AlphaSkiaNative } from './AlphaSkiaNative';
-import { AlphaSkiaTypeface } from './AlphaSkiaTypeface';
+import { AlphaSkiaTextStyle } from './AlphaSkiaTextStyle';
 import { AlphaSkiaTextBaseline, AlphaSkiaCanvasHandle, AlphaSkiaColorType, AlphaSkiaTextAlign, loadAddon } from './addon';
 
 /**
@@ -274,16 +274,16 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      * Fills a text with the current color and provided details.
      *
      * @param text      The text to draw.
-     * @param typeface  The typeface to use for drawing the text.
+     * @param textStyle  The typeface to use for drawing the text.
      * @param fontSize  The font size to use when drawing the text.
      * @param x         The X-position where to draw the text to.
      * @param y         The Y-position where to draw the text to.
      * @param textAlign How to align the text at the given position horizontally.
      * @param baseline  How to align the text at the given position vertically.
      */
-    public fillText(text: string, typeface: AlphaSkiaTypeface, fontSize: number, x: number, y: number, textAlign: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void {
+    public fillText(text: string, textStyle: AlphaSkiaTextStyle, fontSize: number, x: number, y: number, textAlign: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_fill_text(this.handle!, text, typeface.handle!, fontSize, x, y, textAlign as number, baseline as number);
+        loadAddon().alphaskia_canvas_fill_text(this.handle!, text, textStyle.handle!, fontSize, x, y, textAlign as number, baseline as number);
     }
 
     /**
@@ -294,9 +294,9 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      * @param fontSize The font size to use when drawing the text.
      * @return The horizontal width of the text when it would be drawn.
      */
-    public measureText(text: string, typeface: AlphaSkiaTypeface, fontSize: number): number {
+    public measureText(text: string, textStyle: AlphaSkiaTextStyle, fontSize: number): number {
         this.checkDisposed();
-        return loadAddon().alphaskia_canvas_measure_text(this.handle!, text, typeface.handle!, fontSize);
+        return loadAddon().alphaskia_canvas_measure_text(this.handle!, text, textStyle.handle!, fontSize);
     }
 
     /**

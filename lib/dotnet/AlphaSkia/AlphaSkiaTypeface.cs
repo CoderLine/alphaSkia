@@ -110,6 +110,6 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
     /// <returns>The typeface if it can be found in the already loaded fonts or the system fonts, otherwise <code>null</code>.</returns>
     public static AlphaSkiaTypeface? Create(string name, bool bold, bool italic)
     {
-        return Create(name, bold ? 700 : 400, italic);
+        return Create(name, bold ? (ushort)700 : (ushort)400, italic);
     }
 }

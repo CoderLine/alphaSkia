@@ -1,4 +1,6 @@
-﻿namespace TestGenerator;
+﻿using System.Text.Json;
+
+namespace TestGenerator;
 
 class CppTestSourceBuilder : TestSourceBuilder
 {
@@ -61,5 +63,11 @@ class CppTestSourceBuilder : TestSourceBuilder
     public override string EncodeString(string text)
     {
         return "u" + base.EncodeString(text);
+    }
+
+    public override string MakeStringArray(IList<string> values)
+    {
+        var items = string.Join(", ", values.Select(v => JsonSerializer.Serialize(v)));
+        return "{" + items + "}";
     }
 }

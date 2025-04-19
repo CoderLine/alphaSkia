@@ -9,12 +9,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AlphaSkia" Version="*-*" />
-      <PackageReference Include="AlphaSkia.Native.Android" Version="*-*" />
-      <PackageReference Include="AlphaSkia.Native.iOS" Version="*-*" />
-      <PackageReference Include="AlphaSkia.Native.Linux" Version="*-*" />
-      <PackageReference Include="AlphaSkia.Native.MacOs" Version="*-*" />
-      <PackageReference Include="AlphaSkia.Native.Windows" Version="*-*" />
+      <PackageReference Include="AlphaSkia" Version="1.0.120-local.0" />
+      <PackageReference Include="AlphaSkia.Native.Android" Version="1.0.120-local.0" />
+      <PackageReference Include="AlphaSkia.Native.iOS" Version="1.0.120-local.0" />
+      <PackageReference Include="AlphaSkia.Native.Linux" Version="1.0.120-local.0" />
+      <PackageReference Include="AlphaSkia.Native.MacOs" Version="1.0.120-local.0" />
+      <PackageReference Include="AlphaSkia.Native.Windows" Version="1.0.120-local.0" />
     </ItemGroup>
 
 </Project>

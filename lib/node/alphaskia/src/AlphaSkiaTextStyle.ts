@@ -1,11 +1,11 @@
 import { AlphaSkiaNative } from './AlphaSkiaNative';
-import { AlphaSkiaTypefaceHandle, loadAddon } from './addon';
+import { AlphaSkiaTextStyleHandle, loadAddon } from './addon';
 
 /**
  * Represents a text style which can be used to draw or measure texts 
  * with support for mixed fonts for fallback character rendering.
  */
-export class AlphaSkiaTextStyle extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> {
+export class AlphaSkiaTextStyle extends AlphaSkiaNative<AlphaSkiaTextStyleHandle> {
     /**
      * Gets the list of font family names which are consulted for finding 
      * typefaces with glyphs for drawing or measuring texts.

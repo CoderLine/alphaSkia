@@ -21,14 +21,14 @@ public class AlphaTabGeneratedRenderTestBase {
         AlphaTabGeneratedRenderTestBase.renderScale = renderScale;
     }
 
-    private static AlphaSkiaTypeface musicTypeface;
+    private static AlphaSkiaTextStyle musicTextStyle;
 
-    public static AlphaSkiaTypeface getMusicTypeface() {
-        return musicTypeface;
+    public static AlphaSkiaTextStyle getMusicTextStyle() {
+        return musicTextStyle;
     }
 
-    public static void setMusicTypeface(AlphaSkiaTypeface musicTypeface) {
-        AlphaTabGeneratedRenderTestBase.musicTypeface = musicTypeface;
+    public static void setMusicTextStyle(AlphaSkiaTextStyle musicTextStyle) {
+        AlphaTabGeneratedRenderTestBase.musicTextStyle = musicTextStyle;
     }
 
     public static float getMusicFontSize() {
@@ -56,14 +56,14 @@ public class AlphaTabGeneratedRenderTestBase {
     }
 
 
-    private static AlphaSkiaTypeface typeface;
+    private static AlphaSkiaTextStyle textStyle;
 
-    public static AlphaSkiaTypeface getTypeface() {
-        return typeface;
+    public static AlphaSkiaTextStyle getTextStyle() {
+        return textStyle;
     }
 
-    public static void setTypeface(AlphaSkiaTypeface typeface) {
-        AlphaTabGeneratedRenderTestBase.typeface = typeface;
+    public static void setTextStyle(AlphaSkiaTextStyle textStyle) {
+        AlphaTabGeneratedRenderTestBase.textStyle = textStyle;
     }
 
     private static float fontSize = 12;
@@ -77,26 +77,26 @@ public class AlphaTabGeneratedRenderTestBase {
     }
 
 
-    private static final Map<String, AlphaSkiaTypeface> customTypefaces =
-            new TreeMap<String, AlphaSkiaTypeface>(String.CASE_INSENSITIVE_ORDER);
+    private static final Map<String, AlphaSkiaTextStyle> customTextStyles =
+            new TreeMap<String, AlphaSkiaTextStyle>(String.CASE_INSENSITIVE_ORDER);
 
-    private static String customTypefaceKey(String fontFamily, boolean isBold, boolean isItalic) {
-        return fontFamily.toLowerCase() + "_" + isBold + "_" + isItalic;
+    private static String customTextStyleKey(String[] fontFamilies, int weight, boolean isItalic) {
+        return String.join("_", fontFamilies).toLowerCase() + "_" + weight + "_" + isItalic;
     }
 
-    protected static AlphaSkiaTypeface getTypeface(String fontFamily, boolean isBold, boolean isItalic) {
-        var key = customTypefaceKey(fontFamily, isBold, isItalic);
-        var typeface = customTypefaces.get(key);
-        if (typeface == null) {
-            throw new IllegalStateException("Unknown font requested: " + key);
+    protected static AlphaSkiaTextStyle getTextStyle(String[] fontFamilies, int weight, boolean isItalic) {
+        var key = customTextStyleKey(fontFamilies, weight, isItalic);
+        var textStyle = customTextStyles.get(key);
+        if (textStyle == null) {
+            textStyle = new AlphaSkiaTextStyle(fontFamilies, weight, isItalic);
+            customTextStyles.put(key, textStyle);
         }
 
-        return typeface;
+        return textStyle;
     }
 
-    public static AlphaSkiaTypeface loadTypeface(String name, boolean isBold, boolean isItalic, Path filePath) throws IOException {
-        var key = customTypefaceKey(name, isBold, isItalic);
-        System.out.println("Loading typeface " + key + " from " + filePath);
+    public static AlphaSkiaTypeface loadTypeface(Path filePath) throws IOException {
+        System.out.println("Loading typeface from " + filePath);
         var data = Files.readAllBytes(filePath);
 
         System.out.println("Read " + data.length + " bytes from file, decoding typeface");
@@ -105,7 +105,6 @@ public class AlphaTabGeneratedRenderTestBase {
         if (typeface == null) {
             throw new IllegalStateException("Could not create typeface from data");
         }
-        customTypefaces.put(key, typeface);
         return typeface;
     }
 }
