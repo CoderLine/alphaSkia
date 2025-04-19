@@ -58,8 +58,8 @@ void AlphaSkiaCanvas::begin_render(int32_t width, int32_t height, float render_s
     SkSurfaceProps props(0, kRGB_H_SkPixelGeometry);
 
     surface_ = SkSurfaces::Raster(SkImageInfo::Make(
-                                      width * render_scale,
-                                      height * render_scale,
+                                      std::max(width, 1) * render_scale,
+                                      std::max(height, 1) * render_scale,
                                       kN32_SkColorType,
                                       kPremul_SkAlphaType),
                                   &props);
