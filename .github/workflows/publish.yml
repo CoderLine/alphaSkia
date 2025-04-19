@@ -28,12 +28,12 @@ jobs:
     env:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: nuke
           path: build/bin/Debug/publish/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: nupkgs
           path: dist/.organize/nupkgs
@@ -50,16 +50,16 @@ jobs:
       SONATYPE_SIGNING_PASSWORD: ${{ secrets.SONATYPE_SIGNING_PASSWORD }}
       SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}    
     steps:
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: nuke
           path: build/bin/Debug/publish/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           # workaround until we know how to upload existing maven packages
           # https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
@@ -74,16 +74,16 @@ jobs:
     env:
       NPMJS_AUTH_TOKEN: ${{ secrets.NPMJS_AUTH_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: nuke
           path: build/bin/Debug/publish/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: nodetars
           path: dist/.organize/node
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
           registry-url: https://registry.npmjs.org/

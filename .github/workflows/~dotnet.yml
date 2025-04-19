@@ -22,16 +22,16 @@ jobs:
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8'
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
       with:
         name: nuke
         path: build/bin/Debug/publish/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         path: dist/.organize
     - run: ./build.cmd DotNet
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nupkgs
         path: |
@@ -59,13 +59,13 @@ jobs:
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8'      
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
       with:
         name: nupkgs
         path: dist/.organize/nupkgs
     - run: ./build.cmd DotNetTest --architecture ${{ matrix.architecture }} --framework ${{ matrix.framework }}
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: always()
       with:
         name: dotnettest-${{ matrix.runs-on }}-${{ matrix.architecture }}--${{ matrix.framework  }}
