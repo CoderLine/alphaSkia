@@ -116,7 +116,9 @@ partial class Build
             installDependencies.AppendLine(
                 $"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix}");
             installDependencies.AppendLine(
-                $"aptitude install -y libfontconfig-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev");
+                $"aptitude install -y libfontconfig-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev tree");
+            installDependencies.AppendLine("tree /usr/aarch64-linux-gnu/include");
+            installDependencies.AppendLine("tree /usr/include/");
 
             var scriptFile = TemporaryDirectory / "install_dependencies.sh";
             File.WriteAllText(scriptFile, installDependencies.ToString());
