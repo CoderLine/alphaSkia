@@ -100,6 +100,7 @@ partial class Build
                 installDependencies.AppendLine($"mv {ubuntu24Sources} /etc/apt/sources.list.d/ubuntu.sources");
                 installDependencies.AppendLine("echo Updating Packages");
                 installDependencies.AppendLine("apt-get update");
+                installDependencies.AppendLine("apt --fix-broken install");
                 installDependencies.AppendLine("echo Installing main build tools");
                 installDependencies.AppendLine(
                     $"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
@@ -114,8 +115,10 @@ partial class Build
             var linuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
             installDependencies.AppendLine("echo Installing libs");
             installDependencies.AppendLine(
-                $"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix} libexpat1-dev{linuxArchSuffix} libfreetype-dev{linuxArchSuffix} uuid-dev{linuxArchSuffix}");
-
+                $"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix}");
+            installDependencies.AppendLine(
+                $"apt --fix-broken install libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix}");
+            
             var scriptFile = TemporaryDirectory / "install_dependencies.sh";
             File.WriteAllText(scriptFile, installDependencies.ToString());
             ToolResolver.GetPathTool("sudo")($"bash {scriptFile}");
