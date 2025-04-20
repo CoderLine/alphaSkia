@@ -112,7 +112,7 @@ partial class Build
             var linuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
             installDependencies.AppendLine("echo Installing libs");
             installDependencies.AppendLine(
-                $"apt-get install -f -y build-essential{linuxArchSuffix} libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix} libc6-dev{linuxArchSuffix} linux-libc-dev{linuxArchSuffix}");
+                $"apt-get install -f -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix} libc6-dev{linuxArchSuffix} linux-libc-dev{linuxArchSuffix}");
             
             var scriptFile = TemporaryDirectory / "install_dependencies.sh";
             File.WriteAllText(scriptFile, installDependencies.ToString());
