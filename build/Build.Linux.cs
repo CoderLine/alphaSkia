@@ -28,8 +28,6 @@ partial class Build
             // conflicts easier
             installDependencies.AppendLine("echo Install Aptitude");
             installDependencies.AppendLine("apt-get update");
-            installDependencies.AppendLine("apt-get install -y aptitude");
-
             // Main system build tools
             installDependencies.AppendLine("apt-get install -y build-essential");
 
@@ -100,10 +98,9 @@ partial class Build
                 installDependencies.AppendLine($"mv {ubuntu24Sources} /etc/apt/sources.list.d/ubuntu.sources");
                 installDependencies.AppendLine("echo Updating Packages");
                 installDependencies.AppendLine("apt-get update");
-                installDependencies.AppendLine("apt --fix-broken install");
                 installDependencies.AppendLine("echo Installing main build tools");
                 installDependencies.AppendLine(
-                    $"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
+                    $"apt-get install -f -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
             }
             else
             {
@@ -115,7 +112,7 @@ partial class Build
             var linuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
             installDependencies.AppendLine("echo Installing libs");
             installDependencies.AppendLine(
-                $"aptitude install -y build-essential{linuxArchSuffix} libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix} libc6-dev{linuxArchSuffix} linux-libc-dev{linuxArchSuffix}");
+                $"apt-get install -f -y build-essential{linuxArchSuffix} libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix} libc6-dev{linuxArchSuffix} linux-libc-dev{linuxArchSuffix}");
             
             var scriptFile = TemporaryDirectory / "install_dependencies.sh";
             File.WriteAllText(scriptFile, installDependencies.ToString());
