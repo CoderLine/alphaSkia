@@ -91,7 +91,7 @@ function main(): number {
         TestBase.loadTypeface(path.join(testDataPath, "font", "noto-serif", "NotoSerif-Italic.otf"));
         TestBase.loadTypeface(path.join(testDataPath, "font", "noto-serif", "NotoSerif-BoldItalic.otf"));
         TestBase.loadTypeface(path.join(testDataPath, "font", "noto-music", "NotoMusic-Regular.otf"));
-        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji-Regular.ttf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
         console.log("Fonts loaded");
 
         // render full image

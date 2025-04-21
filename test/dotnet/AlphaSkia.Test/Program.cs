@@ -80,7 +80,7 @@ public static class Program
             AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-serif", "NotoSerif-Italic.otf"));
             AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-serif", "NotoSerif-BoldItalic.otf"));
             AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-music", "NotoMusic-Regular.otf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji-Regular.ttf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
             
             Console.WriteLine("Fonts loaded");
 

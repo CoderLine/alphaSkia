@@ -54,7 +54,7 @@ class SkiaSharpTextMeasurer
         RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "noto-serif", "NotoSerif-BoldItalic.otf"));
             
         RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "noto-music", "NotoMusic-Regular.otf"));
-        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "noto-color-emoji", "NotoColorEmoji-Regular.ttf"));
+        RegisterCustomFont(Path.Combine(repositoryRoot, "test", "test-data", "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
     }
 
     public static MeasuredText MeasureText(Font font, string text)

@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     alphaskia_load_typeface((test_data_path / "font" / "noto-serif" / "NotoSerif-BoldItalic.otf").generic_string());
     alphaskia_load_typeface((test_data_path / "font" / "noto-serif" / "NotoSerif-BoldItalic.otf").generic_string());
     alphaskia_load_typeface((test_data_path / "font" / "noto-music" / "NotoMusic-Regular.otf").generic_string());
-    alphaskia_load_typeface((test_data_path / "font" / "noto-color-emoji" / "NotoColorEmoji-Regular.ttf").generic_string());
+    alphaskia_load_typeface((test_data_path / "font" / "noto-color-emoji" / "NotoColorEmoji_WindowsCompatible.ttf").generic_string());
 
     std::cout << "Fonts loaded" << std::endl;
 

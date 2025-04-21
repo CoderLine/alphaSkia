@@ -84,7 +84,7 @@ public class Main {
             AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-serif/NotoSerif-Italic.otf"));
             AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-serif/NotoSerif-BoldItalic.otf"));
             AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-music/NotoMusic-Regular.otf"));
-            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-color-emoji/NotoColorEmoji-Regular.ttf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-color-emoji/NotoColorEmoji_WindowsCompatible.ttf"));
             System.out.println("Fonts loaded");
 
             // render full image
