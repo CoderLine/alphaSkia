@@ -43,7 +43,7 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
         this.#data = data;
     }
 
-    [Symbol.dispose]() {
+    override [Symbol.dispose]() {
         super[Symbol.dispose]();
         if (this.#data) {
             this.#data[Symbol.dispose]();
