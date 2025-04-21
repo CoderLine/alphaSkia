@@ -64,6 +64,6 @@ class JavaTestSourceBuilder : TestSourceBuilder
     public override string MakeStringArray(IList<string> values)
     {
         var items = string.Join(", ", values.Select(v => JsonSerializer.Serialize(v)));
-        return "{" + items + "}";
+        return "new String[]{" + items + "}";
     }
 }

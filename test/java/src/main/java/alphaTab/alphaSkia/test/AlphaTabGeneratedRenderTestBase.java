@@ -2,6 +2,7 @@ package alphaTab.alphaSkia.test;
 
 import alphaTab.alphaSkia.AlphaSkiaTextAlign;
 import alphaTab.alphaSkia.AlphaSkiaTextBaseline;
+import alphaTab.alphaSkia.AlphaSkiaTextStyle;
 import alphaTab.alphaSkia.AlphaSkiaTypeface;
 
 import java.io.IOException;

@@ -6,15 +6,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
+        <AlphaSkiaTestVersion Condition=" '$(AlphaSkiaTestVersion)' == '' ">*-*</AlphaSkiaTestVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AlphaSkia" Version="1.0.120-local.0" />
-      <PackageReference Include="AlphaSkia.Native.Android" Version="1.0.120-local.0" />
-      <PackageReference Include="AlphaSkia.Native.iOS" Version="1.0.120-local.0" />
-      <PackageReference Include="AlphaSkia.Native.Linux" Version="1.0.120-local.0" />
-      <PackageReference Include="AlphaSkia.Native.MacOs" Version="1.0.120-local.0" />
-      <PackageReference Include="AlphaSkia.Native.Windows" Version="1.0.120-local.0" />
+      <PackageReference Include="AlphaSkia" Version="$(AlphaSkiaTestVersion)" />
+      <PackageReference Include="AlphaSkia.Native.Android" Version="$(AlphaSkiaTestVersion)" />
+      <PackageReference Include="AlphaSkia.Native.iOS" Version="$(AlphaSkiaTestVersion)" />
+      <PackageReference Include="AlphaSkia.Native.Linux" Version="$(AlphaSkiaTestVersion)" />
+      <PackageReference Include="AlphaSkia.Native.MacOs" Version="$(AlphaSkiaTestVersion)" />
+      <PackageReference Include="AlphaSkia.Native.Windows" Version="$(AlphaSkiaTestVersion)" />
     </ItemGroup>
 
 </Project>

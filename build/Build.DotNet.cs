@@ -63,22 +63,31 @@ partial class Build
             );
         });
 
+    private string DotNetVersion
+    {
+        get
+        {
+            string semVer;
+            if (IsLocalBuild)
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}-local.{VersionInfo.FileVersion.Revision}";
+            }
+            else if (!IsReleaseBuild)
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}-alpha.{VersionInfo.FileVersion.Revision}";
+            }
+            else
+            {
+                semVer = $"{VersionInfo.FileVersion.ToString(3)}";
+            }
+
+            return semVer;
+        }
+    }
+
     void DotNetWriteVersionInfoProps()
     {
-        string semVer;
-        if (IsLocalBuild)
-        {
-            semVer = $"{VersionInfo.FileVersion.ToString(3)}-local.{VersionInfo.FileVersion.Revision}";
-        }
-        else if (!IsReleaseBuild)
-        {
-            semVer = $"{VersionInfo.FileVersion.ToString(3)}-alpha.{VersionInfo.FileVersion.Revision}";
-        }
-        else
-        {
-            semVer = $"{VersionInfo.FileVersion.ToString(3)}";
-        }
-
+        var semVer = DotNetVersion;
         var props = $"""
             <Project>
                 <PropertyGroup>
@@ -102,6 +111,7 @@ partial class Build
 
     [Parameter] string Framework;
     
+    [PublicAPI]
     public Target DotNetTest => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Requires(() => Framework)
@@ -110,6 +120,7 @@ partial class Build
             Log.Information($"Running DotNet tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (OS fonts)");
             DotNetTasks.DotNetRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
+                .SetProperty("AlphaSkiaTestVersion", DotNetVersion)
                 .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
                             (Architecture ?? Architecture.Current))
                 .SetFramework(Framework)
@@ -119,6 +130,7 @@ partial class Build
             Log.Information($"Running DotNet tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (FreeType fonts)");
             DotNetTasks.DotNetRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
+                .SetProperty("AlphaSkiaTestVersion", DotNetVersion)
                 .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
                             (Architecture ?? Architecture.Current))
                 .SetFramework(Framework)
@@ -129,6 +141,7 @@ partial class Build
 
     [Parameter] [Secret] readonly string NugetApiKey = GetVariable<string>("NUGET_API_KEY");
 
+    [PublicAPI]
     public Target DotNetPublish => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Requires(() => IsGitHubActions)

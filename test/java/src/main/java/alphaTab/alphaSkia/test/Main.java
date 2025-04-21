@@ -7,9 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import java.util.*; 
-import java.util.stream.*; 
-
+import java.util.*;
 
 public class Main {
     private static Path findRepositoryRoot(Path current) {
@@ -62,8 +60,8 @@ public class Main {
     private static int mainWithExitCode(String[] args) {
         try {
             initializeAlphaSkia();
-            boolean isFreeType = Arrays.stream(args).anyMatch("--freetype"::equals);
-            if(isFreeType) {
+            boolean isFreeType = Arrays.asList(args).contains("--freetype");
+            if (isFreeType) {
                 System.out.println("Switching to FreeType Fonts");
                 AlphaSkiaCanvas.switchToFreeTypeFonts();
             }
@@ -75,24 +73,18 @@ public class Main {
             // Load all fonts for rendering
             System.out.println("Loading fonts");
             var testDataPath = repositoryRoot.resolve("test/test-data");
-            AlphaTabGeneratedRenderTest.setMusicTypeface(AlphaTabGeneratedRenderTest.loadTypeface("Bravura", false, false,
-                    testDataPath.resolve("font/bravura/Bravura.ttf")));
-            AlphaTabGeneratedRenderTest.loadTypeface("Roboto", false, false,
-                    testDataPath.resolve("font/roboto/Roboto-Regular.ttf"));
-            AlphaTabGeneratedRenderTest.loadTypeface("Roboto", true, false,
-                    testDataPath.resolve("font/roboto/Roboto-Bold.ttf"));
-            AlphaTabGeneratedRenderTest.loadTypeface("Roboto", false, true,
-                    testDataPath.resolve("font/roboto/Roboto-Italic.ttf"));
-            AlphaTabGeneratedRenderTest.loadTypeface("Roboto", true, true,
-                    testDataPath.resolve("font/roboto/Roboto-BoldItalic.ttf"));
-            AlphaTabGeneratedRenderTest.loadTypeface("PT Serif", false, false,
-                    testDataPath.resolve("font/ptserif/PTSerif-Regular.ttf"));
-            AlphaTabGeneratedRenderTest.loadTypeface("PT Serif", true, false,
-                    testDataPath.resolve("font/ptserif/PTSerif-Bold.ttf"));
-            AlphaTabGeneratedRenderTest.loadTypeface("PT Serif", false, true,
-                    testDataPath.resolve("font/ptserif/PTSerif-Italic.ttf"));
-            AlphaTabGeneratedRenderTest.loadTypeface("PT Serif", true, true,
-                    testDataPath.resolve("font/ptserif/PTSerif-BoldItalic.ttf"));
+            var musicTypeface = AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/bravura/Bravura.otf"));
+            AlphaTabGeneratedRenderTest.setMusicTextStyle(new AlphaSkiaTextStyle(new String[]{musicTypeface.getFamilyName()}, musicTypeface.getWeight(), musicTypeface.isItalic()));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-sans/NotoSans-Regular.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-sans/NotoSans-Bold.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-sans/NotoSans-Italic.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-sans/NotoSans-BoldItalic.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-serif/NotoSerif-Regular.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-serif/NotoSerif-Bold.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-serif/NotoSerif-Italic.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-serif/NotoSerif-BoldItalic.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-music/NotoMusic-Regular.otf"));
+            AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-color-emoji/NotoColorEmoji-Regular.ttf"));
             System.out.println("Fonts loaded");
 
             // render full image
@@ -185,7 +177,7 @@ public class Main {
     }
 
     private static void initializeAlphaSkia() throws IOException {
-        switch(getOperatingSystemRid()) {
+        switch (getOperatingSystemRid()) {
             case "macos":
                 AlphaSkiaMacOs.INSTANCE.initialize();
                 break;
