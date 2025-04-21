@@ -1,4 +1,5 @@
 #include "../include/AlphaSkiaCanvas.h"
+#include "../include/SkFontMgr_alphaskia.h"
 
 #include "../../externals/skia/include/core/SkData.h"
 #include "../../externals/skia/include/core/SkPaint.h"
@@ -22,7 +23,7 @@ AlphaSkiaCanvas::AlphaSkiaCanvas()
     : color_(SK_ColorWHITE), line_width_(1.0f)
 {
     font_collection_ = sk_make_sp<skia::textlayout::FontCollection>();
-    font_collection_->setDefaultFontManager(SkFontMgr::RefDefault());
+    font_collection_->setDefaultFontManager(SkFontMgr_AlphaSkia::instance());
 }
 
 SkPaint AlphaSkiaCanvas::create_paint()
@@ -183,7 +184,6 @@ std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(co
     }
 
     auto builder = skia::textlayout::ParagraphBuilder::make(paraStyle, font_collection_);
-    builder->SetUnicode(SkUnicode::Make());
     builder->addText(text);
 
     return builder->Build();

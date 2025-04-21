@@ -110,6 +110,7 @@ partial class Build
 
             buildFileSource = buildFileSource[..skiaGniEnd]
                                         + "import(\"modules/skparagraph/skparagraph.gni\")\n"
+                                        + "import(\"third_party/icu/icu.gni\")\n"
                                         + "import(\"modules/skunicode/skunicode.gni\")\n"
                                         + "import(\"modules/skshaper/skshaper.gni\")\n"
                                         + buildFileSource[skiaGniEnd..];
@@ -165,17 +166,10 @@ partial class Build
                 var newSources = "# AlphaSkia Patch FreeType and SkParagraph\n";
                 // ensure we have freetype available
                 newSources += "  include_dirs = [ \"externals/freetype/include\" ]\n";
-                newSources += "  sources += [\n";
-                newSources += "    \"src/ports/SkFontHost_FreeType.cpp\",\n";
-                newSources += "    \"src/ports/SkFontHost_FreeType_common.cpp\",\n";
-                newSources += "    \"src/ports/SkFontHost_FreeType_common.h\",\n";
-                newSources += "  ]\n";
+                newSources += "  sources += skia_ports_freetype_sources\n";
                 // ensure we have the custom embedded FontMgr available (for in-memory freetype usage)
-                newSources += "  sources += [\n";
-                newSources += "    \"src/ports/SkFontMgr_custom.h\",\n";
-                newSources += "    \"src/ports/SkFontMgr_custom.cpp\",\n";
-                newSources += "    \"src/ports/SkFontMgr_custom_embedded.cpp\",\n";
-                newSources += "  ]\n";
+                newSources += "  sources += skia_ports_fontmgr_embedded_sources\n";
+                newSources += "  sources += skia_ports_fontmgr_custom_sources\n";
                 // ensure we have the OS specific font managers available
                 newSources += "  if (is_win) {\n";
                 newSources += "    sources += skia_ports_windows_fonts_sources\n";
@@ -218,27 +212,27 @@ partial class Build
 
                 // SkUnicode
                 newSources += "  defines += [\"SK_UNICODE_AVAILABLE\", \"SKUNICODE_IMPLEMENTATION=1\", \"SK_UNICODE_LIBGRAPHEME_IMPLEMENTATION\" ]\n";
+                newSources += "  configs += [\"//third_party/icu/config:no_cxx\"]\n";
+
                 newSources += "  sources += skia_unicode_sources\n";
                 newSources += "  sources += skia_unicode_icu_bidi_sources\n";
+                newSources += "  sources += skia_unicode_bidi_subset_sources\n";
                 newSources += "  sources += skia_unicode_libgrapheme_sources\n";
                 newSources += "  public += skia_unicode_public\n";
+                newSources += "  defines += [\n";
+                newSources += "    \"U_DISABLE_RENAMING=0\",\n";
+                newSources += "    \"U_USING_ICU_NAMESPACE=0\",\n";
+                newSources += "    \"U_LIB_SUFFIX_C_NAME=_skia\",\n";
+                newSources += "    \"U_HAVE_LIB_SUFFIX=1\",\n";
+                newSources += "    \"U_DISABLE_VERSION_SUFFIX=1\",\n";
+                newSources += "  ]\n";
 
                 // SkParagraph
                 newSources += "  defines += [ \"SK_ENABLE_PARAGRAPH\" ]\n";
                 newSources += "  sources += skparagraph_sources\n";
                 newSources += "  public += skparagraph_public\n";
 
-                buildFileSource = buildFileSource[..sourcesEnd]
-                                         + newSources
-                                         + buildFileSource[sourcesEnd..];
-            }
-
-            const string emptyFactoryFile = "  sources = [ \"src/ports/SkFontMgr_empty_factory.cpp\" ]";
-            var emptyFactoryIndex = buildFileSource.IndexOf(emptyFactoryFile);
-            if (emptyFactoryIndex >= 0)
-            {
-                var newSources = "  sources = [\n";
-                newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia_factory.cpp\",\n";
+                newSources += "  sources += [\n";
                 newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia.cpp\",\n";
                 newSources += "    \"../../wrapper/include/SkFontMgr_alphaskia.h\",\n";
                 newSources += "  ]\n";
@@ -260,8 +254,8 @@ partial class Build
                 newSources += "  }\n";
 
                 buildFileSource = buildFileSource[..sourcesEnd]
-                                  + newSources
-                                  + buildFileSource[sourcesEnd..];
+                                         + newSources
+                                         + buildFileSource[sourcesEnd..];
             }
 
             buildFile.WriteAllText(buildFileSource);
