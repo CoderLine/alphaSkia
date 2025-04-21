@@ -1,5 +1,6 @@
 import { AlphaSkiaImage } from './AlphaSkiaImage';
 import { AlphaSkiaNative } from './AlphaSkiaNative';
+import { AlphaSkiaTextMetrics } from './AlphaSkiaTextMetrics';
 import { AlphaSkiaTextStyle } from './AlphaSkiaTextStyle';
 import { AlphaSkiaTextBaseline, AlphaSkiaCanvasHandle, AlphaSkiaColorType, AlphaSkiaTextAlign, loadAddon } from './addon';
 
@@ -38,7 +39,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
     public static switchToFreeTypeFonts(): void {
         loadAddon().alphaskia_switch_to_freetype_fonts();
     }
-    
+
     /**
      * Gets the color to use for drawing operations in the native canvas.
      * See also {@link rgbaToColor}
@@ -287,16 +288,18 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
     }
 
     /**
-     * Measures the given text.
+     * Returns a {@link AlphaSkiaTextMetrics} object that contains information about the measured text (such as its width, for example).
      *
      * @param text     The text to measure.
      * @param typeface The typeface to use for drawing the text.
      * @param fontSize The font size to use when drawing the text.
-     * @return The horizontal width of the text when it would be drawn.
+     * @param textAlign How to align the text at the given position horizontally.
+     * @param baseline  How to align the text at the given position vertically.
+     * @return The text metrics.
      */
-    public measureText(text: string, textStyle: AlphaSkiaTextStyle, fontSize: number): number {
+    public measureText(text: string, textStyle: AlphaSkiaTextStyle, fontSize: number, textAlign: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): AlphaSkiaTextMetrics {
         this.checkDisposed();
-        return loadAddon().alphaskia_canvas_measure_text(this.handle!, text, textStyle.handle!, fontSize);
+        return new AlphaSkiaTextMetrics(loadAddon().alphaskia_canvas_measure_text(this.handle!, text, textStyle.handle!, fontSize, textAlign as number, baseline as number));
     }
 
     /**

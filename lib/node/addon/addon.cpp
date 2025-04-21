@@ -21,7 +21,8 @@ static const napi_type_tag alphaskia_data_t_tag = {0x6a960ece6a0c4caf, 0xad61688
 static const napi_type_tag alphaskia_typeface_t_tag = {0x0068df0314224b96, 0x8048b968915995f1};
 static const napi_type_tag alphaskia_image_t_tag = {0x9372c0f8e8de466f, 0x96a04b6ee0a9394b};
 static const napi_type_tag alphaskia_canvas_t_tag = {0xaa77c76772a34052, 0x88ac80d4dc474395};
-static const napi_type_tag alphaskia_textstyle_t_tag = {0x8f2bc41a57024cf4, 0x8b5e1cd26ded5245};
+static const napi_type_tag alphaskia_text_style_t_tag = {0x8f2bc41a57024cf4, 0x8b5e1cd26ded5245};
+static const napi_type_tag alphaskia_text_metrics_t_tag = {0x85fbe8d4da634b51, 0x970a89efa0ef13ff};
 
 #define RETURN_UNDEFINED()                        \
   {                                               \
@@ -345,7 +346,7 @@ static napi_value node_alphaskia_typeface_is_italic(napi_env env, napi_callback_
   return node_is_italic;
 }
 
-static napi_value node_alphaskia_textstyle_new(napi_env env, napi_callback_info info)
+static napi_value node_alphaskia_text_style_new(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
 
@@ -395,19 +396,203 @@ static napi_value node_alphaskia_textstyle_new(napi_env env, napi_callback_info 
   GET_ARGUMENT_INT32(1, weight);
   GET_ARGUMENT_BOOL(2, italic);
 
-  alphaskia_textstyle_t textstyle = alphaskia_textstyle_new(static_cast<uint8_t>(familyNamesLength), &familyNamesRaw[0], static_cast<uint16_t>(weight), italic ? 1 : 0);
-  WRAP_HANDLE(alphaskia_textstyle_t, wrapped, textstyle);
+  alphaskia_text_style_t text_style = alphaskia_text_style_new(static_cast<uint8_t>(familyNamesLength), &familyNamesRaw[0], static_cast<uint16_t>(weight), italic ? 1 : 0);
+  WRAP_HANDLE(alphaskia_text_style_t, wrapped, text_style);
   return wrapped;
 }
 
-static napi_value node_alphaskia_textstyle_free(napi_env env, napi_callback_info info)
+static napi_value node_alphaskia_text_style_free(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
-  GET_ARGUMENT_HANDLE(0, alphaskia_textstyle_t, textstyle);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_style_t, text_style);
 
-  alphaskia_textstyle_free(textstyle);
+  alphaskia_text_style_free(text_style);
+  void *old;
+  status = napi_remove_wrap(env, node_argv[0], &old);
+  ASSERT_STATUS();
+
+  RETURN_UNDEFINED();
+}
+
+static napi_value node_alphaskia_text_metrics_get_width(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_width(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_actual_bounding_box_left(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_actual_bounding_box_left(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_actual_bounding_box_right(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_actual_bounding_box_right(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_font_bounding_box_ascent(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_font_bounding_box_ascent(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_font_bounding_box_descent(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_font_bounding_box_descent(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_actual_bounding_box_ascent(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_actual_bounding_box_ascent(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_actual_bounding_box_descent(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_actual_bounding_box_descent(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_em_height_ascent(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_em_height_ascent(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_em_height_descent(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_em_height_descent(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_hanging_baseline(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_hanging_baseline(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_alphabetic_baseline(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_alphabetic_baseline(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_get_ideographic_baseline(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  float value = alphaskia_text_metrics_get_ideographic_baseline(text_metrics);
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(value), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_text_metrics_free(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
+
+  alphaskia_text_metrics_free(text_metrics);
+
   void *old;
   status = napi_remove_wrap(env, node_argv[0], &old);
   ASSERT_STATUS();
@@ -843,14 +1028,14 @@ static napi_value node_alphaskia_canvas_fill_text(napi_env env, napi_callback_in
   CHECK_ARGS(8);
   GET_ARGUMENT_HANDLE(0, alphaskia_canvas_t, canvas);
   GET_ARGUMENT_UTF16_STRING(1, text);
-  GET_ARGUMENT_HANDLE(2, alphaskia_textstyle_t, textstyle);
+  GET_ARGUMENT_HANDLE(2, alphaskia_text_style_t, text_style);
   GET_ARGUMENT_FLOAT(3, font_size);
   GET_ARGUMENT_FLOAT(4, x);
   GET_ARGUMENT_FLOAT(5, y);
   GET_ARGUMENT_INT32(6, text_align);
   GET_ARGUMENT_INT32(7, baseline);
 
-  alphaskia_canvas_fill_text(canvas, text.c_str(), text.length(), textstyle, font_size, x, y, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
+  alphaskia_canvas_fill_text(canvas, text.c_str(), text.length(), text_style, font_size, x, y, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
 
   RETURN_UNDEFINED();
 }
@@ -862,15 +1047,14 @@ static napi_value node_alphaskia_canvas_measure_text(napi_env env, napi_callback
   CHECK_ARGS(4);
   GET_ARGUMENT_HANDLE(0, alphaskia_canvas_t, canvas);
   GET_ARGUMENT_UTF16_STRING(1, text);
-  GET_ARGUMENT_HANDLE(2, alphaskia_textstyle_t, textstyle);
+  GET_ARGUMENT_HANDLE(2, alphaskia_text_style_t, text_style);
   GET_ARGUMENT_FLOAT(3, font_size);
+  GET_ARGUMENT_INT32(4, text_align);
+  GET_ARGUMENT_INT32(5, baseline);
 
-  float width = alphaskia_canvas_measure_text(canvas, text.c_str(), text.length(), textstyle, font_size);
-  napi_value width_node;
-  status = napi_create_double(env, width, &width_node);
-  ASSERT_STATUS();
-
-  return width_node;
+  auto text_metrics = alphaskia_canvas_measure_text(canvas, text.c_str(), text.length(), text_style, font_size, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
+  WRAP_HANDLE(alphaskia_text_metrics_t, wrapped, text_metrics);
+  return wrapped;
 }
 
 static napi_value node_alphaskia_canvas_begin_rotate(napi_env env, napi_callback_info info)
@@ -928,12 +1112,26 @@ napi_value init(napi_env env, napi_value exports)
   EXPORT_NODE_FUNCTION(alphaskia_typeface_get_weight);
   EXPORT_NODE_FUNCTION(alphaskia_typeface_is_italic);
 
-  EXPORT_NODE_FUNCTION(alphaskia_textstyle_new);
-  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_get_family_name_count);
-  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_get_family_name);
-  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_get_weight);
-  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_is_italic);
-  EXPORT_NODE_FUNCTION(alphaskia_textstyle_free);
+  EXPORT_NODE_FUNCTION(alphaskia_text_style_new);
+  // EXPORT_NODE_FUNCTION(alphaskia_text_style_get_family_name_count);
+  // EXPORT_NODE_FUNCTION(alphaskia_text_style_get_family_name);
+  // EXPORT_NODE_FUNCTION(alphaskia_text_style_get_weight);
+  // EXPORT_NODE_FUNCTION(alphaskia_text_style_is_italic);
+  EXPORT_NODE_FUNCTION(alphaskia_text_style_free);
+
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_width);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_actual_bounding_box_left);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_actual_bounding_box_right);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_font_bounding_box_ascent);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_font_bounding_box_descent);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_actual_bounding_box_ascent);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_actual_bounding_box_descent);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_em_height_ascent);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_em_height_descent);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_hanging_baseline);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_alphabetic_baseline);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_get_ideographic_baseline);
+  EXPORT_NODE_FUNCTION(alphaskia_text_metrics_free);
 
   EXPORT_NODE_FUNCTION(alphaskia_image_get_width);
   EXPORT_NODE_FUNCTION(alphaskia_image_get_height);

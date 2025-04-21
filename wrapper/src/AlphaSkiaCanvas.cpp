@@ -154,7 +154,7 @@ void AlphaSkiaCanvas::stroke()
     path_.reset();
 }
 
-std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(const char16_t *text, int text_length, const AlphaSkiaTextStyle &textstyle, float font_size, alphaskia_text_align_t text_align)
+std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align)
 {
     skia::textlayout::TextStyle style;
 
@@ -162,8 +162,8 @@ std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(co
     foregroundColor.setColor(color_);
     style.setForegroundColor(foregroundColor);
 
-    style.setFontFamilies(std::vector<SkString>(textstyle.get_family_names()));
-    style.setFontStyle(textstyle.get_font_style());
+    style.setFontFamilies(std::vector<SkString>(text_style.get_family_names()));
+    style.setFontStyle(text_style.get_font_style());
     style.setFontSize(font_size);
 
     skia::textlayout::ParagraphStyle paraStyle;
@@ -189,9 +189,9 @@ std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(co
     return builder->Build();
 }
 
-void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &textstyle, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    auto paragraph(build_paragraph(text, text_length, textstyle, font_size, text_align));
+    auto paragraph(build_paragraph(text, text_length, text_style, font_size, text_align));
 
     // layout with enough space for our text to definitely fit
     const float layoutWidth = surface_->width() * 2;
@@ -217,13 +217,25 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
     paragraph->paint(surface_->getCanvas(), x, y);
 }
 
-float AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &textstyle, float font_size)
+AlphaSkiaTextMetrics* AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    auto paragraph(build_paragraph(text, text_length, textstyle, font_size, alphaskia_text_align_t::alphaskia_text_align_left));
+    auto paragraph(build_paragraph(text, text_length, text_style, font_size, alphaskia_text_align_t::alphaskia_text_align_left));
 
     paragraph->layout(10000);
 
-    return static_cast<float>(paragraph->getMaxIntrinsicWidth());
+    return new AlphaSkiaTextMetrics(
+        static_cast<float>(paragraph->getMaxIntrinsicWidth()),
+        // TODO
+        0, 
+        0, 
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    );
 }
 
 void AlphaSkiaCanvas::begin_rotate(float center_x, float center_y, float angle)

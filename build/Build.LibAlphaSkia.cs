@@ -85,7 +85,8 @@ partial class Build
                                             "../../wrapper/src/alphaskia_canvas.cpp",
                                             "../../wrapper/src/alphaskia_image.cpp",
                                             "../../wrapper/src/alphaskia_typeface.cpp",
-                                            "../../wrapper/src/alphaskia_textstyle.cpp",
+                                            "../../wrapper/src/alphaskia_text_style.cpp",
+                                            "../../wrapper/src/alphaskia_text_metrics.cpp",
                                             "../../wrapper/src/alphaskia_data.cpp",
                                             "../../wrapper/src/alphaskia_string.cpp"
                                         ]
@@ -158,6 +159,7 @@ partial class Build
                                             "../../lib/java/jni/src/AlphaSkiaData.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaImage.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaTextStyle.cpp",
+                                            "../../lib/java/jni/src/AlphaSkiaTextMetrics.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
                                           ]
                                         }

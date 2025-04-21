@@ -49,17 +49,17 @@ internal static class NativeMethods
     public static extern void alphaskia_typeface_free(alphaskia_typeface_t type_face);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern alphaskia_textstyle_t alphaskia_textstyle_new(byte family_name_count, string[] family_names, ushort weight, byte italic);
+    public static extern alphaskia_text_style_t alphaskia_text_style_new(byte family_name_count, string[] family_names, ushort weight, byte italic);
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern byte alphaskia_textstyle_get_family_name_count(alphaskia_textstyle_t textstyle);
+    public static extern byte alphaskia_text_style_get_family_name_count(alphaskia_text_style_t text_style);
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern alphaskia_string_t alphaskia_textstyle_get_family_name(alphaskia_textstyle_t textstyle, byte index);
+    public static extern alphaskia_string_t alphaskia_text_style_get_family_name(alphaskia_text_style_t text_style, byte index);
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern ushort alphaskia_textstyle_get_weight(alphaskia_textstyle_t textstyle);
+    public static extern ushort alphaskia_text_style_get_weight(alphaskia_text_style_t text_style);
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern byte alphaskia_textstyle_is_italic(alphaskia_textstyle_t textstyle);
+    public static extern byte alphaskia_text_style_is_italic(alphaskia_text_style_t text_style);
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void alphaskia_textstyle_free(alphaskia_textstyle_t textstyle);
+    public static extern void alphaskia_text_style_free(alphaskia_text_style_t text_style);
 
     [DllImport(AlphaSkiaNativeLibName)]
     public static extern alphaskia_typeface_t alphaskia_typeface_make_from_name(
@@ -168,7 +168,7 @@ internal static class NativeMethods
         [MarshalAs(UnmanagedType.LPWStr)]
         string text,
         int text_length,
-        alphaskia_textstyle_t textstyle, float font_size, float x, float y, AlphaSkiaTextAlign text_align,
+        alphaskia_text_style_t text_style, float font_size, float x, float y, AlphaSkiaTextAlign text_align,
         AlphaSkiaTextBaseline baseline);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
@@ -176,7 +176,8 @@ internal static class NativeMethods
         [MarshalAs(UnmanagedType.LPWStr)]
         string text,
         int text_length,
-        alphaskia_textstyle_t textstyle, float font_size);
+        alphaskia_text_style_t text_style, float font_size, AlphaSkiaTextAlign text_align,
+        AlphaSkiaTextBaseline baseline);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y,
@@ -188,4 +189,43 @@ internal static class NativeMethods
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_canvas_draw_image(alphaskia_canvas_t canvas, alphaskia_image_t image, float x,
         float y, float w, float h);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_width(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_actual_bounding_box_left(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_actual_bounding_box_right(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_font_bounding_box_ascent(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_font_bounding_box_descent(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_actual_bounding_box_ascent(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_actual_bounding_box_descent(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_em_height_ascent(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_em_height_descent(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_hanging_baseline(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_alphabetic_baseline(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float alphaskia_text_metrics_get_ideographic_baseline(alphaskia_text_metrics_t text_metrics);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void alphaskia_text_metrics_free(alphaskia_text_metrics_t text_metrics);
 }

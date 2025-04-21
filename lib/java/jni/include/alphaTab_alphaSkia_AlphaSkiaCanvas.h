@@ -178,10 +178,10 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillText
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
  * Method:    measureText
- * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTextStyle;F)F
+ * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTextStyle;FLalphaTab/alphaSkia/AlphaSkiaTextAlign;LalphaTab/alphaSkia/AlphaSkiaTextBaseline;)LalphaTab/alphaSkia/AlphaSkiaTextMetrics;
  */
-JNIEXPORT jfloat JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_measureText
-  (JNIEnv *, jobject, jstring, jobject, jfloat);
+JNIEXPORT jobject JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_measureText
+  (JNIEnv *, jobject, jstring, jobject, jfloat, jobject, jobject);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas

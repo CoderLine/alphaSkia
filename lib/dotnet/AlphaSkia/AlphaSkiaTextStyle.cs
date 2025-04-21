@@ -33,7 +33,7 @@ public sealed class AlphaSkiaTextStyle : AlphaSkiaNative
     /// <param name="weight">The font weight typefaces should have.</param>
     /// <param name="isItalic">Whether typefaces should be italic.</param>
     public AlphaSkiaTextStyle(string[] fontFamilies, ushort weight, bool isItalic)
-        : base(NativeMethods.alphaskia_textstyle_new((byte)fontFamilies.Length, fontFamilies, weight, isItalic ? (byte)1 : (byte)0), NativeMethods.alphaskia_textstyle_free)
+        : base(NativeMethods.alphaskia_text_style_new((byte)fontFamilies.Length, fontFamilies, weight, isItalic ? (byte)1 : (byte)0), NativeMethods.alphaskia_text_style_free)
     {
         FontFamilies = fontFamilies;
         Weight = weight;
