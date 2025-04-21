@@ -70,7 +70,7 @@ public class AlphaTabGeneratedRenderTest extends AlphaTabGeneratedRenderTestBase
         setTextStyle(getTextStyle({"Noto Serif", "Noto Music", "Noto Color Emoji"}, 400, true));
         setFontSize((float)(12));
         setTextAlign(AlphaSkiaTextAlign.LEFT);
-        canvas.fillText("Fallback Font (\uD834\uDD1E\uD834\uDD5F\uD83C\uDFB8\uD83E\uDD18\uD83C\uDFFB)", getTextStyle(), getFontSize(), (float)(885.7920074462891), (float)(30), getTextAlign(), getTextBaseline());
+        canvas.fillText("Fallback Font (\uD834\uDD1E \uD834\uDD5F \uD83C\uDFB8 \uD83E\uDD18\uD83C\uDFFB)", getTextStyle(), getFontSize(), (float)(885.7920074462891), (float)(30), getTextAlign(), getTextBaseline());
         setTextAlign(AlphaSkiaTextAlign.LEFT);
         setTextBaseline(AlphaSkiaTextBaseline.TOP);
         canvas.fillText("\uEAA4", getMusicTextStyle(), (float)(getMusicFontSize() * 1.2), (float)(722.7920074462891), (float)(53.5199951171875), AlphaSkiaTextAlign.LEFT, AlphaSkiaTextBaseline.ALPHABETIC);

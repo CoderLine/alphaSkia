@@ -67,7 +67,7 @@ function drawMusicSheetPart3(canvas: AlphaSkiaCanvas): AlphaSkiaImage | undefine
     TestBase.textStyle = TestBase.getTextStyle(["Noto Serif", "Noto Music", "Noto Color Emoji"], 400, true);
     TestBase.fontSize = 12;
     TestBase.textAlign = AlphaSkiaTextAlign.Left;
-    canvas.fillText("Fallback Font (\uD834\uDD1E\uD834\uDD5F\uD83C\uDFB8\uD83E\uDD18\uD83C\uDFFB)", TestBase.textStyle, TestBase.fontSize, 885.7920074462891, 30, TestBase.textAlign, TestBase.textBaseline);
+    canvas.fillText("Fallback Font (\uD834\uDD1E \uD834\uDD5F \uD83C\uDFB8 \uD83E\uDD18\uD83C\uDFFB)", TestBase.textStyle, TestBase.fontSize, 885.7920074462891, 30, TestBase.textAlign, TestBase.textBaseline);
     TestBase.textAlign = AlphaSkiaTextAlign.Left;
     TestBase.textBaseline = AlphaSkiaTextBaseline.Top;
     canvas.fillText("\uEAA4", TestBase.musicTextStyle, TestBase.musicFontSize * 1.2, 722.7920074462891, 53.5199951171875, AlphaSkiaTextAlign.Left, AlphaSkiaTextBaseline.Alphabetic);

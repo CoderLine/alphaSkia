@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 
 namespace TestGenerator;
 
@@ -62,12 +65,13 @@ class CppTestSourceBuilder : TestSourceBuilder
 
     public override string EncodeString(string text)
     {
-        return "u" + base.EncodeString(text);
+        return $"u{base.EncodeString(text)}";
     }
+    protected override bool SupportsUtf32EscapeSequence => true;
 
     public override string MakeStringArray(IList<string> values)
     {
-        var items = string.Join(", ", values.Select(v => JsonSerializer.Serialize(v)));
+        var items = string.Join(", ", values.Select(v => base.EncodeString(v)));
         return "{" + items + "}";
     }
 }

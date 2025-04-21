@@ -56,7 +56,7 @@ extern "C"
         return reinterpret_cast<alphaskia_string_t>(skFamilyName);
     }
 
-    AS_API uint16_t alphaskia_typeface_get_weigth(alphaskia_typeface_t typeface)
+    AS_API uint16_t alphaskia_typeface_get_weight(alphaskia_typeface_t typeface)
     {
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
         return static_cast<uint16_t>((*skTypeface)->fontStyle().weight());

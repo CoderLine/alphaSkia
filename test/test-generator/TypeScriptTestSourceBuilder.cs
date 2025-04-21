@@ -29,6 +29,8 @@ class TypeScriptTestSourceBuilder : TestSourceBuilder
         return value;
     }
 
+    protected override bool SupportsUtf32EscapeSequence => false;
+
     public override string MakeCastToByte(double value)
     {
         return ((int)value).ToString();

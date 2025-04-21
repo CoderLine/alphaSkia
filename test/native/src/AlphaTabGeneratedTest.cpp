@@ -66,7 +66,7 @@ alphaskia_image_t draw_music_sheet_part_3(alphaskia_canvas_t canvas) {
     text_style = alphaskia_get_text_style({"Noto Serif", "Noto Music", "Noto Color Emoji"}, 400, true);
     font_size = static_cast<float>(12);
     text_align = alphaskia_text_align_left;
-    alphaskia_canvas_fill_text(canvas, u"Fallback Font (\uD834\uDD1E\uD834\uDD5F\uD83C\uDFB8\uD83E\uDD18\uD83C\uDFFB)", 26, text_style, font_size, static_cast<float>(885.7920074462891), static_cast<float>(30), text_align, text_baseline);
+    alphaskia_canvas_fill_text(canvas, u"Fallback Font (\U0001D11E \U0001D15F \U0001F3B8 \U0001F918\U0001F3FB)", 29, text_style, font_size, static_cast<float>(885.7920074462891), static_cast<float>(30), text_align, text_baseline);
     text_align = alphaskia_text_align_left;
     text_baseline = alphaskia_text_baseline_top;
     alphaskia_canvas_fill_text(canvas, u"\uEAA4", 1, music_text_style, static_cast<float>(music_font_size * 1.2), static_cast<float>(722.7920074462891), static_cast<float>(53.5199951171875), alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);

@@ -53,7 +53,7 @@ partial class Build
 
                 foreach (var tgz in (RootDirectory / "lib" / "node").GetFiles("*.tgz", int.MaxValue))
                 {
-                    tgz.Copy(RootDirectory / "dist" / "nodetars" / tgz.Name, ExistsPolicy.MergeAndOverwriteIfNewer);
+                    tgz.Copy(RootDirectory / "dist" / "nodetars" / tgz.Name, ExistsPolicy.MergeAndOverwrite);
                 }
 
                 PrepareTgzForTest();
@@ -72,7 +72,7 @@ partial class Build
                                      + tgz.Extension;
 
             tgz.Copy(RootDirectory / "dist" / "nodetars" / nameWithoutVersion,
-                ExistsPolicy.MergeAndOverwriteIfNewer);
+                ExistsPolicy.MergeAndOverwrite);
             files.Add(nameWithoutVersion);
         }
 
@@ -215,7 +215,7 @@ partial class Build
             }
 
             subDirectory.Copy(RootDirectory / "lib" / "node" / packageName / "lib" / subDirectory.Name,
-                ExistsPolicy.MergeAndOverwriteIfNewer, null, fi => fi.Extension != ".node");
+                ExistsPolicy.MergeAndOverwrite, null, fi => fi.Extension != ".node");
         }
     }
 

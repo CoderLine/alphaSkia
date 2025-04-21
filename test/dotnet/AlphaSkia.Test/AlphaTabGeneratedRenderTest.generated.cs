@@ -76,7 +76,7 @@ partial class AlphaTabGeneratedRenderTest
         TextStyle = GetTextStyle(new []{"Noto Serif", "Noto Music", "Noto Color Emoji"}, 400, true);
         FontSize = (float)(12);
         TextAlign = AlphaSkiaTextAlign.Left;
-        canvas.FillText("Fallback Font (\uD834\uDD1E\uD834\uDD5F\uD83C\uDFB8\uD83E\uDD18\uD83C\uDFFB)", TextStyle, FontSize, (float)(885.7920074462891), (float)(30), TextAlign, TextBaseline);
+        canvas.FillText("Fallback Font (\U0001D11E \U0001D15F \U0001F3B8 \U0001F918\U0001F3FB)", TextStyle, FontSize, (float)(885.7920074462891), (float)(30), TextAlign, TextBaseline);
         TextAlign = AlphaSkiaTextAlign.Left;
         TextBaseline = AlphaSkiaTextBaseline.Top;
         canvas.FillText("\uEAA4", MusicTextStyle, (float)(MusicFontSize * 1.2), (float)(722.7920074462891), (float)(53.5199951171875), AlphaSkiaTextAlign.Left, AlphaSkiaTextBaseline.Alphabetic);

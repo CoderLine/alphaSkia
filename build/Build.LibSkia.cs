@@ -66,7 +66,7 @@ partial class Build
 
             if (LibSkiaSkip.Value)
             {
-                DistBasePath.Copy(ArtifactBasePath, ExistsPolicy.MergeAndOverwriteIfNewer);
+                DistBasePath.Copy(ArtifactBasePath, ExistsPolicy.MergeAndOverwrite);
             }
             else
             {
@@ -340,7 +340,7 @@ partial class Build
         void CopyBuildOutputTo(AbsolutePath path)
         {
             // libs
-            outDir.Copy(path, ExistsPolicy.MergeAndOverwriteIfNewer, null,
+            outDir.Copy(path, ExistsPolicy.MergeAndOverwrite, null,
                 file => !libExtension.Contains(file.Extension));
         }
 

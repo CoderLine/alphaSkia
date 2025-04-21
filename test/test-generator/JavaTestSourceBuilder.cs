@@ -59,6 +59,8 @@ class JavaTestSourceBuilder : TestSourceBuilder
         WriteLine($"canvas.set{ToPascalCase(property)}({value});");
     }
     
+    protected override bool SupportsUtf32EscapeSequence => false;
+    
     public override string MakeStringArray(IList<string> values)
     {
         var items = string.Join(", ", values.Select(v => JsonSerializer.Serialize(v)));

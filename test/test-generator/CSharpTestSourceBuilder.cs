@@ -54,6 +54,8 @@ class CSharpTestSourceBuilder : TestSourceBuilder
     {
         return $"{type}.{ToPascalCase(field)}";
     }
+    
+    protected override bool SupportsUtf32EscapeSequence => true;
 
     public override void WriteSetCanvasProperty(string property, string value)
     {

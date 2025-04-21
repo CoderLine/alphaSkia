@@ -139,7 +139,7 @@ public class Main {
                     var expectedHeight = expectedImage.getHeight();
                     if (actualWidth != expectedWidth || actualHeight != expectedHeight) {
                         System.err.println(
-                                "Image sizes do not match: Actual[" + actualWidth + "x" + actualHeight + "] Expected[" + expectedWidth + "x" + actualHeight + "]");
+                                "Image sizes do not match: Actual[" + actualWidth + "x" + actualHeight + "] Expected[" + expectedWidth + "x" + expectedHeight + "]");
                         return 1;
                     }
 

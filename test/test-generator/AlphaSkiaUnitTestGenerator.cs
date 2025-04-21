@@ -1,4 +1,6 @@
-﻿using AlphaTab;
+﻿using System.Text;
+using System.Text.Unicode;
+using AlphaTab;
 using AlphaTab.Importer;
 using AlphaTab.Model;
 using AlphaTab.Rendering;
@@ -50,7 +52,7 @@ public class AlphaSkiaUnitTestGenerator
                 // 𝄞  𝅘𝅥
                 // And some emojis
                 // 🎸 🤘🏻
-                "\ud834\udd1e\ud834\udd5f\ud83c\udfb8\ud83e\udd18\ud83c\udffb"
+                "\U0001D11E \U0001D15F \U0001F3B8 \U0001F918\U0001F3FB"
             );
 
         List<double[]> partialPositions = new List<double[]>();
