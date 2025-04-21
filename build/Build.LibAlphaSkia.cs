@@ -428,19 +428,19 @@ partial class Build
         // run executable
         if (LibAlphaSkiaCanRunTests)
         {
-            
-            Log.Information(
-                $"Running {TargetOs.RuntimeIdentifier}-{Architecture} tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (FreeType fonts)");
-            ToolResolver.GetTool(exePath)(
-                "--freetype",
-                workingDirectory: outDir
-            );
             Log.Information(
                 $"Running {TargetOs.RuntimeIdentifier}-{Architecture} tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (OS fonts)");
             ToolResolver.GetTool(exePath)(
                 "",
                 workingDirectory: outDir
             );
+            Log.Information(
+                $"Running {TargetOs.RuntimeIdentifier}-{Architecture} tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (FreeType fonts)");
+            ToolResolver.GetTool(exePath)(
+                "--freetype",
+                workingDirectory: outDir
+            );
+
         }
         else
         {
