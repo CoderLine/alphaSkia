@@ -157,6 +157,7 @@ partial class Build
                                             "../../lib/java/jni/src/AlphaSkiaCanvas.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaData.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaImage.cpp",
+                                            "../../lib/java/jni/src/AlphaSkiaTextStyle.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
                                           ]
                                         }
