@@ -2,6 +2,7 @@
 #include "../include/SkFontMgr_alphaskia.h"
 #include "../../externals/skia/include/core/SkTypeface.h"
 #include "../../externals/skia/include/core/SkData.h"
+#include "../../externals/skia/include/core/SkFontMgr.h"
 
 extern "C"
 {
@@ -14,7 +15,6 @@ extern "C"
         {
             return nullptr;
         }
-
         return reinterpret_cast<alphaskia_typeface_t>(new sk_sp<SkTypeface>(skTypeface));
     }
 
@@ -29,11 +29,11 @@ extern "C"
         delete skTypeface;
     }
 
-    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint8_t bold, uint8_t italic)
+    AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint16_t weight, uint8_t italic)
     {
         auto fontMgr = SkFontMgr_AlphaSkia::instance();
 
-        SkFontStyle style(bold ? SkFontStyle::kBold_Weight : SkFontStyle::kNormal_Weight,
+        SkFontStyle style(weight,
                           SkFontStyle::kNormal_Width,
                           italic ? SkFontStyle::kItalic_Slant : SkFontStyle::kUpright_Slant);
         sk_sp<SkTypeface> skTypeface = fontMgr->legacyMakeTypeface(family_name, style);
@@ -56,10 +56,10 @@ extern "C"
         return reinterpret_cast<alphaskia_string_t>(skFamilyName);
     }
 
-    AS_API uint8_t alphaskia_typeface_is_bold(alphaskia_typeface_t typeface)
+    AS_API uint16_t alphaskia_typeface_get_weight(alphaskia_typeface_t typeface)
     {
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
-        return (*skTypeface)->isBold() ? 1 : 0;
+        return static_cast<uint16_t>((*skTypeface)->fontStyle().weight());
     }
 
     AS_API uint8_t alphaskia_typeface_is_italic(alphaskia_typeface_t typeface)

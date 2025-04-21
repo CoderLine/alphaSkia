@@ -1,4 +1,6 @@
-﻿namespace TestGenerator;
+﻿using System.Text.Json;
+
+namespace TestGenerator;
 
 class JavaTestSourceBuilder : TestSourceBuilder
 {
@@ -55,5 +57,13 @@ class JavaTestSourceBuilder : TestSourceBuilder
     public override void WriteSetCanvasProperty(string property, string value)
     {
         WriteLine($"canvas.set{ToPascalCase(property)}({value});");
+    }
+    
+    protected override bool SupportsUtf32EscapeSequence => false;
+    
+    public override string MakeStringArray(IList<string> values)
+    {
+        var items = string.Join(", ", values.Select(v => JsonSerializer.Serialize(v)));
+        return "new String[]{" + items + "}";
     }
 }

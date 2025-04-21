@@ -206,14 +206,14 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * Fills a text with the current color and provided details.
      *
      * @param text      The text to draw.
-     * @param typeface  The typeface to use for drawing the text.
+     * @param textStyle The text style to use for drawing the text.
      * @param fontSize  The font size to use when drawing the text.
      * @param x         The X-position where to draw the text to.
      * @param y         The Y-position where to draw the text to.
      * @param textAlign How to align the text at the given position horizontally.
      * @param baseline  How to align the text at the given position vertically.
      */
-    public native void fillText(String text, AlphaSkiaTypeface typeface, float fontSize, float x, float y,
+    public native void fillText(String text, AlphaSkiaTextStyle textStyle, float fontSize, float x, float y,
                                 AlphaSkiaTextAlign textAlign,
                                 AlphaSkiaTextBaseline baseline);
 
@@ -221,14 +221,14 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * Measures the given text.
      *
      * @param text     The text to measure.
-     * @param typeface The typeface to use for drawing the text.
-     * @param fontSize The font size to use when drawing the text.
+     * @param textStyle The text style to use for measuring the text.
+     * @param fontSize The font size to use when measuring the text.
      * @return The horizontal width of the text when it would be drawn.
      */
-    public native float measureText(String text, AlphaSkiaTypeface typeface, float fontSize);
+    public native float measureText(String text, AlphaSkiaTextStyle textStyle, float fontSize);
 
     /**
-     * Rotates the canvas allowing angled drawing. .
+     * Rotates the canvas allowing angled drawing
      *
      * @param centerX The X-position of the center around which to rotate.
      * @param centerY The Y-position of the center around which to rotate.

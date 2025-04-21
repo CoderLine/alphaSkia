@@ -1,4 +1,6 @@
-﻿using AlphaTab;
+﻿using System.Text;
+using System.Text.Unicode;
+using AlphaTab;
 using AlphaTab.Importer;
 using AlphaTab.Model;
 using AlphaTab.Rendering;
@@ -14,17 +16,18 @@ public class AlphaSkiaUnitTestGenerator
         settings.Core.EnableLazyLoading = false;
 
         // custom fonts
-        settings.Display.Resources.CopyrightFont.Families = new[] { "Roboto" };
-        settings.Display.Resources.TitleFont.Families = new[] { "PT Serif" };
-        settings.Display.Resources.SubTitleFont.Families = new[] { "PT Serif" };
-        settings.Display.Resources.WordsFont.Families = new[] { "PT Serif" };
-        settings.Display.Resources.EffectFont.Families = new[] { "PT Serif" };
-        settings.Display.Resources.FretboardNumberFont.Families = new[] { "Roboto" };
-        settings.Display.Resources.TablatureFont.Families = new[] { "Roboto" };
-        settings.Display.Resources.GraceFont.Families = new[] { "Roboto" };
-        settings.Display.Resources.BarNumberFont.Families = new[] { "Roboto" };
-        settings.Display.Resources.FingeringFont.Families = new[] { "PT Serif" };
-        settings.Display.Resources.MarkerFont.Families = new[] { "PT Serif" };
+        settings.Display.Resources.CopyrightFont.Families = new[] { "Noto Sans", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.TitleFont.Families = new[] { "Noto Serif", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.SubTitleFont.Families = new[] { "Noto Serif", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.WordsFont.Families = new[] { "Noto Serif", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.EffectFont.Families = new[] { "Noto Serif", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.FretboardNumberFont.Families =
+            new[] { "Noto Sans", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.TablatureFont.Families = new[] { "Noto Sans", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.GraceFont.Families = new[] { "Noto Sans", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.BarNumberFont.Families = new[] { "Noto Sans", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.FingeringFont.Families = new[] { "Noto Serif", "Noto Music", "Noto Color Emoji" };
+        settings.Display.Resources.MarkerFont.Families = new[] { "Noto Serif", "Noto Music", "Noto Color Emoji" };
 
         // add some colors to ensure we test this as well
         settings.Display.Resources.ScoreInfoColor = new Color(153, 204, 30);
@@ -41,6 +44,16 @@ public class AlphaSkiaUnitTestGenerator
         testFileStream.ReadExactly(buffer);
 
         var score = ScoreLoader.LoadScoreFromBytes(buffer, settings);
+
+        // inject some unicode characters for fallback font 
+        score.Tracks[0].Staves[0].Bars[7].Voices[0].Beats[0].Text =
+            score.Tracks[0].Staves[0].Bars[7].Voices[0].Beats[0].Text!.Replace("%UNICODE%",
+                // From Musical Symbols unicode block
+                // 𝄞  𝅘𝅥
+                // And some emojis
+                // 🎸 🤘🏻
+                "\U0001D11E \U0001D15F \U0001F3B8 \U0001F918\U0001F3FB"
+            );
 
         List<double[]> partialPositions = new List<double[]>();
 
@@ -60,7 +73,17 @@ public class AlphaSkiaUnitTestGenerator
         scoreRenderer.RenderFinished.On(HandleResult);
         scoreRenderer.PartialRenderFinished.On(HandleResult);
 
+        Exception? renderError = null;
+        scoreRenderer.Error.On(error =>
+        {
+            renderError = error;
+        });
+
         scoreRenderer.RenderScore(score, new double[] { 0 });
+        if (renderError != null)
+        {
+            throw renderError;
+        }
 
         return (
             partialPositions,
@@ -166,7 +189,8 @@ public class AlphaSkiaUnitTestGenerator
             sourceCode.WriteLine("return new RenderFunction[]");
             sourceCode.BeginBlock();
             {
-                var parts = result.partialPositions.Select((_, i) => $"AlphaTabGeneratedRenderTest::drawMusicSheetPart{i + 1}");
+                var parts = result.partialPositions.Select((_, i) =>
+                    $"AlphaTabGeneratedRenderTest::drawMusicSheetPart{i + 1}");
                 sourceCode.WriteLine(string.Join(", ", parts));
             }
             sourceCode.EndBlock(true);
@@ -197,9 +221,10 @@ public class AlphaSkiaUnitTestGenerator
         sourceCode.Resume();
 
         sourceCode.WriteLine("import TestBase from './AlphaTabGeneratedRenderTestBase'; ");
-        sourceCode.WriteLine("import { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaCanvas, AlphaSkiaImage } from '@coderline/alphaskia'; ");
+        sourceCode.WriteLine(
+            "import { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaCanvas, AlphaSkiaImage } from '@coderline/alphaskia'; ");
         sourceCode.WriteLine();
-        
+
         sourceCode.Suspend();
 
         var result = GenerateTestCode(settings);
@@ -220,7 +245,7 @@ public class AlphaSkiaUnitTestGenerator
         sourceCode.WriteLine("]");
 
         sourceCode.EndBlock(true);
-        
+
         sourceCode.Suspend();
 
         return sourceCode.ToString();

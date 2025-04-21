@@ -78,6 +78,7 @@ partial class Build
             workingDirectory: RootDirectory / "lib" / "java");
     }
 
+    [PublicAPI]
     public Target JavaTest => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
@@ -146,6 +147,7 @@ partial class Build
         }
     }
 
+    [PublicAPI]
     public Target JavaPublish => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>

@@ -9,10 +9,10 @@ extern "C" {
 #endif
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTypeface
- * Method:    isBold
- * Signature: ()Z
+ * Method:    getWeight
+ * Signature: ()I
  */
-JNIEXPORT jboolean JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_isBold
+JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_getWeight
   (JNIEnv *, jobject);
 
 /*
@@ -50,10 +50,10 @@ JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_register
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTypeface
  * Method:    makeFromName
- * Signature: (Ljava/lang/String;ZZ)J
+ * Signature: (Ljava/lang/String;IZ)J
  */
 JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_makeFromName
-  (JNIEnv *, jclass, jstring, jboolean, jboolean);
+  (JNIEnv *, jclass, jstring, jint, jboolean);
 
 #ifdef __cplusplus
 }

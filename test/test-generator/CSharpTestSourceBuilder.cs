@@ -1,4 +1,6 @@
-﻿namespace TestGenerator;
+﻿using System.Text.Json;
+
+namespace TestGenerator;
 
 class CSharpTestSourceBuilder : TestSourceBuilder
 {
@@ -52,9 +54,17 @@ class CSharpTestSourceBuilder : TestSourceBuilder
     {
         return $"{type}.{ToPascalCase(field)}";
     }
+    
+    protected override bool SupportsUtf32EscapeSequence => true;
 
     public override void WriteSetCanvasProperty(string property, string value)
     {
         WriteLine($"canvas.{ToPascalCase(property)} = {value};");
+    }
+    
+    public override string MakeStringArray(IList<string> values)
+    {
+        var items = string.Join(", ", values.Select(v => JsonSerializer.Serialize(v)));
+        return "new []{" + items + "}";
     }
 }

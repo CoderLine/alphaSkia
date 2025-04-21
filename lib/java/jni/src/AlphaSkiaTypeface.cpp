@@ -15,21 +15,21 @@ extern "C"
         return static_cast<jlong>(reinterpret_cast<std::uintptr_t>(alphaskia_typeface_register(reinterpret_cast<alphaskia_data_t>(data))));
     }
 
-    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_makeFromName(JNIEnv *env, jclass, jstring name, jboolean bold, jboolean italic)
+    JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_makeFromName(JNIEnv *env, jclass, jstring name, jint weight, jboolean italic)
     {
         const char *nativeName = env->GetStringUTFChars(name, nullptr);
-        alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(nativeName, bold, italic);
+        alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(nativeName, static_cast<uint16_t>(weight), italic);
         env->ReleaseStringUTFChars(name, nativeName);
         return static_cast<jlong>(reinterpret_cast<std::uintptr_t>(typeface));
     }
 
-    JNIEXPORT jboolean JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_isBold(JNIEnv *env, jobject instance)
+    JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_getWeight(JNIEnv *env, jobject instance)
     {
         jlong handle = get_handle(env, instance);
-        CHECK_HANDLE_RETURN(handle, static_cast<jboolean>(false))
+        CHECK_HANDLE_RETURN(handle, static_cast<jint>(400))
 
-        uint8_t is_bold = alphaskia_typeface_is_bold(reinterpret_cast<alphaskia_typeface_t>(handle));
-        return static_cast<jboolean>(is_bold != 0);
+        uint16_t weight = alphaskia_typeface_get_weight(reinterpret_cast<alphaskia_typeface_t>(handle));
+        return static_cast<jint>(weight);
     }
 
     JNIEXPORT jboolean JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_isItalic(JNIEnv *env, jobject instance)

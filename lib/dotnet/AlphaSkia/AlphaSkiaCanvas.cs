@@ -281,31 +281,31 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// Fills a text with the current color and provided details.
     /// </summary>
     /// <param name="text">The text to draw.</param>
-    /// <param name="typeface">The typeface to use for drawing the text.</param>
+    /// <param name="textStyle">The text style to use for drawing the text.</param>
     /// <param name="fontSize">The font size to use when drawing the text.</param>
     /// <param name="x">The X-position where to draw the text to.</param>
     /// <param name="y">The Y-position where to draw the text to.</param>
     /// <param name="textAlign">How to align the text at the given position horizontally.</param>
     /// <param name="baseline">How to align the text at the given position vertically.</param>
-    public void FillText(string text, AlphaSkiaTypeface typeface, float fontSize, float x, float y,
+    public void FillText(string text, AlphaSkiaTextStyle textStyle, float fontSize, float x, float y,
         AlphaSkiaTextAlign textAlign,
         AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_text(Handle, text, text.Length, typeface.Handle, fontSize, x, y, textAlign, baseline);
+        NativeMethods.alphaskia_canvas_fill_text(Handle, text, text.Length, textStyle.Handle, fontSize, x, y, textAlign, baseline);
     }
 
     /// <summary>
     /// Measures the given text.
     /// </summary>
     /// <param name="text">The text to measure.</param>
-    /// <param name="typeface">The typeface to use for drawing the text.</param>
-    /// <param name="fontSize">The font size to use when drawing the text.</param>
+    /// <param name="textStyle">The text style to use for measuring the text.</param>
+    /// <param name="fontSize">The font size to use when measuring the text.</param>
     /// <returns>The horizontal width of the text when it would be drawn.</returns>
-    public float MeasureText(string text, AlphaSkiaTypeface typeface, float fontSize)
+    public float MeasureText(string text, AlphaSkiaTextStyle textStyle, float fontSize)
     {
         CheckDisposed();
-        return NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, typeface.Handle, fontSize);
+        return NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, textStyle.Handle, fontSize);
     }
 
     /// <summary>

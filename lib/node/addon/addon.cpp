@@ -21,6 +21,7 @@ static const napi_type_tag alphaskia_data_t_tag = {0x6a960ece6a0c4caf, 0xad61688
 static const napi_type_tag alphaskia_typeface_t_tag = {0x0068df0314224b96, 0x8048b968915995f1};
 static const napi_type_tag alphaskia_image_t_tag = {0x9372c0f8e8de466f, 0x96a04b6ee0a9394b};
 static const napi_type_tag alphaskia_canvas_t_tag = {0xaa77c76772a34052, 0x88ac80d4dc474395};
+static const napi_type_tag alphaskia_textstyle_t_tag = {0x8f2bc41a57024cf4, 0x8b5e1cd26ded5245};
 
 #define RETURN_UNDEFINED()                        \
   {                                               \
@@ -286,10 +287,10 @@ static napi_value node_alphaskia_typeface_make_from_name(napi_env env, napi_call
 
   CHECK_ARGS(3);
   GET_ARGUMENT_UTF8_STRING(0, name);
-  GET_ARGUMENT_BOOL(1, bold);
+  GET_ARGUMENT_INT32(1, weight);
   GET_ARGUMENT_BOOL(2, italic);
 
-  alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(name.c_str(), bold ? 1 : 0, italic ? 1 : 0);
+  alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(name.c_str(), static_cast<uint16_t>(weight), italic ? 1 : 0);
   WRAP_HANDLE(alphaskia_typeface_t, wrapped, typeface);
   return wrapped;
 }
@@ -314,19 +315,19 @@ static napi_value node_alphaskia_typeface_get_family_name(napi_env env, napi_cal
   return family_name;
 }
 
-static napi_value node_alphaskia_typeface_is_bold(napi_env env, napi_callback_info info)
+static napi_value node_alphaskia_typeface_get_weight(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
   GET_ARGUMENT_HANDLE(0, alphaskia_typeface_t, typeface);
-  uint8_t is_bold = alphaskia_typeface_is_bold(typeface);
+  uint16_t weight = alphaskia_typeface_get_weight(typeface);
 
-  napi_value node_is_bold;
-  status = napi_get_boolean(env, is_bold != 0, &node_is_bold);
+  napi_value node_weight;
+  status = napi_create_int32(env, weight, &node_weight);
   ASSERT_STATUS();
 
-  return node_is_bold;
+  return node_weight;
 }
 
 static napi_value node_alphaskia_typeface_is_italic(napi_env env, napi_callback_info info)
@@ -342,6 +343,76 @@ static napi_value node_alphaskia_typeface_is_italic(napi_env env, napi_callback_
   ASSERT_STATUS();
 
   return node_is_italic;
+}
+
+static napi_value node_alphaskia_textstyle_new(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(3);
+
+  // string[] unwrapping
+  bool is_array(false);
+  status = napi_is_array(env, node_argv[0], &is_array);
+  ASSERT_STATUS();
+  if (!is_array)
+  {
+    napi_throw_type_error(env, NULL, "Wrong argument type at index 0, expected array of strings");
+    return nullptr;
+  }
+
+  uint32_t familyNamesLength = 0;
+  status = napi_get_array_length(env, node_argv[0], &familyNamesLength);
+  ASSERT_STATUS();
+
+  familyNamesLength = static_cast<uint8_t>(familyNamesLength);
+
+  std::vector<std::string> familyNames;
+  familyNames.resize(familyNamesLength);
+  std::vector<const char *> familyNamesRaw;
+  familyNamesRaw.resize(familyNamesLength);
+
+  for (uint8_t i = 0; i < familyNamesLength; i++)
+  {
+    napi_value item;
+    status = napi_get_element(env, node_argv[0], i, &item);
+    ASSERT_STATUS();
+
+    // no need for type checking, we do that in javascript, its less code there. napi functions might still fail
+
+    size_t name_size;
+    status = napi_get_value_string_utf8(env, item, nullptr, 0, &name_size);
+    ASSERT_STATUS();
+
+    familyNames.at(i).assign(name_size, ' ');
+    status = napi_get_value_string_utf8(env, item, familyNames.at(i).data(), name_size + 1, nullptr);
+    ASSERT_STATUS();
+
+    familyNamesRaw[i] = familyNames.at(i).data();
+  }
+  // string[] end
+
+  GET_ARGUMENT_INT32(1, weight);
+  GET_ARGUMENT_BOOL(2, italic);
+
+  alphaskia_textstyle_t textstyle = alphaskia_textstyle_new(static_cast<uint8_t>(familyNamesLength), &familyNamesRaw[0], static_cast<uint16_t>(weight), italic ? 1 : 0);
+  WRAP_HANDLE(alphaskia_textstyle_t, wrapped, textstyle);
+  return wrapped;
+}
+
+static napi_value node_alphaskia_textstyle_free(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_HANDLE(0, alphaskia_textstyle_t, textstyle);
+
+  alphaskia_textstyle_free(textstyle);
+  void *old;
+  status = napi_remove_wrap(env, node_argv[0], &old);
+  ASSERT_STATUS();
+
+  RETURN_UNDEFINED();
 }
 
 static napi_value node_alphaskia_image_get_width(napi_env env, napi_callback_info info)
@@ -772,14 +843,14 @@ static napi_value node_alphaskia_canvas_fill_text(napi_env env, napi_callback_in
   CHECK_ARGS(8);
   GET_ARGUMENT_HANDLE(0, alphaskia_canvas_t, canvas);
   GET_ARGUMENT_UTF16_STRING(1, text);
-  GET_ARGUMENT_HANDLE(2, alphaskia_typeface_t, typeface);
+  GET_ARGUMENT_HANDLE(2, alphaskia_textstyle_t, textstyle);
   GET_ARGUMENT_FLOAT(3, font_size);
   GET_ARGUMENT_FLOAT(4, x);
   GET_ARGUMENT_FLOAT(5, y);
   GET_ARGUMENT_INT32(6, text_align);
   GET_ARGUMENT_INT32(7, baseline);
 
-  alphaskia_canvas_fill_text(canvas, text.c_str(), text.length(), typeface, font_size, x, y, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
+  alphaskia_canvas_fill_text(canvas, text.c_str(), text.length(), textstyle, font_size, x, y, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
 
   RETURN_UNDEFINED();
 }
@@ -791,10 +862,10 @@ static napi_value node_alphaskia_canvas_measure_text(napi_env env, napi_callback
   CHECK_ARGS(4);
   GET_ARGUMENT_HANDLE(0, alphaskia_canvas_t, canvas);
   GET_ARGUMENT_UTF16_STRING(1, text);
-  GET_ARGUMENT_HANDLE(2, alphaskia_typeface_t, typeface);
+  GET_ARGUMENT_HANDLE(2, alphaskia_textstyle_t, textstyle);
   GET_ARGUMENT_FLOAT(3, font_size);
 
-  float width = alphaskia_canvas_measure_text(canvas, text.c_str(), text.length(), typeface, font_size);
+  float width = alphaskia_canvas_measure_text(canvas, text.c_str(), text.length(), textstyle, font_size);
   napi_value width_node;
   status = napi_create_double(env, width, &width_node);
   ASSERT_STATUS();
@@ -854,8 +925,15 @@ napi_value init(napi_env env, napi_value exports)
   EXPORT_NODE_FUNCTION(alphaskia_typeface_free);
   EXPORT_NODE_FUNCTION(alphaskia_typeface_make_from_name);
   EXPORT_NODE_FUNCTION(alphaskia_typeface_get_family_name);
-  EXPORT_NODE_FUNCTION(alphaskia_typeface_is_bold);
+  EXPORT_NODE_FUNCTION(alphaskia_typeface_get_weight);
   EXPORT_NODE_FUNCTION(alphaskia_typeface_is_italic);
+
+  EXPORT_NODE_FUNCTION(alphaskia_textstyle_new);
+  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_get_family_name_count);
+  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_get_family_name);
+  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_get_weight);
+  // EXPORT_NODE_FUNCTION(alphaskia_textstyle_is_italic);
+  EXPORT_NODE_FUNCTION(alphaskia_textstyle_free);
 
   EXPORT_NODE_FUNCTION(alphaskia_image_get_width);
   EXPORT_NODE_FUNCTION(alphaskia_image_get_height);

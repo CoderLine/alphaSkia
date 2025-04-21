@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-import { AlphaSkiaCanvas, AlphaSkiaImage } from '@coderline/alphaskia';
+import { AlphaSkiaCanvas, AlphaSkiaImage, AlphaSkiaTextStyle } from '@coderline/alphaskia';
 
 import TestBase from './AlphaTabGeneratedRenderTestBase'
 import Test from './AlphaTabGeneratedRenderTest'
@@ -30,7 +30,7 @@ function renderFullImage(): AlphaSkiaImage {
     using partialCanvas = new AlphaSkiaCanvas();
     for (let i = 0; i < Test.allParts.length; i++) {
         console.log(`Render part ${i}`);
-        using part = Test.allParts[i](partialCanvas);
+        using part = Test.allParts[i](partialCanvas)!;
 
         const x = Test.partPositions[i][0];
         const y = Test.partPositions[i][1];
@@ -67,7 +67,7 @@ function main(): number {
     try {
         const repositoryRoot = findRepositoryRoot(path.resolve('.'));
         const isFreeType = process.argv.includes("--freetype");
-        if(isFreeType) {
+        if (isFreeType) {
             console.log("Switching to FreeType Fonts");
             AlphaSkiaCanvas.switchToFreeTypeFonts();
         }
@@ -75,24 +75,23 @@ function main(): number {
         // Load all fonts for rendering
         console.log("Loading fonts");
         let testDataPath = path.join(repositoryRoot, "test", "test-data");
-        TestBase.musicTypeface = TestBase.loadTypeface("Bravura", false, false,
-            path.join(testDataPath, "font", "bravura", "Bravura.ttf"));
-        TestBase.loadTypeface("Roboto", false, false,
-            path.join(testDataPath, "font", "roboto", "Roboto-Regular.ttf"));
-        TestBase.loadTypeface("Roboto", true, false,
-            path.join(testDataPath, "font", "roboto", "Roboto-Bold.ttf"));
-        TestBase.loadTypeface("Roboto", false, true,
-            path.join(testDataPath, "font", "roboto", "Roboto-Italic.ttf"));
-        TestBase.loadTypeface("Roboto", true, true,
-            path.join(testDataPath, "font", "roboto", "Roboto-BoldItalic.ttf"));
-        TestBase.loadTypeface("PT Serif", false, false,
-            path.join(testDataPath, "font", "ptserif", "PTSerif-Regular.ttf"));
-        TestBase.loadTypeface("PT Serif", true, false,
-            path.join(testDataPath, "font", "ptserif", "PTSerif-Bold.ttf"));
-        TestBase.loadTypeface("PT Serif", false, true,
-            path.join(testDataPath, "font", "ptserif", "PTSerif-Italic.ttf"));
-        TestBase.loadTypeface("PT Serif", true, true,
-            path.join(testDataPath, "font", "ptserif", "PTSerif-BoldItalic.ttf"));
+        const musicTypeface = TestBase.loadTypeface(path.join(testDataPath, "font", "bravura", "Bravura.otf"));
+        TestBase.musicTextStyle  = new AlphaSkiaTextStyle(
+            [musicTypeface.familyName],
+            musicTypeface.weight,
+            musicTypeface.isItalic
+        );
+
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-sans", "NotoSans-Regular.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-sans", "NotoSans-Bold.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-sans", "NotoSans-Italic.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-sans", "NotoSans-BoldItalic.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-serif", "NotoSerif-Regular.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-serif", "NotoSerif-Bold.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-serif", "NotoSerif-Italic.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-serif", "NotoSerif-BoldItalic.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-music", "NotoMusic-Regular.otf"));
+        TestBase.loadTypeface(path.join(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
         console.log("Fonts loaded");
 
         // render full image
@@ -167,7 +166,7 @@ function main(): number {
             let diffImagePngData = diffImage.toPng()!;
 
             let diffOutputPath = path.join(testOutputPath, testOutputFileBase + ".diff.png");
-            fs.writeFileSync(diffOutputPath, diffImagePngData);
+            fs.writeFileSync(diffOutputPath, new Uint8Array(diffImagePngData));
             console.log(`Error diff image saved to ${diffOutputPath}`);
             return 1;
         }

@@ -85,6 +85,7 @@ partial class Build
                                             "../../wrapper/src/alphaskia_canvas.cpp",
                                             "../../wrapper/src/alphaskia_image.cpp",
                                             "../../wrapper/src/alphaskia_typeface.cpp",
+                                            "../../wrapper/src/alphaskia_textstyle.cpp",
                                             "../../wrapper/src/alphaskia_data.cpp",
                                             "../../wrapper/src/alphaskia_string.cpp"
                                         ]
@@ -156,6 +157,7 @@ partial class Build
                                             "../../lib/java/jni/src/AlphaSkiaCanvas.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaData.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaImage.cpp",
+                                            "../../lib/java/jni/src/AlphaSkiaTextStyle.cpp",
                                             "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
                                           ]
                                         }
@@ -356,14 +358,14 @@ partial class Build
             {
                 // libs
                 outDir.Copy(path,
-                    ExistsPolicy.MergeAndOverwriteIfNewer,
+                    ExistsPolicy.MergeAndOverwrite,
                     null,
                     file => !libExtensions.Contains(file.Extension)
                 );
                 // copy header
                 (RootDirectory / "wrapper" / "include" / "alphaskia.h").Copy(
                     DistBasePath / "include" / "alphaskia" / "alphaskia.h",
-                    ExistsPolicy.MergeAndOverwriteIfNewer
+                    ExistsPolicy.MergeAndOverwrite
                 );
             }
 
@@ -415,13 +417,13 @@ partial class Build
         // copy for artifacts
         var distPath = DistBasePath / libDir;
         var exePath = outDir / (buildTarget + exeExtension);
-        exePath.Copy(distPath / exePath.Name, ExistsPolicy.MergeAndOverwriteIfNewer);
+        exePath.Copy(distPath / exePath.Name, ExistsPolicy.MergeAndOverwrite);
 
         // copy shared lib beside executable
         var libExtensions = new HashSet<string>(GetLibExtensions(Variant), StringComparer.OrdinalIgnoreCase);
         foreach (var file in sharedLibPath.GetFiles().Where(f => libExtensions.Contains(f.Extension)))
         {
-            file.Copy(outDir / file.Name, ExistsPolicy.MergeAndOverwriteIfNewer);
+            file.Copy(outDir / file.Name, ExistsPolicy.MergeAndOverwrite);
         }
 
         // run executable
@@ -439,6 +441,7 @@ partial class Build
                 "--freetype",
                 workingDirectory: outDir
             );
+
         }
         else
         {

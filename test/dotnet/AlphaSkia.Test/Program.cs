@@ -63,25 +63,25 @@ public static class Program
             // Load all fonts for rendering
             Console.WriteLine("Loading fonts");
             var testDataPath = Path.Combine(repositoryRoot, "test", "test-data");
-            AlphaTabGeneratedRenderTest.MusicTypeface = AlphaTabGeneratedRenderTest.LoadTypeface("Bravura", false,
-                false,
-                Path.Combine(testDataPath, "font", "bravura", "Bravura.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("Roboto", false, false,
-                Path.Combine(testDataPath, "font", "roboto", "Roboto-Regular.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("Roboto", true, false,
-                Path.Combine(testDataPath, "font", "roboto", "Roboto-Bold.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("Roboto", false, true,
-                Path.Combine(testDataPath, "font", "roboto", "Roboto-Italic.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("Roboto", true, true,
-                Path.Combine(testDataPath, "font", "roboto", "Roboto-BoldItalic.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("PT Serif", false, false,
-                Path.Combine(testDataPath, "font", "ptserif", "PTSerif-Regular.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("PT Serif", true, false,
-                Path.Combine(testDataPath, "font", "ptserif", "PTSerif-Bold.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("PT Serif", false, true,
-                Path.Combine(testDataPath, "font", "ptserif", "PTSerif-Italic.ttf"));
-            AlphaTabGeneratedRenderTest.LoadTypeface("PT Serif", true, true,
-                Path.Combine(testDataPath, "font", "ptserif", "PTSerif-BoldItalic.ttf"));
+            var musicTypeface = AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "bravura", "Bravura.otf"));
+
+            AlphaTabGeneratedRenderTest.MusicTextStyle = new AlphaSkiaTextStyle(
+                new[] { musicTypeface.FamilyName },
+                musicTypeface.Weight,
+                musicTypeface.IsItalic
+            );
+            
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-sans", "NotoSans-Regular.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-sans", "NotoSans-Bold.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-sans", "NotoSans-Italic.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-sans", "NotoSans-BoldItalic.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-serif", "NotoSerif-Regular.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-serif", "NotoSerif-Bold.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-serif", "NotoSerif-Italic.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-serif", "NotoSerif-BoldItalic.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-music", "NotoMusic-Regular.otf"));
+            AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
+            
             Console.WriteLine("Fonts loaded");
 
             // render full image

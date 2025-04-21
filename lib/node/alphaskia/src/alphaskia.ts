@@ -5,3 +5,4 @@ export { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaColorType } from '.
 export { AlphaSkiaCanvas } from './AlphaSkiaCanvas'
 export { AlphaSkiaTypeface } from './AlphaSkiaTypeface'
 export { AlphaSkiaImage } from './AlphaSkiaImage'
+export { AlphaSkiaTextStyle } from './AlphaSkiaTextStyle'

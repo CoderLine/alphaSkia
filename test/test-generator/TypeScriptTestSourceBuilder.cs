@@ -1,10 +1,12 @@
-﻿namespace TestGenerator;
+﻿using System.Text.Json;
+
+namespace TestGenerator;
 
 class TypeScriptTestSourceBuilder : TestSourceBuilder
 {
     public override void WritePartialRenderMethod(string methodName)
     {
-        Write($"function {ToCamelCase(methodName)}(canvas: AlphaSkiaCanvas): AlphaSkiaImage ");
+        Write($"function {ToCamelCase(methodName)}(canvas: AlphaSkiaCanvas): AlphaSkiaImage | undefined ");
     }
 
     public override string MakeCallTestMethod(string methodName, string args, bool statement)
@@ -26,6 +28,8 @@ class TypeScriptTestSourceBuilder : TestSourceBuilder
     {
         return value;
     }
+
+    protected override bool SupportsUtf32EscapeSequence => false;
 
     public override string MakeCastToByte(double value)
     {
@@ -57,5 +61,11 @@ class TypeScriptTestSourceBuilder : TestSourceBuilder
     public override void WriteSetCanvasProperty(string property, string value)
     {
         WriteLine($"canvas.{ToCamelCase(property)} = {value};");
+    }
+    
+    public override string MakeStringArray(IList<string> values)
+    {
+        var items = string.Join(", ", values.Select(v => JsonSerializer.Serialize(v)));
+        return "[" + items + "]";
     }
 }

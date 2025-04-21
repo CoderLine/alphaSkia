@@ -31,6 +31,9 @@ partial class Build
                 "third_party/externals/zlib",
                 "third_party/externals/wuffs",
                 "third_party/externals/vulkanmemoryallocator",
+                "third_party/externals/libgrapheme",
+                "third_party/externals/icu",
+                "third_party/externals/unicodetools",
 
                 // Android font manager
                 "third_party/externals/expat"
@@ -63,7 +66,7 @@ partial class Build
 
             if (LibSkiaSkip.Value)
             {
-                DistBasePath.Copy(ArtifactBasePath, ExistsPolicy.MergeAndOverwriteIfNewer);
+                DistBasePath.Copy(ArtifactBasePath, ExistsPolicy.MergeAndOverwrite);
             }
             else
             {
@@ -87,9 +90,32 @@ partial class Build
         .After(LibSkiaGitSyncDeps)
         .Executes(() =>
         {
+
             // add harfbuzz and freetype as dependency as we want it for alphaSkia
             var buildFile = SkiaPath / "BUILD.gn";
             var buildFileSource = buildFile.ReadAllText();
+
+
+            var skiaGniStart = buildFileSource.IndexOf("import(\"gn/skia.gni\")", StringComparison.Ordinal);
+            if (skiaGniStart == -1)
+            {
+                throw new IOException("BUILD.gn of skia changed, cannot patch files");
+            }
+
+            var skiaGniEnd = buildFileSource.IndexOf("\n", skiaGniStart, StringComparison.Ordinal);
+            if (skiaGniEnd == -1)
+            {
+                throw new IOException("BUILD.gn of skia changed, cannot patch files");
+            }
+
+            buildFileSource = buildFileSource[..skiaGniEnd]
+                                        + "import(\"modules/skparagraph/skparagraph.gni\")\n"
+                                        + "import(\"third_party/icu/icu.gni\")\n"
+                                        + "import(\"modules/skunicode/skunicode.gni\")\n"
+                                        + "import(\"modules/skshaper/skshaper.gni\")\n"
+                                        + buildFileSource[skiaGniEnd..];
+
+
             var skiaComponentStart = buildFileSource.IndexOf("skia_component(\"skia\")", StringComparison.Ordinal);
             if (skiaComponentStart == -1)
             {
@@ -114,8 +140,8 @@ partial class Build
             if (!depsList.Contains("//third_party/harfbuzz"))
             {
                 var newDepsList = depsList.TrimEnd('\r', '\n', '\t', ' ', ',')
-                                  + ", \"//third_party/harfbuzz\", \"//third_party/freetype2\", "
-                    ;
+                + ", \"//third_party/harfbuzz\", \"//third_party/freetype2\", skia_libgrapheme_third_party_dir, skia_icu_bidi_third_party_dir"
+                ;
                 buildFileSource = buildFileSource[..depsListStart]
                                   + newDepsList
                                   + buildFileSource[depsListEnd..];
@@ -135,22 +161,15 @@ partial class Build
             }
 
             var sources = buildFileSource.Substring(sourcesStart, sourcesEnd);
-            if (!sources.Contains("# AlphaSkia Patch FreeType"))
+            if (!sources.Contains("# AlphaSkia Patch FreeType and SkParagraph"))
             {
-                var newSources = "# AlphaSkia Patch FreeType\n";
+                var newSources = "# AlphaSkia Patch FreeType and SkParagraph\n";
                 // ensure we have freetype available
                 newSources += "  include_dirs = [ \"externals/freetype/include\" ]\n";
-                newSources += "  sources += [\n";
-                newSources += "    \"src/ports/SkFontHost_FreeType.cpp\",\n";
-                newSources += "    \"src/ports/SkFontHost_FreeType_common.cpp\",\n";
-                newSources += "    \"src/ports/SkFontHost_FreeType_common.h\",\n";
-                newSources += "  ]\n";
+                newSources += "  sources += skia_ports_freetype_sources\n";
                 // ensure we have the custom embedded FontMgr available (for in-memory freetype usage)
-                newSources += "  sources += [\n";
-                newSources += "    \"src/ports/SkFontMgr_custom.h\",\n";
-                newSources += "    \"src/ports/SkFontMgr_custom.cpp\",\n";
-                newSources += "    \"src/ports/SkFontMgr_custom_embedded.cpp\",\n";
-                newSources += "  ]\n";
+                newSources += "  sources += skia_ports_fontmgr_embedded_sources\n";
+                newSources += "  sources += skia_ports_fontmgr_custom_sources\n";
                 // ensure we have the OS specific font managers available
                 newSources += "  if (is_win) {\n";
                 newSources += "    sources += skia_ports_windows_fonts_sources\n";
@@ -181,6 +200,38 @@ partial class Build
                 newSources += "    sources += skia_ports_fontmgr_coretext_sources\n";
                 newSources += "  }\n";
                 newSources += "  ";
+
+                // Directly add some submodules to the main skia lib
+
+                // SkShaper
+                newSources += "  defines += [ \"SK_SHAPER_HARFBUZZ_AVAILABLE\", \"SK_SHAPER_UNICODE_AVAILABLE\", \"SKSHAPER_IMPLEMENTATION=1\" ]\n";
+                newSources += "  sources += skia_shaper_primitive_sources\n";
+                newSources += "  sources += skia_shaper_skunicode_sources\n";
+                newSources += "  sources += skia_shaper_harfbuzz_sources\n";
+                newSources += "  public += skia_unicode_public\n";
+
+                // SkUnicode
+                newSources += "  defines += [\"SK_UNICODE_AVAILABLE\", \"SKUNICODE_IMPLEMENTATION=1\", \"SK_UNICODE_LIBGRAPHEME_IMPLEMENTATION\" ]\n";
+                newSources += "  configs += [\"//third_party/icu/config:no_cxx\"]\n";
+
+                newSources += "  sources += skia_unicode_sources\n";
+                newSources += "  sources += skia_unicode_icu_bidi_sources\n";
+                newSources += "  sources += skia_unicode_bidi_subset_sources\n";
+                newSources += "  sources += skia_unicode_libgrapheme_sources\n";
+                newSources += "  public += skia_unicode_public\n";
+                newSources += "  defines += [\n";
+                newSources += "    \"U_DISABLE_RENAMING=0\",\n";
+                newSources += "    \"U_USING_ICU_NAMESPACE=0\",\n";
+                newSources += "    \"U_LIB_SUFFIX_C_NAME=_skia\",\n";
+                newSources += "    \"U_HAVE_LIB_SUFFIX=1\",\n";
+                newSources += "    \"U_DISABLE_VERSION_SUFFIX=1\",\n";
+                newSources += "  ]\n";
+
+                // SkParagraph
+                newSources += "  defines += [ \"SK_ENABLE_PARAGRAPH\" ]\n";
+                newSources += "  sources += skparagraph_sources\n";
+                newSources += "  public += skparagraph_public\n";
+
                 newSources += "  sources += [\n";
                 newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia.cpp\",\n";
                 newSources += "    \"../../wrapper/include/SkFontMgr_alphaskia.h\",\n";
@@ -203,8 +254,8 @@ partial class Build
                 newSources += "  }\n";
 
                 buildFileSource = buildFileSource[..sourcesEnd]
-                                  + newSources
-                                  + buildFileSource[sourcesEnd..];
+                                         + newSources
+                                         + buildFileSource[sourcesEnd..];
             }
 
             buildFile.WriteAllText(buildFileSource);
@@ -253,7 +304,11 @@ partial class Build
         gnArgs["skia_use_icu"] = "false";
         gnArgs["skia_use_piex"] = "false";
         gnArgs["skia_use_sfntly"] = "false";
+        gnArgs["skia_use_libgrapheme"] = "true";
         gnArgs["skia_enable_skshaper"] = "true";
+        gnArgs["skia_enable_skparagraph"] = "true";
+        gnArgs["skia_enable_skunicode"] = "true";
+        gnArgs["skia_use_harfbuzz"] = "true";
         gnArgs["skia_pdf_subset_harfbuzz"] = "false";
         gnArgs["skia_enable_pdf"] = "false";
         gnArgs["skia_use_dng_sdk"] = "false";
@@ -285,7 +340,7 @@ partial class Build
         void CopyBuildOutputTo(AbsolutePath path)
         {
             // libs
-            outDir.Copy(path, ExistsPolicy.MergeAndOverwriteIfNewer, null,
+            outDir.Copy(path, ExistsPolicy.MergeAndOverwrite, null,
                 file => !libExtension.Contains(file.Extension));
         }
 
