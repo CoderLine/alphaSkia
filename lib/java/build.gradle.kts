@@ -109,15 +109,15 @@ subprojects {
         }
     }
 
-    repositories {
-        maven {
-            name = "DistPath"
-            url = rootProject.projectDir.resolve("dist").toURI()
-        }
-    }
-
     afterEvaluate {
         configure<PublishingExtension> {
+            repositories {
+                maven {
+                    name = "DistPath"
+                    url = rootProject.projectDir.resolve("dist").toURI()
+                }
+            }
+
             publications {
                 create<MavenPublication>("mavenJava") {
                     afterEvaluate {
