@@ -84,6 +84,20 @@ bool write_data_to_file_and_free(alphaskia_data_t data, std::string path)
     return true;
 }
 
+
+void empty_image_test() {
+    // https://github.com/CoderLine/alphaSkia/issues/53
+    auto canvas = alphaskia_canvas_new();
+    alphaskia_canvas_begin_render(canvas, 0, 0, 1);
+
+    auto empty = alphaskia_canvas_end_render(canvas);
+
+    alphaskia_image_free(empty);
+
+    alphaskia_canvas_free(canvas);
+}
+
+
 int main(int argc, char **argv)
 {
     bool isFreeType = false;
@@ -105,6 +119,10 @@ int main(int argc, char **argv)
     {
         return 1;
     }
+
+    std::cout << "Empty image" << std::endl;
+    empty_image_test();
+    std::cout << "Image worked" << std::endl;
 
     // Load all fonts for rendering
     std::cout << "Loading fonts" << std::endl;
