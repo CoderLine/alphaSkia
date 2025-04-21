@@ -6,11 +6,10 @@ using System.Text;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
-using Serilog;
 
 partial class Build
 {
-    Target InstallDependenciesLinux => _ => _
+    Target InstallDependenciesLinux => t => t
         .Unlisted()
         .OnlyWhenStatic(() => OperatingSystem.IsLinux() && IsGitHubActions)
         .After(PrepareGitHubArtifacts,

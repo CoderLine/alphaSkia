@@ -1,5 +1,5 @@
+using JetBrains.Annotations;
 using Nuke.Common;
-using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
@@ -8,10 +8,12 @@ using static Nuke.Common.EnvironmentInfo;
 
 partial class Build
 {
-    public Target DotNet => _ => _
+    [PublicAPI]
+    public Target DotNet => t => t
         .DependsOn(DotNetPack);
 
-    public Target DotNetPack => _ => _
+    [PublicAPI]
+    public Target DotNetPack => t => t
         .Unlisted()
         .DependsOn(DotNetBuild)
         .Executes(() =>
@@ -24,7 +26,7 @@ partial class Build
                     .DeleteFiles();
             }
 
-            DotNetTasks.DotNetPack(_ => _
+            DotNetTasks.DotNetPack(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "dotnet")
                 .SetConfiguration("Release")
             );
@@ -38,21 +40,23 @@ partial class Build
 
                 foreach (var nupkg in (RootDirectory / "lib" / "dotnet").GetFiles("*.nupkg", int.MaxValue))
                 {
-                    FileSystemTasks.CopyFile(nupkg,
+                    nupkg.Copy(
                         RootDirectory / "dist" / "nupkgs" / nupkg.Name,
-                        FileExistsPolicy.OverwriteIfNewer);
+                        ExistsPolicy.MergeAndOverwriteIfNewer
+                    );
                 }
             }
         });
 
-    public Target DotNetBuild => _ => _
+    [PublicAPI]
+    public Target DotNetBuild => t => t
         .Unlisted()
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             DotNetWriteVersionInfoProps();
 
-            DotNetTasks.DotNetBuild(_ => _
+            DotNetTasks.DotNetBuild(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "dotnet")
                 .SetConfiguration("Release")
                 .SetForce(Rebuild)
@@ -98,13 +102,13 @@ partial class Build
 
     [Parameter] string Framework;
     
-    public Target DotNetTest => _ => _
+    public Target DotNetTest => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Requires(() => Framework)
         .Executes(() =>
         {
             Log.Information($"Running DotNet tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (OS fonts)");
-            DotNetTasks.DotNetRun(_ => _
+            DotNetTasks.DotNetRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
                 .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
                             (Architecture ?? Architecture.Current))
@@ -113,7 +117,7 @@ partial class Build
             );
             
             Log.Information($"Running DotNet tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (FreeType fonts)");
-            DotNetTasks.DotNetRun(_ => _
+            DotNetTasks.DotNetRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
                 .SetRuntime(TargetOperatingSystem.Current.DotNetRid + "-" +
                             (Architecture ?? Architecture.Current))
@@ -125,17 +129,17 @@ partial class Build
 
     [Parameter] [Secret] readonly string NugetApiKey = GetVariable<string>("NUGET_API_KEY");
 
-    public Target DotNetPublish => _ => _
+    public Target DotNetPublish => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Requires(() => IsGitHubActions)
         .Executes(() =>
         {
-            DotNetTasks.DotNetNuGetPush(_ => _
+            DotNetTasks.DotNetNuGetPush(t => t
                     .SetSource("https://api.nuget.org/v3/index.json")
                     .SetApiKey(NugetApiKey)
                     .CombineWith(
                         (DistBasePath / "nupkgs").GlobFiles("*.nupkg")
-                        , (_, v) => _
+                        , (s, v) => s
                             .SetTargetPath(v)));
         });
 }

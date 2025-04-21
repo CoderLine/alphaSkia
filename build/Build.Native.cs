@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
@@ -200,7 +201,8 @@ partial class Build
         return deps;
     }
 
-    public Target SetupDepotTools => _ => _
+    [PublicAPI]
+    public Target SetupDepotTools => t => t
         .Unlisted()
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Executes(() =>
@@ -330,18 +332,18 @@ partial class Build
     {
         if (variant == Variant.Node)
         {
-            return new[] { ".node" };
+            return [".node"];
         }
 
         if (TargetOs == TargetOperatingSystem.Windows)
         {
-            return variant.IsShared ? new[] { ".dll", ".lib" } : new[] { ".lib" };
+            return variant.IsShared ? [".dll", ".lib"] : [".lib"];
         }
 
         if (TargetOs == TargetOperatingSystem.Linux ||
             TargetOs == TargetOperatingSystem.Android)
         {
-            return variant.IsShared ? new[] { ".so" } : new[] { ".a" };
+            return variant.IsShared ? [".so"] : [".a"];
         }
 
 
@@ -349,7 +351,7 @@ partial class Build
             TargetOs == TargetOperatingSystem.iOS ||
             TargetOs == TargetOperatingSystem.iOSSimulator)
         {
-            return variant.IsShared ? new[] { ".dylib" } : new[] { ".a" };
+            return variant.IsShared ? [".dylib"] : [".a"];
         }
 
         throw new InvalidOperationException("Unhandled TargetOS: " + TargetOs);

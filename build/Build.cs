@@ -23,7 +23,7 @@ static class VersionInfo
         {
             throw new InvalidOperationException("Cannot load skia version before Nuke is initialized");
         }
-        
+
         var submodulesContent = NukeBuild.RootDirectory / ".gitmodules";
         var text = submodulesContent.ReadAllText();
         const string marker = "branch = chrome/m";
@@ -32,16 +32,18 @@ static class VersionInfo
         {
             throw new IOException(".gitmodules does not contain the skia submodule branch");
         }
+
         var endOfMarker = text.IndexOf("\n", startOfMarker, StringComparison.Ordinal);
         return int.Parse(text[(startOfMarker + marker.Length)..endOfMarker].Trim());
     }
 
-    static readonly Version FileVersionBase = GetVariable<Version>("ALPHASKIA_VERSION_TEMPLATE") ?? new Version(1, 0, 0, 0);
+    static readonly Version FileVersionBase =
+        GetVariable<Version>("ALPHASKIA_VERSION_TEMPLATE") ?? new Version(1, 0, 0, 0);
 
     #endregion
 
     public static Version FileVersion =>
-        new (FileVersionBase.Major, FileVersionBase.Minor, SkiaVersion, BuildCounter);
+        new(FileVersionBase.Major, FileVersionBase.Minor, SkiaVersion, BuildCounter);
 
     public static readonly string Copyright = $"Copyright © {DateTime.Now.Year}, Daniel Kuschny";
     public const string AuthorId = "danielku15";
@@ -67,7 +69,7 @@ partial class Build : NukeBuild
 
     [Parameter] readonly bool IsReleaseBuild = GetVariable<bool?>("IS_RELEASE_BUILD") ?? false;
     [Parameter] readonly bool Rebuild;
-    
+
     public static int Main() => Execute<Build>();
 
     static void AppendToFlagList(
@@ -97,7 +99,7 @@ partial class Build : NukeBuild
         ".exe"
     };
 
-    Target PrepareGitHubArtifacts => _ => _
+    Target PrepareGitHubArtifacts => t => t
         .OnlyWhenStatic(() => IsGitHubActions)
         .Executes(() =>
         {
@@ -132,8 +134,10 @@ partial class Build : NukeBuild
         // known include path 
         if (subDir.Name == "include")
         {
-            FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
-                FileExistsPolicy.OverwriteIfNewer);
+            subDir.MoveToDirectory(
+                DistBasePath,
+                ExistsPolicy.MergeAndOverwrite
+            );
             Log.Debug("   Treated as header include dir");
             return;
         }
@@ -146,12 +150,14 @@ partial class Build : NukeBuild
             {
                 continue;
             }
-            
+
             if (AllLibExtensions.Contains(file.Extension) || file.NameWithoutExtension == "libalphaskiatest")
             {
                 // found a library or test executable  dir
-                FileSystemTasks.MoveDirectoryToDirectory(subDir, DistBasePath, DirectoryExistsPolicy.Merge,
-                    FileExistsPolicy.OverwriteIfNewer);
+                subDir.MoveToDirectory(
+                    DistBasePath,
+                    ExistsPolicy.MergeAndOverwriteIfNewer
+                );
                 Log.Debug("   Treated as library dir");
                 return;
             }
@@ -163,22 +169,27 @@ partial class Build : NukeBuild
                 var netDir = file / ".." / ".." / ".." / "..";
                 if (netDir.DirectoryExists() && netDir.Name == "net")
                 {
-                    FileSystemTasks.MoveDirectoryToDirectory(netDir.Parent, DistBasePath,
-                        DirectoryExistsPolicy.Merge,
-                        FileExistsPolicy.OverwriteIfNewer);
+                    netDir.Parent.MoveToDirectory(
+                        DistBasePath,
+                        ExistsPolicy.MergeAndOverwriteIfNewer
+                    );
                     return;
                 }
             }
             else if (file.Extension is ".nupkg" or ".snupkg")
             {
                 // flatten nugets
-                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "nupkgs",
-                    FileExistsPolicy.OverwriteIfNewer);
+                file.MoveToDirectory(
+                    DistBasePath / "nupkgs",
+                    ExistsPolicy.MergeAndOverwriteIfNewer
+                );
             }
             else if (file.Extension is ".tgz")
             {
-                FileSystemTasks.MoveFileToDirectory(file, DistBasePath / "nodetars",
-                    FileExistsPolicy.OverwriteIfNewer);
+                file.MoveToDirectory(
+                    DistBasePath / "nodetars",
+                    ExistsPolicy.MergeAndOverwriteIfNewer
+                );
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using JetBrains.Annotations;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Serilog;
@@ -9,7 +10,8 @@ partial class Build
 {
     Lazy<bool> LibSkiaSkip => new(() => CanUseCachedBinaries("libskia", Variant.Static));
 
-    public Target LibSkiaGitSyncDeps => _ => _
+    [PublicAPI]
+    public Target LibSkiaGitSyncDeps => t => t
         .Unlisted()
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .DependsOn(SetupDepotTools)
@@ -37,7 +39,7 @@ partial class Build
             return GitSyncDepsCustom(requiredDependencies);
         });
 
-    public Target LibSkiaWithCache => _ => _
+    public Target LibSkiaWithCache => t => t
         .Unlisted()
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
@@ -51,7 +53,7 @@ partial class Build
                 if (File.Exists(outputsFile))
                 {
                     File.AppendAllLines(outputsFile,
-                        new[] { $"build-skipped={LibSkiaSkip.Value.ToString().ToLowerInvariant()}\n" });
+                        [$"build-skipped={LibSkiaSkip.Value.ToString().ToLowerInvariant()}\n"]);
                 }
                 else
                 {
@@ -61,8 +63,7 @@ partial class Build
 
             if (LibSkiaSkip.Value)
             {
-                FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
-                    FileExistsPolicy.OverwriteIfNewer);
+                DistBasePath.Copy(ArtifactBasePath, ExistsPolicy.MergeAndOverwriteIfNewer);
             }
             else
             {
@@ -71,14 +72,16 @@ partial class Build
         })
         .Triggers(LibSkia);
 
-    public Target LibSkia => _ => _
+    [PublicAPI]
+    public Target LibSkia => t => t
         .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
         .Executes(BuildSkia);
 
-    public Target LibSkiaPatchSkiaBuildFiles => _ => _
+    [PublicAPI]
+    public Target LibSkiaPatchSkiaBuildFiles => t => t
         .Unlisted()
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .After(LibSkiaGitSyncDeps)
@@ -110,12 +113,12 @@ partial class Build
             var depsList = buildFileSource.Substring(depsListStart, depsListEnd - depsListStart);
             if (!depsList.Contains("//third_party/harfbuzz"))
             {
-                var newDepsList = depsList.TrimEnd('\r', '\n', '\t', ' ', ',') 
-                + ", \"//third_party/harfbuzz\", \"//third_party/freetype2\", "
-                ;
+                var newDepsList = depsList.TrimEnd('\r', '\n', '\t', ' ', ',')
+                                  + ", \"//third_party/harfbuzz\", \"//third_party/freetype2\", "
+                    ;
                 buildFileSource = buildFileSource[..depsListStart]
-                                         + newDepsList
-                                         + buildFileSource[depsListEnd..];
+                                  + newDepsList
+                                  + buildFileSource[depsListEnd..];
             }
 
             var sourcesStartMarker = "sources = []";
@@ -200,8 +203,8 @@ partial class Build
                 newSources += "  }\n";
 
                 buildFileSource = buildFileSource[..sourcesEnd]
-                                         + newSources
-                                         + buildFileSource[sourcesEnd..];
+                                  + newSources
+                                  + buildFileSource[sourcesEnd..];
             }
 
             buildFile.WriteAllText(buildFileSource);
@@ -217,10 +220,10 @@ partial class Build
         var buildFile = SkiaPath / "third_party" / "externals" / "vulkanmemoryallocator" / "include" / "vk_mem_alloc.h";
 
         var include = """
-            #if VMA_STATS_STRING_ENABLED
-                #include <cstdio> // For snprintf
-            #endif
-        """;
+                          #if VMA_STATS_STRING_ENABLED
+                              #include <cstdio> // For snprintf
+                          #endif
+                      """;
 
         PatchSkiaFile(buildFile, include, "cstdio", "//",
             source =>
@@ -282,8 +285,8 @@ partial class Build
         void CopyBuildOutputTo(AbsolutePath path)
         {
             // libs
-            FileSystemTasks.CopyDirectoryRecursively(outDir, path, DirectoryExistsPolicy.Merge,
-                FileExistsPolicy.OverwriteIfNewer, null, file => !libExtension.Contains(file.Extension));
+            outDir.Copy(path, ExistsPolicy.MergeAndOverwriteIfNewer, null,
+                file => !libExtension.Contains(file.Extension));
         }
 
         CopyBuildOutputTo(distPath);
