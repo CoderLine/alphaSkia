@@ -1,5 +1,9 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
+
 plugins {
-    id("java-library")
+    `java-library`
+    alias(libs.plugins.mavenPublish)
     `maven-publish`
     signing
 }
@@ -8,8 +12,6 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
-    withSourcesJar()
-    withJavadocJar()
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -17,8 +19,8 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
 }
 
 tasks.test {
@@ -27,4 +29,9 @@ tasks.test {
 
 tasks.jar {
     archiveBaseName = "alphaSkia"
+}
+
+mavenPublishing {
+    coordinates(rootProject.group.toString(), "alphaSkia", rootProject.version.toString())
+    configure(JavaLibrary(JavadocJar.Javadoc(), true))
 }
