@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <CRTDBG.h>
-
 #ifndef ALPHASKIA_TEST_RID
 #error "Missing alphaSkia runtime identifier, please specify ALPHASKIA_TEST_RID";
 #endif
@@ -107,10 +105,6 @@ int main(int argc, char **argv)
     {
         return 1;
     }
-
-    std::cout << "Enter to continue" << std::endl;
-    std::string skip;
-    std::getline(std::cin, skip);
 
     // Load all fonts for rendering
     std::cout << "Loading fonts" << std::endl;
