@@ -28,6 +28,16 @@ extern "C"
         return reinterpret_cast<AlphaSkiaTextMetrics *>(text_metrics)->get_font_bounding_box_descent();
     }
 
+    AS_API float alphaskia_text_metrics_get_actual_bounding_box_ascent(alphaskia_text_metrics_t text_metrics)
+    {
+        return reinterpret_cast<AlphaSkiaTextMetrics *>(text_metrics)->get_actual_bounding_box_ascent();
+    }
+
+    AS_API float alphaskia_text_metrics_get_actual_bounding_box_descent(alphaskia_text_metrics_t text_metrics)
+    {
+        return reinterpret_cast<AlphaSkiaTextMetrics *>(text_metrics)->get_actual_bounding_box_descent();
+    }
+
     AS_API float alphaskia_text_metrics_get_em_height_ascent(alphaskia_text_metrics_t text_metrics)
     {
         return reinterpret_cast<AlphaSkiaTextMetrics *>(text_metrics)->get_em_height_ascent();

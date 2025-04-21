@@ -13,11 +13,94 @@
 #include "../../externals/skia/include/core/SkRefCnt.h"
 #include "../../externals/skia/modules/skparagraph/include/FontCollection.h"
 #include "../../externals/skia/modules/skparagraph/include/ParagraphBuilder.h"
+#include "../../externals/skia/modules/skparagraph/src/ParagraphImpl.h"
 
 #include <codecvt>
 #include <locale>
 #include <string>
 #include <iostream>
+
+#define kHangingAsPercentOfAscent 80
+
+float float_ascent(const SkFontMetrics &metrics)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/font_metrics.h;l=49?q=FloatAscent&ss=chromium%2Fchromium%2Fsrc
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=131;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/font_metrics.cc;l=112;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1
+    return SkScalarRoundToScalar(-metrics.fAscent);
+}
+
+float float_descent(const SkFontMetrics &metrics)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/font_metrics.cc;l=112;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1
+    return SkScalarRoundToScalar(metrics.fDescent);
+}
+
+std::pair<int16_t, int16_t> typo_ascender_and_descender(SkTypeface *typeface)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=388;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d?q=TypoAscenderAndDescender&sq=&ss=chromium%2Fchromium%2Fsrc
+    uint8_t buffer[4];
+    size_t size = typeface->getTableData(SkSetFourByteTag('O', 'S', '/', '2'), 68,
+                                         sizeof(buffer), buffer);
+    if (size == sizeof(buffer))
+    {
+        return std::make_pair(
+            (int16_t)((buffer[0] << 8) | buffer[1]),
+            -(int16_t)((buffer[2] << 8) | buffer[3]));
+    }
+
+    return std::make_pair(0, 0);
+}
+
+const uint32_t layoutUnitFractionalBits_ = 6;
+const int fixedPointDenominator_ = 1 << layoutUnitFractionalBits_;
+
+int float_to_layout_unit(float value)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&ss=chromium%2Fchromium%2Fsrc
+    return static_cast<int>(roundf(value * fixedPointDenominator_));
+}
+
+float layout_unit_to_float(int value)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&sq=&ss=chromium%2Fchromium%2Fsrc    return static_cast<int>(roundf(value * kFixedPointDenominator))
+    return static_cast<float>(value) / fixedPointDenominator_;
+}
+
+bool try_set_normalized_typo_ascent_and_descent(float em_height, float typo_ascent, float typo_descent, int &ascent, int &descent)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=422;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=NormalizedTypoAscentAndDescent&ss=chromium%2Fchromium%2Fsrc
+    const float height = typo_ascent + typo_descent;
+    if (height <= 0 || typo_ascent < 0 || typo_descent > height)
+    {
+        return false;
+    }
+
+    ascent = float_to_layout_unit(typo_ascent * em_height / height);
+    descent = float_to_layout_unit(em_height) - ascent;
+    return true;
+}
+
+void normalized_typo_ascent_and_descent(const SkFont &font, int &ascent, int &descent)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=366;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=NormalizedTypoAscentAndDescent&ss=chromium%2Fchromium%2Fsrc
+    SkTypeface *typeface = font.getTypeface();
+    auto [typo_ascender, typo_descender] = typo_ascender_and_descender(typeface);
+
+    if (typo_ascender > 0 &&
+        try_set_normalized_typo_ascent_and_descent(font.getSize(), typo_ascender, typo_descender, ascent, descent))
+    {
+        return;
+    }
+
+    // As the last resort, compute em height metrics from our ascent/descent.
+    SkFontMetrics metrics;
+    font.getMetrics(&metrics);
+    if (try_set_normalized_typo_ascent_and_descent(font.getSize(), float_ascent(metrics), float_descent(metrics), ascent, descent))
+    {
+        return;
+    }
+}
 
 AlphaSkiaCanvas::AlphaSkiaCanvas()
     : color_(SK_ColorWHITE), line_width_(1.0f)
@@ -217,25 +300,76 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
     paragraph->paint(surface_->getCanvas(), x, y);
 }
 
-AlphaSkiaTextMetrics* AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
     auto paragraph(build_paragraph(text, text_length, text_style, font_size, alphaskia_text_align_t::alphaskia_text_align_left));
-
     paragraph->layout(10000);
 
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc;l=1290
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc
+
+    // the original HTML5 canvas doesn't really support newlines, we simply calculate everything with the
+    // first line
+
+    skia::textlayout::ParagraphImpl *paragraphImpl = reinterpret_cast<skia::textlayout::ParagraphImpl *>(paragraph.get());
+    auto &line0 = paragraphImpl->lines()[0];
+
+    float width = static_cast<float>(paragraph->getMaxIntrinsicWidth());
+
+    auto text_align_dx_ = 0.0f;
+    if (text_align == alphaskia_text_align_t::alphaskia_text_align_center)
+    {
+        text_align_dx_ = width / 2.0f;
+    }
+    else if (text_align == alphaskia_text_align_t::alphaskia_text_align_right)
+    {
+        text_align_dx_ = width;
+    }
+    else
+    {
+        text_align_dx_ = 0;
+    }
+
+    auto lineOffset = line0.offset();
+    float actual_bounding_box_left = -lineOffset.fX + text_align_dx_;
+    float actual_bounding_box_right = (lineOffset.fX + line0.width()) - text_align_dx_;
+
+    SkFont font = paragraph->getFontAt(0);
+
+    SkFontMetrics font_metrics;
+    font.getMetrics(&font_metrics);
+    const float ascent = float_ascent(font_metrics);
+    const float descent = float_descent(font_metrics);
+    const float baseline_y = get_font_baseline(font, baseline);
+
+    float font_bounding_box_ascent = ascent - baseline_y;
+    float font_bounding_box_descent = descent + baseline_y;
+    float actual_bounding_box_ascent = -lineOffset.fY - baseline_y;
+    float actual_bounding_box_descent = (lineOffset.fY + line0.height()) + baseline_y;
+
+    int normalizedAscent = 0;
+    int normalizedDescent = 0;
+    normalized_typo_ascent_and_descent(font, normalizedAscent, normalizedDescent);
+    float em_height_ascent = normalizedAscent - baseline_y;
+    float em_height_descent = normalizedDescent + baseline_y;
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc;l=174;drc=1d737975521c1d4191937c2c659bd78d9f1681f4;bpv=0;bpt=1
+    float hanging_baseline = ascent * kHangingAsPercentOfAscent / 100.0f - baseline_y;
+    float alphabetic_baseline = line0.alphabeticBaseline();
+    float ideographic_baseline = line0.ideographicBaseline();
+
     return new AlphaSkiaTextMetrics(
-        static_cast<float>(paragraph->getMaxIntrinsicWidth()),
-        // TODO
-        0, 
-        0, 
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-    );
+        width,
+        actual_bounding_box_left,
+        actual_bounding_box_right,
+        font_bounding_box_ascent,
+        font_bounding_box_descent,
+        actual_bounding_box_ascent,
+        actual_bounding_box_descent,
+        em_height_ascent,
+        em_height_descent,
+        hanging_baseline,
+        alphabetic_baseline,
+        ideographic_baseline);
 }
 
 void AlphaSkiaCanvas::begin_rotate(float center_x, float center_y, float angle)
@@ -256,86 +390,6 @@ void AlphaSkiaCanvas::draw_image(sk_sp<SkImage> image, float x, float y, float w
     surface_->getCanvas()->drawImageRect(image, SkRect::MakeXYWH(x, y, w, h), sampling);
 }
 
-float float_ascent(const SkFontMetrics &metrics)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/font_metrics.h;l=49?q=FloatAscent&ss=chromium%2Fchromium%2Fsrc
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=131;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/font_metrics.cc;l=112;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1
-    return SkScalarRoundToScalar(-metrics.fAscent);
-}
-
-float float_descent(const SkFontMetrics &metrics)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/font_metrics.cc;l=112;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1
-    return SkScalarRoundToScalar(metrics.fDescent);
-}
-
-std::pair<int16_t, int16_t> typo_ascender_and_descender(SkTypeface *typeface)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=388;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d?q=TypoAscenderAndDescender&sq=&ss=chromium%2Fchromium%2Fsrc
-    uint8_t buffer[4];
-    size_t size = typeface->getTableData(SkSetFourByteTag('O', 'S', '/', '2'), 68,
-                                         sizeof(buffer), buffer);
-    if (size == sizeof(buffer))
-    {
-        return std::make_pair(
-            (int16_t)((buffer[0] << 8) | buffer[1]),
-            -(int16_t)((buffer[2] << 8) | buffer[3]));
-    }
-
-    return std::make_pair(0, 0);
-}
-
-const uint32_t layoutUnitFractionalBits_ = 6;
-const int fixedPointDenominator_ = 1 << layoutUnitFractionalBits_;
-
-int float_to_layout_unit(float value)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&ss=chromium%2Fchromium%2Fsrc
-    return static_cast<int>(roundf(value * fixedPointDenominator_));
-}
-
-float layout_unit_to_float(int value)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&sq=&ss=chromium%2Fchromium%2Fsrc    return static_cast<int>(roundf(value * kFixedPointDenominator))
-    return static_cast<float>(value) / fixedPointDenominator_;
-}
-
-bool try_set_normalized_typo_ascent_and_descent(float em_height, float typo_ascent, float typo_descent, int &ascent, int &descent)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=422;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=NormalizedTypoAscentAndDescent&ss=chromium%2Fchromium%2Fsrc
-    const float height = typo_ascent + typo_descent;
-    if (height <= 0 || typo_ascent < 0 || typo_descent > height)
-    {
-        return false;
-    }
-
-    ascent = float_to_layout_unit(typo_ascent * em_height / height);
-    descent = float_to_layout_unit(em_height) - ascent;
-    return true;
-}
-
-void normalized_typo_ascent_and_descent(const SkFont &font, int &ascent, int &descent)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=366;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=NormalizedTypoAscentAndDescent&ss=chromium%2Fchromium%2Fsrc
-    SkTypeface *typeface = font.getTypeface();
-    auto [typo_ascender, typo_descender] = typo_ascender_and_descender(typeface);
-
-    if (typo_ascender > 0 &&
-        try_set_normalized_typo_ascent_and_descent(font.getSize(), typo_ascender, typo_descender, ascent, descent))
-    {
-        return;
-    }
-
-    // As the last resort, compute em height metrics from our ascent/descent.
-    SkFontMetrics metrics;
-    font.getMetrics(&metrics);
-    if (try_set_normalized_typo_ascent_and_descent(font.getSize(), float_ascent(metrics), float_descent(metrics), ascent, descent))
-    {
-        return;
-    }
-}
-
 float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_baseline_t baseline)
 {
     // https://github.com/chromium/chromium/blob/99314be8152e688bafbbf9a615536bdbb289ea87/third_party/blink/renderer/core/html/canvas/text_metrics.cc#L14
@@ -352,7 +406,6 @@ float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_base
         baselineOffset = 0;
         break;
     case alphaskia_text_baseline_top: // kHangingTextBaseline
-#define kHangingAsPercentOfAscent 80
         baselineOffset = float_ascent(metrics) * kHangingAsPercentOfAscent / 100.0f;
         break;
     case alphaskia_text_baseline_middle: // kMiddleTextBaseline

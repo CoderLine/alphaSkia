@@ -21,12 +21,14 @@ public:
         float actual_bounding_box_right,
         float font_bounding_box_ascent,
         float font_bounding_box_descent,
+        float actual_bounding_box_ascent,
+        float actual_bounding_box_descent,
         float em_height_ascent,
         float em_height_descent,
         float hanging_baseline,
         float alphabetic_baseline,
         float ideographic_baseline)
-        : width_(width), actual_bounding_box_left_(actual_bounding_box_left), actual_bounding_box_right_(actual_bounding_box_right), font_bounding_box_ascent_(font_bounding_box_ascent), font_bounding_box_descent_(font_bounding_box_descent), em_height_ascent_(em_height_ascent), em_height_descent_(em_height_descent), hanging_baseline_(hanging_baseline), alphabetic_baseline_(alphabetic_baseline), ideographic_baseline_(ideographic_baseline)
+        : width_(width), actual_bounding_box_left_(actual_bounding_box_left), actual_bounding_box_right_(actual_bounding_box_right), font_bounding_box_ascent_(font_bounding_box_ascent), font_bounding_box_descent_(font_bounding_box_descent), actual_bounding_box_ascent_(actual_bounding_box_ascent), actual_bounding_box_descent_(actual_bounding_box_descent), em_height_ascent_(em_height_ascent), em_height_descent_(em_height_descent), hanging_baseline_(hanging_baseline), alphabetic_baseline_(alphabetic_baseline), ideographic_baseline_(ideographic_baseline)
     {
     }
 
@@ -35,6 +37,8 @@ public:
     float get_actual_bounding_box_right() const { return actual_bounding_box_right_; }
     float get_font_bounding_box_ascent() const { return font_bounding_box_ascent_; }
     float get_font_bounding_box_descent() const { return font_bounding_box_descent_; }
+    float get_actual_bounding_box_ascent() const { return actual_bounding_box_ascent_; }
+    float get_actual_bounding_box_descent() const { return actual_bounding_box_descent_; }
     float get_em_height_ascent() const { return em_height_ascent_; }
     float get_em_height_descent() const { return em_height_descent_; }
     float get_hanging_baseline() const { return hanging_baseline_; }
@@ -47,6 +51,8 @@ private:
     float actual_bounding_box_right_;
     float font_bounding_box_ascent_;
     float font_bounding_box_descent_;
+    float actual_bounding_box_ascent_;
+    float actual_bounding_box_descent_;
     float em_height_ascent_;
     float em_height_descent_;
     float hanging_baseline_;

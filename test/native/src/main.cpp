@@ -84,8 +84,8 @@ bool write_data_to_file_and_free(alphaskia_data_t data, std::string path)
     return true;
 }
 
-
-void empty_image_test() {
+void empty_image_test()
+{
     // https://github.com/CoderLine/alphaSkia/issues/53
     auto canvas = alphaskia_canvas_new();
     alphaskia_canvas_begin_render(canvas, 0, 0, 1);
@@ -97,6 +97,47 @@ void empty_image_test() {
     alphaskia_canvas_free(canvas);
 }
 
+void measure_test()
+{
+    // https://github.com/CoderLine/alphaSkia/issues/53
+    auto canvas = alphaskia_canvas_new();
+
+    std::vector<const char *> familyNames({"Noto Sans"});
+
+    auto text_style = alphaskia_text_style_new(
+        familyNames.size(),
+        const_cast<const char **>(familyNames.data()),
+        400,
+        0);
+
+    auto text_metrics = alphaskia_canvas_measure_text(
+        canvas,
+        u"Hello World",
+        11,
+        text_style,
+        18,
+        alphaskia_text_align_center,
+        alphaskia_text_baseline_alphabetic);
+
+    std::cout << "Hello World (Noto Sans 18px) Text Metrics" << std::endl;
+    std::cout << "  get_width: " << alphaskia_text_metrics_get_width(text_metrics) << std::endl;
+    std::cout << "  get_actual_bounding_box_left: " << alphaskia_text_metrics_get_actual_bounding_box_left(text_metrics) << std::endl;
+    std::cout << "  get_actual_bounding_box_right: " << alphaskia_text_metrics_get_actual_bounding_box_right(text_metrics) << std::endl;
+    std::cout << "  get_font_bounding_box_ascent: " << alphaskia_text_metrics_get_font_bounding_box_ascent(text_metrics) << std::endl;
+    std::cout << "  get_font_bounding_box_descent: " << alphaskia_text_metrics_get_font_bounding_box_descent(text_metrics) << std::endl;
+    std::cout << "  get_actual_bounding_box_ascent: " << alphaskia_text_metrics_get_actual_bounding_box_ascent(text_metrics) << std::endl;
+    std::cout << "  get_actual_bounding_box_descent: " << alphaskia_text_metrics_get_actual_bounding_box_descent(text_metrics) << std::endl;
+    std::cout << "  get_em_height_ascent: " << alphaskia_text_metrics_get_em_height_ascent(text_metrics) << std::endl;
+    std::cout << "  get_em_height_descent: " << alphaskia_text_metrics_get_em_height_descent(text_metrics) << std::endl;
+    std::cout << "  get_hanging_baseline: " << alphaskia_text_metrics_get_hanging_baseline(text_metrics) << std::endl;
+    std::cout << "  get_alphabetic_baseline: " << alphaskia_text_metrics_get_alphabetic_baseline(text_metrics) << std::endl;
+    std::cout << "  get_ideographic_baseline: " << alphaskia_text_metrics_get_ideographic_baseline(text_metrics) << std::endl;
+
+    alphaskia_text_metrics_free(text_metrics);
+    alphaskia_text_style_free(text_style);
+
+    alphaskia_canvas_free(canvas);
+}
 
 int main(int argc, char **argv)
 {
@@ -124,6 +165,10 @@ int main(int argc, char **argv)
     empty_image_test();
     std::cout << "Image worked" << std::endl;
 
+    std::cout << "Measure Test" << std::endl;
+    measure_test();
+    std::cout << "Measure Test Done" << std::endl;
+
     // Load all fonts for rendering
     std::cout << "Loading fonts" << std::endl;
     std::filesystem::path test_data_path = repository_root / "test" / "test-data";
@@ -132,7 +177,7 @@ int main(int argc, char **argv)
     auto music_typeface_weight = alphaskia_typeface_get_weight(music_typeface);
     auto music_typeface_italic = alphaskia_typeface_is_italic(music_typeface);
     auto music_typeface_name_raw = alphaskia_string_get_utf8(music_typeface_name);
-    music_text_style = alphaskia_textstyle_new(1, &music_typeface_name_raw, music_typeface_weight, music_typeface_italic);
+    music_text_style = alphaskia_text_style_new(1, &music_typeface_name_raw, music_typeface_weight, music_typeface_italic);
     alphaskia_string_free(music_typeface_name);
 
     alphaskia_load_typeface((test_data_path / "font" / "noto-sans" / "NotoSans-Regular.otf").generic_string());
