@@ -9,7 +9,7 @@ public class Architecture : Enumeration
     public static readonly Architecture X64 = new()
         { Value = "x64", LinuxArch = "amd64", LinuxCrossToolchain = "", LinuxCrossTargetArch = "" };
 
-    public static Architecture X86 = new()
+    public static readonly Architecture X86 = new()
     {
         Value = "x86", LinuxArch = "i386", LinuxCrossToolchain = "i686-linux-gnu",
         LinuxCrossTargetArch = "i686-linux-gnu"

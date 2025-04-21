@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using JetBrains.Annotations;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Serilog;
@@ -9,7 +10,8 @@ partial class Build
 {
     Lazy<bool> LibSkiaSkip => new(() => CanUseCachedBinaries("libskia", Variant.Static));
 
-    public Target LibSkiaGitSyncDeps => _ => _
+    [PublicAPI]
+    public Target LibSkiaGitSyncDeps => t => t
         .Unlisted()
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .DependsOn(SetupDepotTools)
@@ -37,7 +39,7 @@ partial class Build
             return GitSyncDepsCustom(requiredDependencies);
         });
 
-    public Target LibSkiaWithCache => _ => _
+    public Target LibSkiaWithCache => t => t
         .Unlisted()
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
@@ -51,7 +53,7 @@ partial class Build
                 if (File.Exists(outputsFile))
                 {
                     File.AppendAllLines(outputsFile,
-                        new[] { $"build-skipped={LibSkiaSkip.Value.ToString().ToLowerInvariant()}\n" });
+                        [$"build-skipped={LibSkiaSkip.Value.ToString().ToLowerInvariant()}\n"]);
                 }
                 else
                 {
@@ -61,8 +63,7 @@ partial class Build
 
             if (LibSkiaSkip.Value)
             {
-                FileSystemTasks.CopyDirectoryRecursively(DistBasePath, ArtifactBasePath, DirectoryExistsPolicy.Merge,
-                    FileExistsPolicy.OverwriteIfNewer);
+                DistBasePath.Copy(ArtifactBasePath, ExistsPolicy.MergeAndOverwriteIfNewer);
             }
             else
             {
@@ -71,14 +72,16 @@ partial class Build
         })
         .Triggers(LibSkia);
 
-    public Target LibSkia => _ => _
+    [PublicAPI]
+    public Target LibSkia => t => t
         .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
         .Executes(BuildSkia);
 
-    public Target LibSkiaPatchSkiaBuildFiles => _ => _
+    [PublicAPI]
+    public Target LibSkiaPatchSkiaBuildFiles => t => t
         .Unlisted()
         .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .After(LibSkiaGitSyncDeps)
@@ -110,12 +113,12 @@ partial class Build
             var depsList = buildFileSource.Substring(depsListStart, depsListEnd - depsListStart);
             if (!depsList.Contains("//third_party/harfbuzz"))
             {
-                var newDepsList = depsList.TrimEnd('\r', '\n', '\t', ' ', ',') 
-                + ", \"//third_party/harfbuzz\", \"//third_party/freetype2\", "
-                ;
+                var newDepsList = depsList.TrimEnd('\r', '\n', '\t', ' ', ',')
+                                  + ", \"//third_party/harfbuzz\", \"//third_party/freetype2\", "
+                    ;
                 buildFileSource = buildFileSource[..depsListStart]
-                                         + newDepsList
-                                         + buildFileSource[depsListEnd..];
+                                  + newDepsList
+                                  + buildFileSource[depsListEnd..];
             }
 
             var sourcesStartMarker = "sources = []";
@@ -150,30 +153,15 @@ partial class Build
                 newSources += "  ]\n";
                 // ensure we have the OS specific font managers available
                 newSources += "  if (is_win) {\n";
-                newSources += "    sources += [\n";
-                newSources += "      \"include/ports/SkFontMgr_indirect.h\",\n";
-                newSources += "      \"include/ports/SkRemotableFontMgr.h\",\n";
-                newSources += "      \"src/fonts/SkFontMgr_indirect.cpp\",\n";
-                newSources += "      \"src/ports/SkFontMgr_win_dw.cpp\",\n";
-                newSources += "      \"src/ports/SkScalerContext_win_dw.cpp\",\n";
-                newSources += "      \"src/ports/SkScalerContext_win_dw.h\",\n";
-                newSources += "      \"src/ports/SkTypeface_win_dw.cpp\",\n";
-                newSources += "      \"src/ports/SkTypeface_win_dw.h\",\n";
-                newSources += "    ]\n";
+                newSources += "    sources += skia_ports_windows_fonts_sources\n";
                 newSources += "  }\n";
                 newSources += "  if (is_linux) {\n";
                 newSources += "    public_deps += [ \"//third_party:fontconfig\" ]\n";
-                newSources += "    sources += [\n";
-                newSources += "      \"src/ports/SkFontMgr_fontconfig.cpp\",\n";
-                newSources += "    ]\n";
+                newSources += "    sources += skia_ports_fontmgr_fontconfig_sources\n";
                 newSources += "  }\n";
                 newSources += "  if (is_android) {\n";
                 newSources += "    deps += [ \"//third_party/expat\" ]\n";
-                newSources += "    sources += [\n";
-                newSources += "      \"src/ports/SkFontMgr_android.cpp\",\n";
-                newSources += "      \"src/ports/SkFontMgr_android_parser.cpp\",\n";
-                newSources += "      \"src/ports/SkFontMgr_android_parser.h\",\n";
-                newSources += "    ]\n";
+                newSources += "    sources += skia_ports_fontmgr_android_sources\n";
                 newSources += "  }\n";
                 newSources += "  frameworks = []\n";
                 newSources += "  if (is_mac) {\n";
@@ -181,13 +169,7 @@ partial class Build
                 newSources += "      \"AppKit.framework\",\n";
                 newSources += "      \"ApplicationServices.framework\",\n";
                 newSources += "    ]\n";
-                newSources += "    sources += [\n";
-                newSources += "      \"src/ports/SkFontMgr_mac_ct.cpp\",\n";
-                newSources += "      \"src/ports/SkScalerContext_mac_ct.cpp\",\n";
-                newSources += "      \"src/ports/SkScalerContext_mac_ct.h\",\n";
-                newSources += "      \"src/ports/SkTypeface_mac_ct.cpp\",\n";
-                newSources += "      \"src/ports/SkTypeface_mac_ct.h\",\n";
-                newSources += "    ]\n";
+                newSources += "    sources += skia_ports_fontmgr_coretext_sources\n";
                 newSources += "  }\n";
                 newSources += "  if (is_ios) {\n";
                 newSources += "    frameworks += [\n";
@@ -196,32 +178,14 @@ partial class Build
                 newSources += "      \"CoreText.framework\",\n";
                 newSources += "      \"UIKit.framework\",\n";
                 newSources += "    ]\n";
-                newSources += "    sources += [\n";
-                newSources += "      \"src/ports/SkFontMgr_mac_ct.cpp\",\n";
-                newSources += "      \"src/ports/SkScalerContext_mac_ct.cpp\",\n";
-                newSources += "      \"src/ports/SkScalerContext_mac_ct.h\",\n";
-                newSources += "      \"src/ports/SkTypeface_mac_ct.cpp\",\n";
-                newSources += "      \"src/ports/SkTypeface_mac_ct.h\",\n";
-                newSources += "    ]\n";
+                newSources += "    sources += skia_ports_fontmgr_coretext_sources\n";
                 newSources += "  }\n";
                 newSources += "  ";
-
-                buildFileSource = buildFileSource[..sourcesEnd]
-                                         + newSources
-                                         + buildFileSource[sourcesEnd..];
-            }
-
-            const string emptyFactoryFile = "  sources = [ \"src/ports/SkFontMgr_empty_factory.cpp\" ]";
-            var emptyFactoryIndex = buildFileSource.IndexOf(emptyFactoryFile);
-            if(emptyFactoryIndex >= 0) 
-            {
-                var newSources = "  sources = [\n";
-                newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia_factory.cpp\",\n";
+                newSources += "  sources += [\n";
                 newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia.cpp\",\n";
                 newSources += "    \"../../wrapper/include/SkFontMgr_alphaskia.h\",\n";
                 newSources += "  ]\n";
-                newSources += "  public = [ \"../../wrapper/include/SkFontMgr_alphaskia.h\" ]";
-                newSources += "  defines = []\n";
+                newSources += "  public += [ \"../../wrapper/include/SkFontMgr_alphaskia.h\" ]";
                 newSources += "  if (is_win) {\n";
                 newSources += "    defines += [ \"ALPHASKIA_FONTMGR_WINDOWS\" ]\n";
                 newSources += "  }\n";
@@ -238,9 +202,9 @@ partial class Build
                 newSources += "    defines += [ \"ALPHASKIA_FONTMGR_IOS\" ]\n";
                 newSources += "  }\n";
 
-                buildFileSource = buildFileSource[..emptyFactoryIndex]
-                                + newSources
-                                + buildFileSource[(emptyFactoryIndex + emptyFactoryFile.Length)..];
+                buildFileSource = buildFileSource[..sourcesEnd]
+                                  + newSources
+                                  + buildFileSource[sourcesEnd..];
             }
 
             buildFile.WriteAllText(buildFileSource);
@@ -256,10 +220,10 @@ partial class Build
         var buildFile = SkiaPath / "third_party" / "externals" / "vulkanmemoryallocator" / "include" / "vk_mem_alloc.h";
 
         var include = """
-            #if VMA_STATS_STRING_ENABLED
-                #include <cstdio> // For snprintf
-            #endif
-        """;
+                          #if VMA_STATS_STRING_ENABLED
+                              #include <cstdio> // For snprintf
+                          #endif
+                      """;
 
         PatchSkiaFile(buildFile, include, "cstdio", "//",
             source =>
@@ -321,8 +285,8 @@ partial class Build
         void CopyBuildOutputTo(AbsolutePath path)
         {
             // libs
-            FileSystemTasks.CopyDirectoryRecursively(outDir, path, DirectoryExistsPolicy.Merge,
-                FileExistsPolicy.OverwriteIfNewer, null, file => !libExtension.Contains(file.Extension));
+            outDir.Copy(path, ExistsPolicy.MergeAndOverwriteIfNewer, null,
+                file => !libExtension.Contains(file.Extension));
         }
 
         CopyBuildOutputTo(distPath);

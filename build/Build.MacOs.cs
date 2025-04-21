@@ -5,14 +5,7 @@ partial class Build
 {
     void SetClangMacOs(Dictionary<string, string> gnArgs)
     {
-        if (TargetOs == TargetOperatingSystem.MacOs)
-        {
-            AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_ARC4RANDOM_BUF', '-stdlib=libc++'");
-        }
-        else
-        {
-            AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_ARC4RANDOM_BUF', '-stdlib=libc++'");
-        }
+        AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_ARC4RANDOM_BUF', '-stdlib=libc++'");
         AppendToFlagList(gnArgs, "extra_ldflags", "'-stdlib=libc++'");
     }
 

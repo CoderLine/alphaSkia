@@ -1,8 +1,9 @@
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.mavenPublish)
     `maven-publish`
     signing
 }
@@ -40,7 +41,6 @@ tasks.register<Copy>("copyJniForAndroid") {
 }
 tasks.preBuild.dependsOn("copyJniForAndroid")
 
-
 android {
     namespace = "net.alphatab.alphaskia.android"
     compileSdk = 34
@@ -62,12 +62,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
 }
 
+mavenPublishing {
+    coordinates(rootProject.group.toString(), "alphaSkia-android", rootProject.version.toString())
+    configure(
+        AndroidSingleVariantLibrary(
+            variant = "release",
+            sourcesJar = true,
+            publishJavadocJar = true
+        )
+    )
+}

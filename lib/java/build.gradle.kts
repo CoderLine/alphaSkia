@@ -2,10 +2,10 @@ import java.io.FileInputStream
 import java.util.*
 
 plugins {
-    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
-    id("com.android.library") version "8.1.0" apply false
+    alias(libs.plugins.android.library) apply false
 }
 
+val libGroup = "net.alphatab"
 var sonatypeSigningKeyId = ""
 var sonatypeSigningPassword = ""
 var sonatypeSigningKey = ""
@@ -65,7 +65,7 @@ loadSetting("ALPHASKIA_LICENSE_SPDX", "alphaskiaLicenseSpdx") { libLicenseSpdx =
 loadSetting("ALPHASKIA_LICENSE_URL", "alphaskiaLicenseUrl") { libLicenseUrl = it }
 loadSetting("ALPHASKIA_ISSUES_URL", "alphaskiaIssuesUrl") { libIssuesUrl = it }
 
-group = "net.alphatab"
+group = libGroup
 version = libVersion
 
 subprojects {
@@ -78,17 +78,8 @@ subprojects {
         mavenCentral()
     }
 
-    group = "net.alphatab"
+    group = libGroup
     version = libVersion
-
-    configure<SigningExtension> {
-        if (sonatypeSigningKeyId.isNotBlank() && sonatypeSigningKey.isNotBlank() && sonatypeSigningPassword.isNotBlank()) {
-            useInMemoryPgpKeys(sonatypeSigningKeyId, sonatypeSigningKey, sonatypeSigningPassword)
-            sign(extensions.getByType<PublishingExtension>().publications)
-        } else if (System.getenv("GITHUB_ACTIONS") == "true") {
-            throw Exception("no signing configured")
-        }
-    }
 
     if (!this.project.name.contains("android")) {
         apply<JavaLibraryPlugin>()
@@ -164,14 +155,5 @@ subprojects {
                 }
             }
         }
-    }
-}
-
-nexusPublishing {
-    repositories.sonatype {
-        nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-        snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-        username = ossrhUsername
-        password = ossrhPassword
     }
 }

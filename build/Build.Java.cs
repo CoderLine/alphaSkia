@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using JetBrains.Annotations;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
@@ -11,14 +13,17 @@ partial class Build
     readonly AbsolutePath GradlewExe = GetVariable<string>("GRADLEW_EXE") ??
                                        RootDirectory / "lib" / "java" / $"gradlew{ScriptExtension}";
 
-    [Parameter] readonly AbsolutePath JavaHome = GetVariable<string>("JAVA_HOME") ?? GetVariable<string>("JAVA_HOME_17_X64");
+    [Parameter]
+    readonly AbsolutePath JavaHome = GetVariable<string>("JAVA_HOME") ?? GetVariable<string>("JAVA_HOME_17_X64");
 
     Tool GradlewTool => ToolResolver.GetTool(GradlewExe);
 
-    public Target Java => _ => _
+    [PublicAPI]
+    public Target Java => t => t
         .DependsOn(JavaPack);
 
-    public Target JavaPack => _ => _
+    [PublicAPI]
+    public Target JavaPack => t => t
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
@@ -36,14 +41,17 @@ partial class Build
                     (RootDirectory / "dist" / "maven").DeleteDirectory();
                 }
 
-                FileSystemTasks.CopyDirectoryRecursively(RootDirectory / "lib" / "java" / "dist",
-                    RootDirectory / "dist" / "maven",
-                    DirectoryExistsPolicy.Merge, FileExistsPolicy.OverwriteIfNewer);
+                (RootDirectory / "lib" / "java" / "dist")
+                    .Copy(
+                        RootDirectory / "dist" / "maven",
+                        ExistsPolicy.MergeAndOverwriteIfNewer
+                    );
             }
         });
 
 
-    public Target JavaBuild => _ => _
+    [PublicAPI]
+    public Target JavaBuild => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(JavaBuildInternal);
 
@@ -63,35 +71,36 @@ partial class Build
         }
 
         GradlewTool("build",
-            environmentVariables:  Variables
+            environmentVariables: Variables
                 .ToDictionary(x => x.Key, x => x.Value)
                 .SetKeyValue("JAVA_HOME", JavaHome)
                 .AsReadOnly(),
             workingDirectory: RootDirectory / "lib" / "java");
     }
 
-    public Target JavaTest => _ => _
+    public Target JavaTest => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
-            Log.Information("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion} (OS fonts)", JavaHome, JavaVersion);
+            Log.Information("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion} (OS fonts)", JavaHome,
+                JavaVersion);
             GradlewTool("run",
-                environmentVariables:  Variables
-                    .ToDictionary(x => x.Key, x => x.Value)
-                    .SetKeyValue("JAVA_HOME", JavaHome)
-                    .SetKeyValue("ALPHASKIA_TEST_VERSION", JavaVersion)
-                    .AsReadOnly(),
-                workingDirectory: RootDirectory / "test" / "java");
-            
-            Log.Information("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion} (FreeType fonts)", JavaHome, JavaVersion);
-            GradlewTool("run --args=--freetype",
-                environmentVariables:  Variables
+                environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)
                     .SetKeyValue("JAVA_HOME", JavaHome)
                     .SetKeyValue("ALPHASKIA_TEST_VERSION", JavaVersion)
                     .AsReadOnly(),
                 workingDirectory: RootDirectory / "test" / "java");
 
+            Log.Information("Testing with Java at {JavaHome} and version {AlphaSkiaTestVersion} (FreeType fonts)",
+                JavaHome, JavaVersion);
+            GradlewTool("run --args=--freetype",
+                environmentVariables: Variables
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .SetKeyValue("JAVA_HOME", JavaHome)
+                    .SetKeyValue("ALPHASKIA_TEST_VERSION", JavaVersion)
+                    .AsReadOnly(),
+                workingDirectory: RootDirectory / "test" / "java");
         });
 
     void JavaWriteVersionInfoProperties()
@@ -99,19 +108,19 @@ partial class Build
         var semVer = JavaVersion;
 
         var props = $"""
-            alphaskiaDescription={VersionInfo.Description}
-            alphaskiaAuthorId={VersionInfo.AuthorId}
-            alphaskiaAuthorName={VersionInfo.AuthorName}
-            alphaskiaOrgUrl={VersionInfo.OrgUrl}
-            alphaskiaCompany={VersionInfo.Company}
-            alphaskiaVersion={semVer}
-            alphaskiaProjectUrl={VersionInfo.ProjectUrl}
-            alphaskiaGitUrlHttp={VersionInfo.GitUrlHttp}
-            alphaskiaGitUrlGit"={VersionInfo.GitUrlGit}
-            alphaskiaLicenseSpdx={VersionInfo.LicenseSpdx}
-            alphaskiaLicenseUrl={VersionInfo.LicenseUrl}
-            alphaskiaIssuesUrl={VersionInfo.IssuesUrl}
-        """;
+                         alphaskiaDescription={VersionInfo.Description}
+                         alphaskiaAuthorId={VersionInfo.AuthorId}
+                         alphaskiaAuthorName={VersionInfo.AuthorName}
+                         alphaskiaOrgUrl={VersionInfo.OrgUrl}
+                         alphaskiaCompany={VersionInfo.Company}
+                         alphaskiaVersion={semVer}
+                         alphaskiaProjectUrl={VersionInfo.ProjectUrl}
+                         alphaskiaGitUrlHttp={VersionInfo.GitUrlHttp}
+                         alphaskiaGitUrlGit"={VersionInfo.GitUrlGit}
+                         alphaskiaLicenseSpdx={VersionInfo.LicenseSpdx}
+                         alphaskiaLicenseUrl={VersionInfo.LicenseUrl}
+                         alphaskiaIssuesUrl={VersionInfo.IssuesUrl}
+                     """;
         (RootDirectory / "lib" / "java" / "local.properties").WriteAllText(props);
     }
 
@@ -132,18 +141,19 @@ partial class Build
             {
                 semVer = $"{VersionInfo.FileVersion.ToString(3)}-SNAPSHOT";
             }
+
             return semVer;
         }
     }
-    
-    public Target JavaPublish => _ => _
+
+    public Target JavaPublish => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
             // workaround until we know how to upload existing maven packages
             // https://discuss.gradle.org/t/how-to-push-maven-to-ossrh-from-previous-local-publish/46875
             JavaBuildInternal();
-            
+
             GradlewTool("publishMavenJavaPublicationToSonatypeRepository closeAndReleaseSonatypeStagingRepository",
                 environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)

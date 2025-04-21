@@ -1,5 +1,9 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
+
 plugins {
-    id("java-library")
+    `java-library`
+    alias(libs.plugins.mavenPublish)
     `maven-publish`
     signing
 }
@@ -12,8 +16,6 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
-    withSourcesJar()
-    withJavadocJar()
 }
 
 tasks.jar {
@@ -34,4 +36,9 @@ tasks.jar {
             include("*.dll")
         }
     }
+}
+
+mavenPublishing {
+    coordinates(rootProject.group.toString(), "alphaSkia-windows", rootProject.version.toString())
+    configure(JavaLibrary(JavadocJar.Javadoc(), true))
 }

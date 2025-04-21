@@ -31,7 +31,6 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_fontconfig"] = "false",
             ["skia_enable_fontmgr_empty"] = "false",
 
-            ["skia_enable_fontmgr_empty"] = "false",
             ["skia_enable_fontmgr_FontConfigInterface"] = "false",
             ["skia_enable_fontmgr_fontconfig"] = "false",
             ["skia_enable_fontmgr_custom_directory"] = "false",

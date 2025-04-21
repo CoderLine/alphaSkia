@@ -1,5 +1,9 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
+
 plugins {
-    id("java-library")
+    `java-library`
+    alias(libs.plugins.mavenPublish)
     `maven-publish`
     signing
 }
@@ -29,4 +33,9 @@ tasks.jar {
             include("*.dylib")
         }
     }
+}
+
+mavenPublishing {
+    coordinates(rootProject.group.toString(), "alphaSkia-windows", rootProject.version.toString())
+    configure(JavaLibrary(JavadocJar.Javadoc(), true))
 }

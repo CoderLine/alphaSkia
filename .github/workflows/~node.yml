@@ -19,16 +19,19 @@ jobs:
   node:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9'      
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
       with:
         name: nuke
         path: build/bin/Debug/publish/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         path: dist/.organize
     - run: ./build.cmd Node
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nodetars
         path: |
@@ -42,12 +45,15 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     needs: [node]
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9'      
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
       with:
         name: nodetars
         path: dist/.organize/node
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version:  ${{ matrix.node }}
     - run: ./build.cmd NodeTest
@@ -55,7 +61,7 @@ jobs:
       if: always()
       run:  echo "NODE_VERSION=${{ matrix.node }}" | sed 's/[*\/]//g' >> "$GITHUB_OUTPUT"
       shell: bash
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: always()
       with:
         name: nodetest-${{ matrix.runs-on }}-${{ steps.sanitize-node-version.outputs.NODE_VERSION }}

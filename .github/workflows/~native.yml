@@ -48,17 +48,20 @@ jobs:
       matrix:
         architecture: ${{ fromJson( inputs.architectures ) }}
     steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9'      
       - name: Cloning Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Fetching Pre-Built Nuke
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: nuke
           path: build/bin/Debug/publish/
 
       - name: Fetch Cached LibSkia
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         if: ${{ inputs.use-skia-cache }}
         with:
           path: dist
@@ -70,13 +73,13 @@ jobs:
         id: build
 
       - name: Uploading LibSkia to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
           path: artifacts
   
       - name: Uploading LibSkia to Build Cache
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         if: ${{ steps.build.outputs.build-skipped != 'true' }}
         with:
           path: dist
@@ -92,19 +95,22 @@ jobs:
         architecture: ${{ fromJson( inputs.architectures ) }}
         variant: ${{ fromJson( inputs.variants ) }}
     steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9'      
       - name: Cloning Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
       - name: Fetching Pre-Built Nuke
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: nuke
           path: build/bin/Debug/publish/
 
       - name: Downloading LibSkia
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: dist/.organize/libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
           name: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
@@ -113,14 +119,14 @@ jobs:
         run: dotnet build/bin/Debug/publish/_build.dll LibAlphaSkia LibAlphaSkiaTest --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
 
       - name: Uploading LibAlphaSkia to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: libalphaskia-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}
           path: artifacts
 
       - name: Uploading LibAlphaSkiaTest to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: libalphaskiatest-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}

@@ -9,9 +9,9 @@ using Nuke.Common.Tooling;
 
 partial class Build
 {
-    Target InstallDependenciesLinux => _ => _
+    Target InstallDependenciesLinux => t => t
         .Unlisted()
-        .OnlyWhenStatic(()=> OperatingSystem.IsLinux() && IsGitHubActions)
+        .OnlyWhenStatic(() => OperatingSystem.IsLinux() && IsGitHubActions)
         .After(PrepareGitHubArtifacts,
             LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles,
             LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
@@ -22,15 +22,10 @@ partial class Build
             installDependencies.AppendLine("#!/bin/bash");
             installDependencies.AppendLine("set -e");
 
-            // Using aptitude here because github actions runners have quite some packages preinstalled
-            // which leads to many version conflicts after adding more sources. aptitude can resolve those 
-            // conflicts easier
-            installDependencies.AppendLine("echo Install Aptitude");
-            installDependencies.AppendLine("apt-get update");
-            installDependencies.AppendLine("apt-get install -y aptitude");
-
-            // Main system build tools
-            installDependencies.AppendLine("apt-get install -y build-essential");
+            var packages = new List<string>
+            {
+                "build-essential"
+            };
 
             // Cross compilation build tools if needed
             var linuxArch = Architecture.LinuxArch;
@@ -39,34 +34,91 @@ partial class Build
                 installDependencies.AppendLine($"echo Adding Arch {linuxArch}");
                 installDependencies.AppendLine($"dpkg --add-architecture {linuxArch}");
 
-                installDependencies.AppendLine("echo Modifying sources.list");
-                installDependencies.AppendLine("sed -i \"s/deb /deb [arch=amd64,i386] /\" /etc/apt/sources.list");
-                installDependencies.AppendLine(
-                    "sed -i \"s/deb-src /deb-src [arch=amd64,i386] /\" /etc/apt/sources.list");
+                // NOTE: This happens within Nuke, not in the shell script
+                // https://github.com/actions/runner-images/issues/10901
+                var ubuntu24Sources = TemporaryDirectory / "ubuntu.sources";
+                ubuntu24Sources.WriteAllText(
+                    """
+                    Types: deb
+                    URIs: http://archive.ubuntu.com/ubuntu/
+                    Suites: noble
+                    Components: main restricted universe
+                    Architectures: amd64,i386
+
+                    Types: deb
+                    URIs: http://security.ubuntu.com/ubuntu/
+                    Suites: noble-security
+                    Components: main restricted universe
+                    Architectures: amd64,i386
+
+                    Types: deb
+                    URIs: http://archive.ubuntu.com/ubuntu/
+                    Suites: noble-updates
+                    Components: main restricted universe
+                    Architectures: amd64,i386
+
+                    Types: deb
+                    URIs: http://ports.ubuntu.com/ubuntu-ports/
+                    Suites: noble
+                    Components: main restricted multiverse universe
+                    Architectures: arm64,armhf
+
+                    Types: deb
+                    URIs: http://ports.ubuntu.com/ubuntu-ports/
+                    Suites: noble-security
+                    Components: main restricted multiverse universe
+                    Architectures: arm64,armhf
+
+                    Types: deb
+                    URIs: http://ports.ubuntu.com/ubuntu-ports/
+                    Suites: noble-backports
+                    Components: main restricted multiverse universe
+                    Architectures: arm64,armhf
+
+                    Types: deb
+                    URIs: http://ports.ubuntu.com/ubuntu-ports/
+                    Suites: noble-updates
+                    Components: main restricted multiverse universe
+                    Architectures: arm64,armhf
+                    """
+                );
 
                 if (Architecture == Architecture.Arm || Architecture == Architecture.Arm64)
                 {
-                    installDependencies.AppendLine($"echo Adding new {linuxArch} sources");
+                    ubuntu24Sources.AppendAllText(content:
+                        $"""
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
 
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse universe' >> /etc/apt/sources.list");
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-security main multiverse universe' >> /etc/apt/sources.list");
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main multiverse universe' >> /etc/apt/sources.list");
-                    installDependencies.AppendLine(
-                        $"echo 'deb [arch={linuxArch}] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse universe' >> /etc/apt/sources.list");
-                }
-                else
-                {
-                    installDependencies.AppendLine($"echo No additional package sources for {linuxArch}");
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble-security
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
+
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble-backports
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
+
+                         Types: deb
+                         URIs: http://ports.ubuntu.com/ubuntu-ports/
+                         Suites: noble-updates
+                         Components: main restricted multiverse universe
+                         Architectures: {linuxArch}
+                         """
+                    );
                 }
 
-                installDependencies.AppendLine("echo Updating Packages");
-                installDependencies.AppendLine("apt-get update");
-                installDependencies.AppendLine("echo Installing main build tools");
-                installDependencies.AppendLine(
-                    $"aptitude install -y crossbuild-essential-{linuxArch} libstdc++-11-dev-{linuxArch}-cross");
+                installDependencies.AppendLine("echo Updating APT sources");
+                installDependencies.AppendLine($"mv {ubuntu24Sources} /etc/apt/sources.list.d/ubuntu.sources");
+
+                packages.Add($"crossbuild-essential-{linuxArch}");
+                packages.Add($"libstdc++-11-dev-{linuxArch}-cross");
             }
             else
             {
@@ -74,12 +126,20 @@ partial class Build
                 linuxArch = "";
             }
 
+
+
             // dependent libraries
             var linuxArchSuffix = string.IsNullOrEmpty(linuxArch) ? "" : $":{linuxArch}";
             installDependencies.AppendLine("echo Installing libs");
-            installDependencies.AppendLine(
-                $"aptitude install -y libfontconfig-dev{linuxArchSuffix} libgl1-mesa-dev{linuxArchSuffix} libglu1-mesa-dev{linuxArchSuffix} freeglut3-dev{linuxArchSuffix}");
 
+            packages.Add($"libfontconfig-dev{linuxArchSuffix}");
+            packages.Add($"libgl1-mesa-dev{linuxArchSuffix}");
+            packages.Add($"libglu1-mesa-dev{linuxArchSuffix}");
+            packages.Add($"freeglut3-dev{linuxArchSuffix}");
+
+            installDependencies.AppendLine("apt-get update");
+            installDependencies.AppendLine($"apt-get install -y {string.Join(" ", packages)}");
+            
             var scriptFile = TemporaryDirectory / "install_dependencies.sh";
             File.WriteAllText(scriptFile, installDependencies.ToString());
             ToolResolver.GetPathTool("sudo")($"bash {scriptFile}");

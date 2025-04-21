@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using JetBrains.Annotations;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
@@ -12,18 +14,20 @@ using static Nuke.Common.EnvironmentInfo;
 
 partial class Build
 {
-    public Target Node => _ => _
+    [PublicAPI]
+    public Target Node => t => t
         .DependsOn(NodePack);
 
-    AbsolutePath[] AllNodePackages => new[]
-    {
+    AbsolutePath[] AllNodePackages =>
+    [
         RootDirectory / "lib" / "node" / "alphaskia",
         RootDirectory / "lib" / "node" / "alphaskia-windows",
         RootDirectory / "lib" / "node" / "alphaskia-linux",
         RootDirectory / "lib" / "node" / "alphaskia-macos"
-    };
+    ];
 
-    public Target NodePack => _ => _
+    [PublicAPI]
+    public Target NodePack => t => t
         .Unlisted()
         .DependsOn(NodeBuild)
         .Executes(() =>
@@ -49,9 +53,7 @@ partial class Build
 
                 foreach (var tgz in (RootDirectory / "lib" / "node").GetFiles("*.tgz", int.MaxValue))
                 {
-                    FileSystemTasks.CopyFile(tgz,
-                        RootDirectory / "dist" / "nodetars" / tgz.Name,
-                        FileExistsPolicy.OverwriteIfNewer);
+                    tgz.Copy(RootDirectory / "dist" / "nodetars" / tgz.Name, ExistsPolicy.MergeAndOverwriteIfNewer);
                 }
 
                 PrepareTgzForTest();
@@ -61,23 +63,24 @@ partial class Build
     void PrepareTgzForTest()
     {
         Log.Information("Preparing TGZ files for test by creating copy without version");
-        var files = new System.Collections.Generic.List<string>();
+        var files = new List<string>();
         foreach (var tgz in (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz"))
         {
             // coderline-alphaskia-2.3.0-local.0.tgz
             var nameWithoutVersion = string.Join("-",
                                          tgz.NameWithoutExtension.Split('-').TakeWhile(p => !char.IsDigit(p[0])))
                                      + tgz.Extension;
-            FileSystemTasks.CopyFile(tgz,
-                RootDirectory / "dist" / "nodetars" / nameWithoutVersion,
-                FileExistsPolicy.OverwriteIfNewer);
+
+            tgz.Copy(RootDirectory / "dist" / "nodetars" / nameWithoutVersion,
+                ExistsPolicy.MergeAndOverwriteIfNewer);
             files.Add(nameWithoutVersion);
         }
 
         Log.Information("Preparing TGZ files done {Files}", string.Join(", ", files));
     }
 
-    public Target NodeBuild => _ => _
+    [PublicAPI]
+    public Target NodeBuild => t => t
         .Unlisted()
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
@@ -86,20 +89,20 @@ partial class Build
 
             if (Rebuild)
             {
-                NpmTasks.NpmRun(_ => _
+                NpmTasks.NpmRun(t => t
                     .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
                     .SetCommand("clean"));
             }
 
             foreach (var nodePackage in AllNodePackages)
             {
-                NpmTasks.NpmInstall(_ =>
-                    _.SetProcessWorkingDirectory(nodePackage));
+                NpmTasks.NpmInstall(s =>
+                    s.SetProcessWorkingDirectory(nodePackage));
             }
 
             CopyNodeAddonsToPackages();
 
-            NpmTasks.NpmRun(_ => _
+            NpmTasks.NpmRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "lib" / "node" / "alphaskia")
                 .SetCommand("build"));
         });
@@ -157,7 +160,7 @@ partial class Build
         }
     }
 
-    public Target NodeTest => _ => _
+    public Target NodeTest => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Executes(() =>
         {
@@ -167,17 +170,17 @@ partial class Build
             Log.Information("Deleting package-lock.json to avoid integrity checks failing");
             (RootDirectory / "test" / "node" / "package-lock.json").DeleteFile();
 
-            NpmTasks.NpmInstall(_ => _
+            NpmTasks.NpmInstall(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetForce(true));
-            
-            Log.Information("Testing with Node with (OS fonts)", JavaHome, JavaVersion);
-            NpmTasks.NpmRun(_ => _
+
+            Log.Information("Testing with Node with (OS fonts)");
+            NpmTasks.NpmRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetCommand("start"));
-            
-            Log.Information("Testing with Node with (FreeType fonts)", JavaHome, JavaVersion);
-            NpmTasks.NpmRun(_ => _
+
+            Log.Information("Testing with Node with (FreeType fonts)");
+            NpmTasks.NpmRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")
                 .SetCommand("start")
                 .SetArguments("--freetype"));
@@ -211,15 +214,14 @@ partial class Build
                 continue;
             }
 
-            FileSystemTasks.CopyDirectoryRecursively(subDirectory,
-                RootDirectory / "lib" / "node" / packageName / "lib" / subDirectory.Name, DirectoryExistsPolicy.Merge,
-                FileExistsPolicy.OverwriteIfNewer, excludeFile: fi => fi.Extension != ".node");
+            subDirectory.Copy(RootDirectory / "lib" / "node" / packageName / "lib" / subDirectory.Name,
+                ExistsPolicy.MergeAndOverwriteIfNewer, null, fi => fi.Extension != ".node");
         }
     }
 
     [Parameter] [Secret] readonly string NpmjsAuthToken = GetVariable<string>("NPMJS_AUTH_TOKEN");
 
-    public Target NodePublish => _ => _
+    public Target NodePublish => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Requires(() => IsGitHubActions)
         .Executes(() =>
