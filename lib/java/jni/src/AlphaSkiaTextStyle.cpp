@@ -14,7 +14,7 @@ extern "C"
         for (uint8_t i = 0; i < familyNameLength; i++)
         {
             jstring familyName = static_cast<jstring>(env->GetObjectArrayElement(familyNames, i));
-            const char *nativeFamilyName = env->GetStringUTFChars(familyName, nullptr);
+            nativeFamilyNames[i] = env->GetStringUTFChars(familyName, nullptr);
         }
 
         alphaskia_textstyle_t canvas = alphaskia_textstyle_new(
