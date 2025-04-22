@@ -116,22 +116,41 @@ void measure_test()
         11,
         text_style,
         18,
-        alphaskia_text_align_center,
+        alphaskia_text_align_left,
         alphaskia_text_baseline_alphabetic);
+       
+    // in chrome we get:
+    // 
+    // x = new OffscreenCanvas(100, 100)
+    // ctx = x.getContext('2d')
+    // ctx.font = '18px "Noto Sans"'
+    // ctx.measureText('Hello World')
+    //
+    // Output: 
+    // actualBoundingBoxAscent: 13
+    // actualBoundingBoxDescent: 0
+    // actualBoundingBoxLeft: 1
+    // actualBoundingBoxRight: 90.033203125
+    // alphabeticBaseline: -0
+    // fontBoundingBoxAscent: 16
+    // fontBoundingBoxDescent: 4
+    // hangingBaseline: 12.800000190734863
+    // ideographicBaseline: -4
+    // width: 89.033203125
 
     std::cout << "Hello World (Noto Sans 18px) Text Metrics" << std::endl;
-    std::cout << "  get_width: " << alphaskia_text_metrics_get_width(text_metrics) << std::endl;
-    std::cout << "  get_actual_bounding_box_left: " << alphaskia_text_metrics_get_actual_bounding_box_left(text_metrics) << std::endl;
-    std::cout << "  get_actual_bounding_box_right: " << alphaskia_text_metrics_get_actual_bounding_box_right(text_metrics) << std::endl;
-    std::cout << "  get_font_bounding_box_ascent: " << alphaskia_text_metrics_get_font_bounding_box_ascent(text_metrics) << std::endl;
-    std::cout << "  get_font_bounding_box_descent: " << alphaskia_text_metrics_get_font_bounding_box_descent(text_metrics) << std::endl;
     std::cout << "  get_actual_bounding_box_ascent: " << alphaskia_text_metrics_get_actual_bounding_box_ascent(text_metrics) << std::endl;
     std::cout << "  get_actual_bounding_box_descent: " << alphaskia_text_metrics_get_actual_bounding_box_descent(text_metrics) << std::endl;
+    std::cout << "  get_actual_bounding_box_left: " << alphaskia_text_metrics_get_actual_bounding_box_left(text_metrics) << std::endl;
+    std::cout << "  get_actual_bounding_box_right: " << alphaskia_text_metrics_get_actual_bounding_box_right(text_metrics) << std::endl;
+    std::cout << "  get_alphabetic_baseline: " << alphaskia_text_metrics_get_alphabetic_baseline(text_metrics) << std::endl;
+    std::cout << "  get_font_bounding_box_ascent: " << alphaskia_text_metrics_get_font_bounding_box_ascent(text_metrics) << std::endl;
+    std::cout << "  get_font_bounding_box_descent: " << alphaskia_text_metrics_get_font_bounding_box_descent(text_metrics) << std::endl;
+    std::cout << "  get_ideographic_baseline: " << alphaskia_text_metrics_get_ideographic_baseline(text_metrics) << std::endl;
+    std::cout << "  get_hanging_baseline: " << alphaskia_text_metrics_get_hanging_baseline(text_metrics) << std::endl;
+    std::cout << "  get_width: " << alphaskia_text_metrics_get_width(text_metrics) << std::endl;
     std::cout << "  get_em_height_ascent: " << alphaskia_text_metrics_get_em_height_ascent(text_metrics) << std::endl;
     std::cout << "  get_em_height_descent: " << alphaskia_text_metrics_get_em_height_descent(text_metrics) << std::endl;
-    std::cout << "  get_hanging_baseline: " << alphaskia_text_metrics_get_hanging_baseline(text_metrics) << std::endl;
-    std::cout << "  get_alphabetic_baseline: " << alphaskia_text_metrics_get_alphabetic_baseline(text_metrics) << std::endl;
-    std::cout << "  get_ideographic_baseline: " << alphaskia_text_metrics_get_ideographic_baseline(text_metrics) << std::endl;
 
     alphaskia_text_metrics_free(text_metrics);
     alphaskia_text_style_free(text_style);
@@ -165,10 +184,6 @@ int main(int argc, char **argv)
     empty_image_test();
     std::cout << "Image worked" << std::endl;
 
-    std::cout << "Measure Test" << std::endl;
-    measure_test();
-    std::cout << "Measure Test Done" << std::endl;
-
     // Load all fonts for rendering
     std::cout << "Loading fonts" << std::endl;
     std::filesystem::path test_data_path = repository_root / "test" / "test-data";
@@ -193,6 +208,10 @@ int main(int argc, char **argv)
     alphaskia_load_typeface((test_data_path / "font" / "noto-color-emoji" / "NotoColorEmoji_WindowsCompatible.ttf").generic_string());
 
     std::cout << "Fonts loaded" << std::endl;
+
+    std::cout << "Measure Test" << std::endl;
+    measure_test();
+    std::cout << "Measure Test Done" << std::endl;
 
     // render full image
     std::cout << "Rendering image" << std::endl;

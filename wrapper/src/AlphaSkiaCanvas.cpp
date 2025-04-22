@@ -281,7 +281,7 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
     paragraph->layout(surface_->width() * 2);
 
     // NOTE: SkParagraph has no support for font/line specific baselines, first font is better than nothing
-    y += get_font_baseline(paragraph->getFontAt(0), baseline);
+    y += get_font_baseline(paragraph->getFontAt(0), baseline, true);
 
     switch (text_align)
     {
@@ -303,7 +303,8 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
 AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
     auto paragraph(build_paragraph(text, text_length, text_style, font_size, alphaskia_text_align_t::alphaskia_text_align_left));
-    paragraph->layout(10000);
+    const float layoutWidth = 10000;
+    paragraph->layout(layoutWidth);
 
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc;l=1290
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc
@@ -317,17 +318,20 @@ AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int te
     float width = static_cast<float>(paragraph->getMaxIntrinsicWidth());
 
     auto text_align_dx_ = 0.0f;
-    if (text_align == alphaskia_text_align_t::alphaskia_text_align_center)
+    switch (text_align)
     {
+    case alphaskia_text_align_left:
+        // doesn't matter
+        break;
+    case alphaskia_text_align_center:
         text_align_dx_ = width / 2.0f;
-    }
-    else if (text_align == alphaskia_text_align_t::alphaskia_text_align_right)
-    {
+        text_align_dx_ -= layoutWidth / 2;
+        break;
+    case alphaskia_text_align_right:
+        // text is aligned at layoutWidth, shift it left
         text_align_dx_ = width;
-    }
-    else
-    {
-        text_align_dx_ = 0;
+        text_align_dx_ -= layoutWidth;
+        break;
     }
 
     auto lineOffset = line0.offset();
@@ -340,7 +344,7 @@ AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int te
     font.getMetrics(&font_metrics);
     const float ascent = float_ascent(font_metrics);
     const float descent = float_descent(font_metrics);
-    const float baseline_y = get_font_baseline(font, baseline);
+    const float baseline_y = get_font_baseline(font, baseline, true);
 
     float font_bounding_box_ascent = ascent - baseline_y;
     float font_bounding_box_descent = descent + baseline_y;
@@ -390,7 +394,7 @@ void AlphaSkiaCanvas::draw_image(sk_sp<SkImage> image, float x, float y, float w
     surface_->getCanvas()->drawImageRect(image, SkRect::MakeXYWH(x, y, w, h), sampling);
 }
 
-float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_baseline_t baseline)
+float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_baseline_t baseline, bool correctSkParagraphBaseline)
 {
     // https://github.com/chromium/chromium/blob/99314be8152e688bafbbf9a615536bdbb289ea87/third_party/blink/renderer/core/html/canvas/text_metrics.cc#L14
     SkFontMetrics metrics;
@@ -424,8 +428,10 @@ float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_base
     // SkParagraph defines its baseline() as (fLeading / 2 - fAscent)
     // see: Run.h -> InternalLineMetrics::baseline()
     // we reset this here
-    const float skParagraphBaseline = metrics.fLeading / 2 + float_ascent(metrics);
-    baselineOffset -= skParagraphBaseline;
+    if(correctSkParagraphBaseline) {
+        const float skParagraphBaseline = metrics.fLeading / 2 + float_ascent(metrics);
+        baselineOffset -= skParagraphBaseline;
+    }
 
     return baselineOffset;
 }

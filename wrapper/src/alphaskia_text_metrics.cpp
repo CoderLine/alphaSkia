@@ -66,6 +66,6 @@ extern "C"
     AS_API void alphaskia_text_metrics_free(alphaskia_text_metrics_t text_metrics)
     {
         auto alphaSkiaTextMetrics = reinterpret_cast<AlphaSkiaTextMetrics *>(text_metrics);
-        delete text_metrics;
+        delete alphaSkiaTextMetrics;
     }
 }

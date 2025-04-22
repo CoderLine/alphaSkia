@@ -128,7 +128,7 @@ public:
 private:
     SkPaint create_paint();
     std::unique_ptr<skia::textlayout::Paragraph> build_paragraph(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align);
-    static float get_font_baseline(const SkFont &font, alphaskia_text_baseline_t baseline);
+    static float get_font_baseline(const SkFont &font, alphaskia_text_baseline_t baseline, bool correctSkParagraphBaseline);
 
     SkColor color_;
     float line_width_;

@@ -8,15 +8,15 @@
 
 alphaskia_text_align_t text_align = alphaskia_text_align_left;
 alphaskia_text_baseline_t text_baseline = alphaskia_text_baseline_top;
-alphaskia_textstyle_t text_style = nullptr;
-alphaskia_textstyle_t music_text_style = nullptr;
+alphaskia_text_style_t text_style = nullptr;
+alphaskia_text_style_t music_text_style = nullptr;
 float music_font_size = 34;
 float render_scale = 1;
 float font_size = 12.0f;
 
-static std::map<std::string, alphaskia_textstyle_t> custom_text_styles;
+static std::map<std::string, alphaskia_text_style_t> custom_text_styles;
 
-std::string custom_textstyle_key(const std::vector<const char *> &family_names, uint16_t weight, bool is_italic)
+std::string custom_text_style_key(const std::vector<const char *> &family_names, uint16_t weight, bool is_italic)
 {
     std::stringstream s;
     for (auto &name : family_names)
@@ -29,13 +29,13 @@ std::string custom_textstyle_key(const std::vector<const char *> &family_names, 
     return s.str();
 }
 
-alphaskia_textstyle_t alphaskia_get_text_style(const std::vector<const char *> &family_names, uint16_t weight, bool is_italic)
+alphaskia_text_style_t alphaskia_get_text_style(const std::vector<const char *> &family_names, uint16_t weight, bool is_italic)
 {
-    auto key = custom_textstyle_key(family_names, weight, is_italic);
+    auto key = custom_text_style_key(family_names, weight, is_italic);
     auto it = custom_text_styles.find(key);
     if (it == custom_text_styles.end())
     {
-        alphaskia_textstyle_t new_text_style = alphaskia_textstyle_new(
+        alphaskia_text_style_t new_text_style = alphaskia_text_style_new(
             static_cast<uint8_t>(family_names.size()),
             const_cast<const char **>(&family_names[0]),
             weight,
@@ -83,10 +83,16 @@ alphaskia_typeface_t alphaskia_load_typeface(std::string file_path)
         std::cerr << "Could not create typeface from data " << file_path << std::endl;
         return nullptr;
     }
+
+    alphaskia_string_t family_name = alphaskia_typeface_get_family_name(typeface);
+
     std::cout << "Typeface "
-              << alphaskia_typeface_get_family_name(typeface)
+              << alphaskia_string_get_utf8(typeface)
               << "weight: " << alphaskia_typeface_get_weight(typeface)
               << " italic: " << (alphaskia_typeface_is_italic(typeface) ? "yes" : "no")
               << " loaded" << std::endl;
+
+    alphaskia_string_free(family_name);
+
     return typeface;
 }
