@@ -155,5 +155,9 @@ subprojects {
                 }
             }
         }
+
+        tasks.named("publishMavenJavaPublicationToMavenCentralRepository") {
+            dependsOn("signMavenPublication")
+        }
     }
 }
