@@ -172,7 +172,7 @@ internal static class NativeMethods
         AlphaSkiaTextBaseline baseline);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas,
+    public static extern alphaskia_text_metrics_t alphaskia_canvas_measure_text(alphaskia_canvas_t canvas,
         [MarshalAs(UnmanagedType.LPWStr)]
         string text,
         int text_length,

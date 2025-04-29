@@ -30,8 +30,8 @@ export class AlphaSkiaTextStyle extends AlphaSkiaNative<AlphaSkiaTextStyleHandle
      */
     public constructor(familyNames: string[], weight: number, isItalic: boolean) {
         super(
-            loadAddon().alphaskia_textstyle_new(AlphaSkiaTextStyle.checkFamilyNames(familyNames), weight, isItalic),
-            loadAddon().alphaskia_textstyle_free,
+            loadAddon().alphaskia_text_style_new(AlphaSkiaTextStyle.checkFamilyNames(familyNames), weight, isItalic),
+            loadAddon().alphaskia_text_style_free,
         )
         this.familyNames = familyNames;
         this.weight = weight;

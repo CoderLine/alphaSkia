@@ -86,12 +86,12 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_typeface_get_weight(typeface: AlphaSkiaTypefaceHandle): number;
     alphaskia_typeface_is_italic(typeface: AlphaSkiaTypefaceHandle): boolean;
 
-    alphaskia_textstyle_new(family_names: string[], weight: number, italic: boolean): AlphaSkiaTextStyleHandle;
-    // AS_API uint8_t alphaskia_textstyle_get_family_name_count(alphaskia_textstyle_t textstyle);
-    // AS_API alphaskia_string_t alphaskia_textstyle_get_family_name(alphaskia_textstyle_t textstyle, uint8_t index);
-    // AS_API uint16_t alphaskia_textstyle_get_weight(alphaskia_textstyle_t textstyle);
-    // AS_API uint8_t alphaskia_textstyle_is_italic(alphaskia_textstyle_t textstyle);
-    alphaskia_textstyle_free(textstyle: AlphaSkiaTextStyleHandle): void;
+    alphaskia_text_style_new(family_names: string[], weight: number, italic: boolean): AlphaSkiaTextStyleHandle;
+    // AS_API uint8_t alphaskia_text_style_get_family_name_count(alphaskia_text_style_t textstyle);
+    // AS_API alphaskia_string_t alphaskia_text_style_get_family_name(alphaskia_text_style_t textstyle, uint8_t index);
+    // AS_API uint16_t alphaskia_text_style_get_weight(alphaskia_text_style_t textstyle);
+    // AS_API uint8_t alphaskia_text_style_is_italic(alphaskia_text_style_t textstyle);
+    alphaskia_text_style_free(textstyle: AlphaSkiaTextStyleHandle): void;
 
     alphaskia_image_get_width(image: AlphaSkiaImageHandle): number;
     alphaskia_image_get_height(image: AlphaSkiaImageHandle): number;

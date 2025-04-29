@@ -6,7 +6,7 @@ namespace AlphaSkia;
 /// </summary>
 public sealed class AlphaSkiaTextMetrics : AlphaSkiaNative
 {
-    private AlphaSkiaTextMetrics(IntPtr handle)
+    internal AlphaSkiaTextMetrics(IntPtr handle)
         : base(handle, NativeMethods.alphaskia_text_metrics_free)
     {
     }
