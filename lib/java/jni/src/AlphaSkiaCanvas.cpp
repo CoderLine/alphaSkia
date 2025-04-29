@@ -221,7 +221,7 @@ extern "C"
             {
                 env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Could not find 'int getValue' on text align");
             }
-            return;
+            return nullptr;
         }
 
         jmethodID baselineGetValue = env->GetMethodID(env->GetObjectClass(baseline), "getValue", "()I");
@@ -231,7 +231,7 @@ extern "C"
             {
                 env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Could not find 'int getValue' on text baseline");
             }
-            return;
+            return nullptr;
         }
 
         alphaskia_text_align_t nativeTextAlign = static_cast<alphaskia_text_align_t>(env->CallIntMethod(text_align, textAlignGetValue));
