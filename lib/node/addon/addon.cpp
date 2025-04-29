@@ -1044,7 +1044,7 @@ static napi_value node_alphaskia_canvas_measure_text(napi_env env, napi_callback
 {
   napi_status status(napi_ok);
 
-  CHECK_ARGS(4);
+  CHECK_ARGS(6);
   GET_ARGUMENT_HANDLE(0, alphaskia_canvas_t, canvas);
   GET_ARGUMENT_UTF16_STRING(1, text);
   GET_ARGUMENT_HANDLE(2, alphaskia_text_style_t, text_style);
