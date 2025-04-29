@@ -1,8 +1,10 @@
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import java.io.FileInputStream
 import java.util.*
 
 plugins {
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.mavenPublish) apply false
 }
 
 val libGroup = "net.alphatab"
@@ -88,8 +90,6 @@ subprojects {
             toolchain {
                 languageVersion.set(JavaLanguageVersion.of(17))
             }
-            withSourcesJar()
-            withJavadocJar()
         }
 
         tasks.withType<JavaCompile> {
@@ -110,6 +110,40 @@ subprojects {
     }
 
     afterEvaluate {
+        configure<MavenPublishBaseExtension> {
+            pom {
+                val artifactId = tasks.withType<Jar>().firstOrNull()?.archiveBaseName?.get()
+                    ?: throw Exception("Could not find artifact id for maven POM")
+
+                name = artifactId
+                description = libDescription
+                url = libProjectUrl
+                licenses {
+                    license {
+                        name = libLicenseSpdx
+                        url = libLicenseUrl
+                    }
+                }
+                developers {
+                    developer {
+                        id = libAuthorId
+                        name = libAuthorName
+                        organization = libCompany
+                        organizationUrl = libOrgUrl
+                    }
+                }
+                scm {
+                    url = libGitUrlHttp
+                    connection = "scm:git:$libGitUrlGit"
+                    developerConnection = "scm:git:$libGitUrlGit"
+                }
+                issueManagement {
+                    system = "GitHub"
+                    url = libIssuesUrl
+                }
+            }
+        }
+
         configure<PublishingExtension> {
             repositories {
                 maven {
@@ -117,47 +151,6 @@ subprojects {
                     url = rootProject.projectDir.resolve("dist").toURI()
                 }
             }
-
-            publications {
-                create<MavenPublication>("mavenJava") {
-                    afterEvaluate {
-                        from(components.findByName("java") ?: components["release"])
-                        artifactId = tasks.withType<Jar>().firstOrNull()?.archiveBaseName?.get()
-                        pom {
-                            name = artifactId
-                            description = libDescription
-                            url = libProjectUrl
-                            licenses {
-                                license {
-                                    name = libLicenseSpdx
-                                    url = libLicenseUrl
-                                }
-                            }
-                            developers {
-                                developer {
-                                    id = libAuthorId
-                                    name = libAuthorName
-                                    organization = libCompany
-                                    organizationUrl = libOrgUrl
-                                }
-                            }
-                            scm {
-                                url = libGitUrlHttp
-                                connection = "scm:git:$libGitUrlGit"
-                                developerConnection = "scm:git:$libGitUrlGit"
-                            }
-                            issueManagement {
-                                system = "GitHub"
-                                url = libIssuesUrl
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        tasks.named("publishMavenJavaPublicationToMavenCentralRepository") {
-            dependsOn("signMavenPublication")
         }
     }
 }

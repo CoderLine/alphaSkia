@@ -27,7 +27,7 @@ partial class Build
         .DependsOn(JavaBuild)
         .Executes(() =>
         {
-            GradlewTool("publishMavenJavaPublicationToDistPathRepository",
+            GradlewTool("publishAllPublicationsToDistPathRepository",
                 environmentVariables: Variables
                     .ToDictionary(x => x.Key, x => x.Value)
                     .SetKeyValue("JAVA_HOME", JavaHome)

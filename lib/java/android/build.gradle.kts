@@ -74,7 +74,3 @@ mavenPublishing {
         )
     )
 }
-
-tasks.named("publishMavenJavaPublicationToMavenCentralRepository") {
-    dependsOn("signMavenPublication")
-}
