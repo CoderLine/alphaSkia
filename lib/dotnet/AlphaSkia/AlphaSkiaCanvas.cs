@@ -296,16 +296,18 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     }
 
     /// <summary>
-    /// Measures the given text.
+    /// Returns a <see cref="AlphaSkiaTextMetrics"/> object that contains information about the measured text (such as its width, for example).
     /// </summary>
     /// <param name="text">The text to measure.</param>
     /// <param name="textStyle">The text style to use for measuring the text.</param>
     /// <param name="fontSize">The font size to use when measuring the text.</param>
-    /// <returns>The horizontal width of the text when it would be drawn.</returns>
-    public float MeasureText(string text, AlphaSkiaTextStyle textStyle, float fontSize)
+    /// <param name="textAlign">How to align the text at the given position horizontally.</param>
+    /// <param name="baseline">How to align the text at the given position vertically.</param>
+    /// <returns>The text metrics.</returns>
+    public AlphaSkiaTextMetrics MeasureText(string text, AlphaSkiaTextStyle textStyle, float fontSize, AlphaSkiaTextAlign textAlign, AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
-        return NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, textStyle.Handle, fontSize);
+        return new AlphaSkiaTextMetrics(NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, textStyle.Handle, fontSize, textAlign, baseline));
     }
 
     /// <summary>

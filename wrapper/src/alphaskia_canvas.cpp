@@ -130,16 +130,17 @@ extern "C"
         reinterpret_cast<AlphaSkiaCanvas *>(canvas)->stroke();
     }
 
-    AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
+    AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_text_style_t text_style, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
     {
-        AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(textstyle);
+        AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(text_style);
         reinterpret_cast<AlphaSkiaCanvas *>(canvas)->fill_text(text, text_length, *skTextstyle, font_size, x, y, text_align, baseline);
     }
 
-    AS_API float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size)
+    AS_API alphaskia_text_metrics_t alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_text_style_t text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
     {
-        AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(textstyle);
-        return reinterpret_cast<AlphaSkiaCanvas *>(canvas)->measure_text(text, text_length, *skTextstyle, font_size);
+        AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(text_style);
+        auto text_metrics = reinterpret_cast<AlphaSkiaCanvas *>(canvas)->measure_text(text, text_length, *skTextstyle, font_size, text_align, baseline);
+        return reinterpret_cast<alphaskia_text_metrics_t>(text_metrics);
     }
 
     AS_API void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y, float angle)

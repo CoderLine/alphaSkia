@@ -218,14 +218,18 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
                                 AlphaSkiaTextBaseline baseline);
 
     /**
-     * Measures the given text.
+     * Returns a {@see AlphaSkiaTextMetrics} object that contains information about the measured text (such as its width, for example).
      *
      * @param text     The text to measure.
      * @param textStyle The text style to use for measuring the text.
      * @param fontSize The font size to use when measuring the text.
-     * @return The horizontal width of the text when it would be drawn.
+     * @param textAlign How to align the text at the given position horizontally.
+     * @param baseline  How to align the text at the given position vertically.
+     * @return The text metrics.
      */
-    public native float measureText(String text, AlphaSkiaTextStyle textStyle, float fontSize);
+    public native AlphaSkiaTextMetrics measureText(String text, AlphaSkiaTextStyle textStyle, float fontSize, 
+                                    AlphaSkiaTextAlign textAlign,
+                                    AlphaSkiaTextBaseline baseline);
 
     /**
      * Rotates the canvas allowing angled drawing

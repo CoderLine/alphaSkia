@@ -3,4 +3,5 @@ global using alphaskia_image_t = System.IntPtr;
 global using alphaskia_canvas_t = System.IntPtr;
 global using alphaskia_data_t = System.IntPtr;
 global using alphaskia_string_t = System.IntPtr;
-global using alphaskia_textstyle_t = System.IntPtr;
+global using alphaskia_text_style_t = System.IntPtr;
+global using alphaskia_text_metrics_t = System.IntPtr;

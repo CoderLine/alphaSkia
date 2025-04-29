@@ -17,7 +17,7 @@ extern "C"
             nativeFamilyNames[i] = env->GetStringUTFChars(familyName, nullptr);
         }
 
-        alphaskia_textstyle_t canvas = alphaskia_textstyle_new(
+        alphaskia_text_style_t canvas = alphaskia_text_style_new(
             familyNameLength,
             &nativeFamilyNames[0],
             static_cast<uint16_t>(weight),
@@ -33,10 +33,10 @@ extern "C"
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextStyle_close(JNIEnv *env, jobject instance)
     {
-        alphaskia_textstyle_t textStyle = reinterpret_cast<alphaskia_textstyle_t>(get_handle(env, instance));
+        alphaskia_text_style_t textStyle = reinterpret_cast<alphaskia_text_style_t>(get_handle(env, instance));
         CHECK_HANDLE(textStyle)
 
-        alphaskia_textstyle_free(textStyle);
+        alphaskia_text_style_free(textStyle);
         set_handle(env, instance, 0);
     }
 }

@@ -7,6 +7,7 @@ export interface AlphaSkiaTypefaceHandle { }
 export interface AlphaSkiaImageHandle { }
 export interface AlphaSkiaCanvasHandle { }
 export interface AlphaSkiaTextStyleHandle { }
+export interface AlphaSkiaTextMetricsHandle { }
 
 /**
  * Lists all text alignments which can be used to draw text.
@@ -85,12 +86,12 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_typeface_get_weight(typeface: AlphaSkiaTypefaceHandle): number;
     alphaskia_typeface_is_italic(typeface: AlphaSkiaTypefaceHandle): boolean;
 
-    alphaskia_textstyle_new(family_names: string[], weight: number, italic: boolean): AlphaSkiaTextStyleHandle;
-    // AS_API uint8_t alphaskia_textstyle_get_family_name_count(alphaskia_textstyle_t textstyle);
-    // AS_API alphaskia_string_t alphaskia_textstyle_get_family_name(alphaskia_textstyle_t textstyle, uint8_t index);
-    // AS_API uint16_t alphaskia_textstyle_get_weight(alphaskia_textstyle_t textstyle);
-    // AS_API uint8_t alphaskia_textstyle_is_italic(alphaskia_textstyle_t textstyle);
-    alphaskia_textstyle_free(textstyle: AlphaSkiaTextStyleHandle): void;
+    alphaskia_text_style_new(family_names: string[], weight: number, italic: boolean): AlphaSkiaTextStyleHandle;
+    // AS_API uint8_t alphaskia_text_style_get_family_name_count(alphaskia_text_style_t textstyle);
+    // AS_API alphaskia_string_t alphaskia_text_style_get_family_name(alphaskia_text_style_t textstyle, uint8_t index);
+    // AS_API uint16_t alphaskia_text_style_get_weight(alphaskia_text_style_t textstyle);
+    // AS_API uint8_t alphaskia_text_style_is_italic(alphaskia_text_style_t textstyle);
+    alphaskia_text_style_free(textstyle: AlphaSkiaTextStyleHandle): void;
 
     alphaskia_image_get_width(image: AlphaSkiaImageHandle): number;
     alphaskia_image_get_height(image: AlphaSkiaImageHandle): number;
@@ -126,9 +127,23 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_canvas_draw_image(canvas: AlphaSkiaCanvasHandle, image: AlphaSkiaImageHandle, x: number, y: number, w: number, h: number): void;
 
     alphaskia_canvas_fill_text(canvas: AlphaSkiaCanvasHandle, text: string, textStyle: AlphaSkiaTextStyleHandle, font_size: number, x: number, y: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void;
-    alphaskia_canvas_measure_text(canvas: AlphaSkiaCanvasHandle, text: string, textStyle: AlphaSkiaTextStyleHandle, font_size: number): number;
+    alphaskia_canvas_measure_text(canvas: AlphaSkiaCanvasHandle, text: string, textStyle: AlphaSkiaTextStyleHandle, font_size: number, text_align: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): number;
     alphaskia_canvas_begin_rotate(canvas: AlphaSkiaCanvasHandle, center_x: number, center_y: number, angle: number): void;
     alphaskia_canvas_end_rotate(canvas: AlphaSkiaCanvasHandle): void;
+
+    alphaskia_text_metrics_get_width(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_actual_bounding_box_left(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_actual_bounding_box_right(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_font_bounding_box_ascent(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_font_bounding_box_descent(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_actual_bounding_box_ascent(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_actual_bounding_box_descent(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_em_height_ascent(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_em_height_descent(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_hanging_baseline(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_alphabetic_baseline(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_get_ideographic_baseline(text_metrics: AlphaSkiaTextMetricsHandle): number;
+    alphaskia_text_metrics_free(text_metrics: AlphaSkiaTextMetricsHandle): void;
 }
 
 const require = createRequire(import.meta.url);

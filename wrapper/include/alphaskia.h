@@ -43,13 +43,13 @@ extern "C"
     AS_API uint16_t alphaskia_typeface_get_weight(alphaskia_typeface_t typeface);
     AS_API uint8_t alphaskia_typeface_is_italic(alphaskia_typeface_t typeface);
 
-    typedef AS_API void *alphaskia_textstyle_t;
-    AS_API alphaskia_textstyle_t alphaskia_textstyle_new(uint8_t family_name_count, const char** family_names, uint16_t weight, uint8_t italic);
-    AS_API uint8_t alphaskia_textstyle_get_family_name_count(alphaskia_textstyle_t textstyle);
-    AS_API alphaskia_string_t alphaskia_textstyle_get_family_name(alphaskia_textstyle_t textstyle, uint8_t index);
-    AS_API uint16_t alphaskia_textstyle_get_weight(alphaskia_textstyle_t textstyle);
-    AS_API uint8_t alphaskia_textstyle_is_italic(alphaskia_textstyle_t textstyle);
-    AS_API void alphaskia_textstyle_free(alphaskia_textstyle_t textstyle);
+    typedef AS_API void *alphaskia_text_style_t;
+    AS_API alphaskia_text_style_t alphaskia_text_style_new(uint8_t family_name_count, const char** family_names, uint16_t weight, uint8_t italic);
+    AS_API uint8_t alphaskia_text_style_get_family_name_count(alphaskia_text_style_t text_style);
+    AS_API alphaskia_string_t alphaskia_text_style_get_family_name(alphaskia_text_style_t text_style, uint8_t index);
+    AS_API uint16_t alphaskia_text_style_get_weight(alphaskia_text_style_t text_style);
+    AS_API uint8_t alphaskia_text_style_is_italic(alphaskia_text_style_t text_style);
+    AS_API void alphaskia_text_style_free(alphaskia_text_style_t text_style);
 
     typedef AS_API void *alphaskia_image_t;
     AS_API int32_t alphaskia_image_get_width(alphaskia_image_t image);
@@ -59,6 +59,21 @@ extern "C"
     AS_API alphaskia_image_t alphaskia_image_decode(const uint8_t *data, uint64_t length);
     AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels);
     AS_API void alphaskia_image_free(alphaskia_image_t image);
+
+    typedef AS_API void *alphaskia_text_metrics_t;
+    AS_API float alphaskia_text_metrics_get_width(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_actual_bounding_box_left(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_actual_bounding_box_right(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_font_bounding_box_ascent(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_font_bounding_box_descent(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_actual_bounding_box_ascent(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_actual_bounding_box_descent(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_em_height_ascent(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_em_height_descent(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_hanging_baseline(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_alphabetic_baseline(alphaskia_text_metrics_t text_metrics);
+    AS_API float alphaskia_text_metrics_get_ideographic_baseline(alphaskia_text_metrics_t text_metrics);
+    AS_API void alphaskia_text_metrics_free(alphaskia_text_metrics_t text_metrics);
 
     typedef AS_API void *alphaskia_canvas_t;
     AS_API alphaskia_canvas_t alphaskia_canvas_new();
@@ -100,9 +115,9 @@ extern "C"
         alphaskia_text_baseline_middle = 2,
         alphaskia_text_baseline_bottom = 3
     } alphaskia_text_baseline_t;
-    AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
+    AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_text_style_t text_style, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
 
-    AS_API float alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_textstyle_t textstyle, float font_size);
+    AS_API alphaskia_text_metrics_t alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_text_style_t text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
     AS_API void alphaskia_canvas_begin_rotate(alphaskia_canvas_t canvas, float center_x, float center_y, float angle);
     AS_API void alphaskia_canvas_end_rotate(alphaskia_canvas_t canvas);
 }
