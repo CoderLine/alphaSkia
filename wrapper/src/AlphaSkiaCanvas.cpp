@@ -298,7 +298,6 @@ AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int te
     // first line
 
     skia::textlayout::ParagraphImpl *paragraphImpl = reinterpret_cast<skia::textlayout::ParagraphImpl *>(paragraph.get());
-    auto &line0 = paragraphImpl->lines()[0];
 
     float width = static_cast<float>(paragraph->getMaxIntrinsicWidth());
 
@@ -326,41 +325,47 @@ AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int te
     const float ascent = float_ascent(font_metrics);
     const float descent = float_descent(font_metrics);
     float baseline_y = get_font_baseline(font, baseline, false);
-
-    auto lineOffsetX = line0.offset().fX;
-
     float actual_bounding_box_ascent = 0;
     float actual_bounding_box_descent = 0;
-
-    line0.iterateThroughVisualRuns(
-        false,
-        [&](const skia::textlayout::Run *run, SkScalar runOffsetInLine, skia::textlayout::TextRange textRange, SkScalar *runWidthInLine)
-        {
-            if (run->size() > 0)
-            {
-                std::vector<SkRect> bounds;
-                bounds.resize(run->size());
-                run->font().getBounds(&run->glyphs()[0], run->size(), bounds.data(), nullptr);
-
-                for (size_t i = 0; i < run->size(); i++)
-                {
-                    if(bounds[i].fTop < actual_bounding_box_ascent) {
-                        actual_bounding_box_ascent = bounds[i].fTop;
-                    }
-
-                    if(bounds[i].fBottom > actual_bounding_box_descent) {
-                        actual_bounding_box_descent = bounds[i].fBottom;
-                    }
-
-                }
-            }
-            return true;
-        });
-
-    actual_bounding_box_ascent = std::abs(actual_bounding_box_ascent);
-
+    float lineOffsetX = 0;
     float actual_bounding_box_left = -lineOffsetX + text_align_dx_;
-    float actual_bounding_box_right = (lineOffsetX + line0.width()) - text_align_dx_;
+    float actual_bounding_box_right = actual_bounding_box_left;
+
+    if (paragraphImpl->lines().size() > 0)
+    {
+
+        auto &line0 = paragraphImpl->lines()[0];
+        lineOffsetX = line0.offset().fX;
+
+        line0.iterateThroughVisualRuns(
+            false,
+            [&](const skia::textlayout::Run *run, SkScalar runOffsetInLine, skia::textlayout::TextRange textRange, SkScalar *runWidthInLine)
+            {
+                if (run->size() > 0)
+                {
+                    std::vector<SkRect> bounds;
+                    bounds.resize(run->size());
+                    run->font().getBounds(&run->glyphs()[0], run->size(), bounds.data(), nullptr);
+
+                    for (size_t i = 0; i < run->size(); i++)
+                    {
+                        if (bounds[i].fTop < actual_bounding_box_ascent)
+                        {
+                            actual_bounding_box_ascent = bounds[i].fTop;
+                        }
+
+                        if (bounds[i].fBottom > actual_bounding_box_descent)
+                        {
+                            actual_bounding_box_descent = bounds[i].fBottom;
+                        }
+                    }
+                }
+                return true;
+            });
+        actual_bounding_box_ascent = std::abs(actual_bounding_box_ascent);
+        actual_bounding_box_left = -lineOffsetX + text_align_dx_;
+        actual_bounding_box_right = (lineOffsetX + line0.width()) - text_align_dx_;
+    }
 
     float font_bounding_box_ascent = ascent - baseline_y;
     float font_bounding_box_descent = descent + baseline_y;

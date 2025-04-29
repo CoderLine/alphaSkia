@@ -427,6 +427,34 @@ run();
 
     alphaskia_canvas_begin_render(canvas, 550, 500, 1);
 
+    std::vector<const char *> familyNamesSerif({"Noto Serif"});
+    auto text_style_serif = alphaskia_text_style_new(
+        familyNamesSerif.size(),
+        const_cast<const char **>(familyNamesSerif.data()),
+        400,
+        1);
+
+    auto tuning1 = alphaskia_canvas_measure_text(
+        canvas,
+        u"Guitar Standard Tuning",
+        22,
+        text_style_serif,
+        12,
+        alphaskia_text_align_left,
+        alphaskia_text_baseline_alphabetic);
+
+    std::cout << "1: Guitar Standard Tuning " << alphaskia_text_metrics_get_actual_bounding_box_ascent(tuning1) << std::endl;
+
+    auto tuning2 = alphaskia_canvas_measure_text(
+        canvas,
+        u"Guitar Standard Tuning",
+        22,
+        text_style_serif,
+        12,
+        alphaskia_text_align_left,
+        alphaskia_text_baseline_alphabetic);
+    std::cout << "2: Guitar Standard Tuning " << alphaskia_text_metrics_get_actual_bounding_box_ascent(tuning2) << std::endl;
+
     std::vector<const char *> familyNames({"Noto Sans"});
     auto text_style = alphaskia_text_style_new(
         familyNames.size(),
@@ -434,19 +462,33 @@ run();
         400,
         0);
 
-    std::vector<std::u16string> baselines({
-        u"fontBoundingBoxAscent",
-        u"actualBoundingBoxAscent",
-        u"emHeightAscent",
-        u"hangingBaseline",
-        u"ideographicBaseline",
-        u"emHeightDescent",
-        u"actualBoundingBoxDescent",
-        u"fontBoundingBoxDescent",
-        u"alphabeticBaseline"
-    });
+    std::vector<std::u16string> baselines({u"fontBoundingBoxAscent",
+                                           u"actualBoundingBoxAscent",
+                                           u"emHeightAscent",
+                                           u"hangingBaseline",
+                                           u"ideographicBaseline",
+                                           u"emHeightDescent",
+                                           u"actualBoundingBoxDescent",
+                                           u"fontBoundingBoxDescent",
+                                           u"alphabeticBaseline"});
 
     size_t index = 0;
+
+    std::cout << "FAILED: measure_test, empty text" << std::endl;
+    auto empty_text = alphaskia_canvas_measure_text(
+        canvas,
+        u"",
+        0,
+        text_style,
+        18,
+        alphaskia_text_align_left,
+        alphaskia_text_baseline_alphabetic);
+    if (!empty_text)
+    {
+        std::cout << "FAILED: measure_test, empty text" << std::endl;
+        return false;
+    }
+    alphaskia_text_metrics_free(empty_text);
 
     measure_text_draw(canvas, text_style, baselines, index);
 
