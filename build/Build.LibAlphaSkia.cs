@@ -587,7 +587,7 @@ partial class Build
                         """
                         var libVersion = "[^"]+"
                         """,
-                        _ => $"var libVersion \"{baseVersion}\""
+                        _ => $"var libVersion = \"{baseVersion}\""
                     )
             );
         }
