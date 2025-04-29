@@ -335,16 +335,7 @@ void measure_text_draw(alphaskia_canvas_t canvas,
 
 bool isDebug()
 {
-    std::string var;
-    size_t requiredSize;
-
-    getenv_s(&requiredSize, nullptr, 0, "ALPHASKIA_TEST_DEBUG");
-    if (requiredSize == 0)
-    {
-        return false;
-    }
-
-    return true;
+    return getenv("ALPHASKIA_TEST_DEBUG");
 }
 
 int measure_test(const std::filesystem::path &repository_root, const std::filesystem::path &test_data_path, bool isFreeType)
