@@ -34,6 +34,6 @@ tasks.jar {
 }
 
 mavenPublishing {
-    coordinates(rootProject.group.toString(), "alphaSkia-windows", rootProject.version.toString())
+    coordinates(rootProject.group.toString(), "alphaSkia-macos", rootProject.version.toString())
     configure(JavaLibrary(JavadocJar.Javadoc(), true))
 }
