@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
-		<Version Condition=" '$(Version)' == '' ">2.3.0</Version>
+		<Version Condition=" '$(Version)' == '' ">3.0.0</Version>
 		<AssemblyVersion Condition=" '$(AssemblyVersion)' == '' ">$(Version).0</AssemblyVersion>
 		<FileVersion Condition=" '$(FileVersion)' == '' ">$(AssemblyVersion)</FileVersion>
 		<NeutralLanguage>en</NeutralLanguage>

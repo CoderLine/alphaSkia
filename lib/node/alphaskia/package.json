@@ -34,9 +34,9 @@
   },
   "homepage": "https://github.com/CoderLine/alphaSkia",
   "optionalDependencies": {
-    "@coderline/alphaskia-linux": "^2.3.0",
-    "@coderline/alphaskia-macos": "^2.3.0",
-    "@coderline/alphaskia-windows": "^2.3.0"
+    "@coderline/alphaskia-linux": "^3.0.0",
+    "@coderline/alphaskia-macos": "^3.0.0",
+    "@coderline/alphaskia-windows": "^3.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
