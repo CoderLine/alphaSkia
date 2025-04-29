@@ -37,8 +37,7 @@ static class VersionInfo
         return int.Parse(text[(startOfMarker + marker.Length)..endOfMarker].Trim());
     }
 
-    static readonly Version FileVersionBase =
-        GetVariable<Version>("ALPHASKIA_VERSION_TEMPLATE") ?? new Version(1, 0, 0, 0);
+    static readonly Version FileVersionBase = new Version(3, 0, 0, 0);
 
     #endregion
 

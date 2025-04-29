@@ -8,17 +8,12 @@ on:
         required: true
       
       # Versioning
-      alphaskia-version:
-        type: string
-        description: The version for alphaSkia in format MAJOR.MINOR
-        required: true
       is-release-build:
         type: boolean
         description: Whether the version is a prerelease or full release
         required: false
                 
 env:
-  ALPHASKIA_VERSION_TEMPLATE: ${{ inputs.alphaskia-version }}
   IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
   
 jobs:
@@ -41,7 +36,6 @@ jobs:
     uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: windows-latest
       target-os: windows
@@ -53,7 +47,6 @@ jobs:
     uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: ubuntu-latest
       target-os: linux
@@ -65,7 +58,6 @@ jobs:
     uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: macos-latest
       target-os: macos
@@ -77,7 +69,6 @@ jobs:
     uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: ubuntu-latest
       target-os: android
@@ -89,7 +80,6 @@ jobs:
     uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: macos-latest
       target-os: ios
@@ -101,7 +91,6 @@ jobs:
     uses: ./.github/workflows/~native.yml
     with: 
       use-skia-cache: ${{ inputs.use-skia-cache }} 
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: macos-latest
       target-os: iossimulator
@@ -115,7 +104,6 @@ jobs:
     uses: ./.github/workflows/~dotnet.yml
     secrets: inherit
     with:
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
 
   java:
@@ -123,7 +111,6 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/~java.yml
     with:
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}
 
   node:
@@ -131,5 +118,4 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/~node.yml
     with:
-      alphaskia-version: ${{ inputs.alphaskia-version }} 
       is-release-build: ${{ inputs.is-release-build }}

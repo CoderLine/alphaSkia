@@ -7,7 +7,9 @@ using JetBrains.Annotations;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
+using Nuke.Common.Utilities;
 using Serilog;
+using Serilog.Core;
 
 partial class Build
 {
@@ -241,6 +243,7 @@ partial class Build
 
     void BuildAlphaSkia()
     {
+        SyncAlphaSkiaBaseVersion();
         var gnArgs = PrepareNativeBuild(Variant);
         var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
         var gnFlags = new Dictionary<string, string>();
@@ -443,7 +446,6 @@ partial class Build
                 "--freetype",
                 workingDirectory: outDir
             );
-
         }
         else
         {
@@ -547,5 +549,72 @@ partial class Build
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Syncs the main Major.Minor.Patch version into all relevant files to avoid inconsistencies
+    /// between GitHub and locally.
+    /// </summary>
+    void SyncAlphaSkiaBaseVersion()
+    {
+        var baseVersion = VersionInfo.FileVersion.ToString(3);
+        Log.Information("Syncing alphaSkia version to {Version}", baseVersion);
+        AbsolutePath[] dotNetProps =
+        [
+            RootDirectory / "lib" / "dotnet" / "Directory.Build.props"
+        ];
+        foreach (var dotNetProp in dotNetProps)
+        {
+            dotNetProp.WriteAllText(
+                dotNetProp.ReadAllText()
+                    .ReplaceRegex(
+                        @"<Version([^>]+)>[0-9]+\.[0-9]+\.[0-9]+</Version>",
+                        m => $"<Version{m.Groups[1].Value}>{baseVersion}</Version>"
+                    )
+            );
+        }
+
+        AbsolutePath[] buildGradles =
+        [
+            RootDirectory / "lib" / "java" / "build.gradle.kts",
+            RootDirectory / "test" / "java" / "build.gradle.kts"
+        ];
+        foreach (var buildGradle in buildGradles)
+        {
+            buildGradle.WriteAllText(
+                buildGradle.ReadAllText()
+                    .ReplaceRegex(
+                        """
+                        var libVersion = "[^"]+"
+                        """,
+                        _ => $"var libVersion \"{baseVersion}\""
+                    )
+            );
+        }
+
+
+        AbsolutePath[] packageJsons =
+        [
+            RootDirectory / "lib" / "node" / "alphaskia" / "package.json",
+            RootDirectory / "lib" / "node" / "alphaskia-linux" / "package.json",
+            RootDirectory / "lib" / "node" / "alphaskia-macos" / "package.json",
+            RootDirectory / "lib" / "node" / "alphaskia-windows" / "package.json",
+            RootDirectory / "test" / "node" / "package.json"
+        ];
+        foreach (var packageJson in packageJsons)
+        {
+            packageJson.WriteAllText(
+                packageJson.ReadAllText()
+                    .ReplaceRegex(
+                        """
+                        "version": "[^"]+"
+                        """,
+                        _ =>
+                            $"""
+                             "version": "{baseVersion}"
+                             """
+                    )
+            );
+        }
     }
 }

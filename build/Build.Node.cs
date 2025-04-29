@@ -66,7 +66,7 @@ partial class Build
         var files = new List<string>();
         foreach (var tgz in (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz"))
         {
-            // coderline-alphaskia-3.0.0-local.0.tgz
+            // coderline-alphaskia-0.0.0-local.0.tgz
             var nameWithoutVersion = string.Join("-",
                                          tgz.NameWithoutExtension.Split('-').TakeWhile(p => !char.IsDigit(p[0])))
                                      + tgz.Extension;

@@ -4,8 +4,11 @@ plugins {
     id("idea")
 }
 
+// do not inline (updated dynamically via Nuke)
+var libVersion = "3.0.135-SNAPSHOT"
+
 group = "alphaTab.alphaSkia"
-version = "3.0.135-SNAPSHOT"
+version = libVersion
 // Use any latest version
 var alphaSkiaVersion = version
 

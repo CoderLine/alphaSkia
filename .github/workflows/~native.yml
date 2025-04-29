@@ -8,10 +8,6 @@ on:
         required: true
       
       # Versioning
-      alphaskia-version:
-        type: string
-        description: The version for alphaSkia in format MAJOR.MINOR
-        required: true
       is-release-build:
         type: boolean
         description: Whether the version is a prerelease or full release
@@ -36,7 +32,6 @@ on:
         required: true
 
 env:
-  ALPHASKIA_VERSION_TEMPLATE: ${{ inputs.alphaskia-version }}
   IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
 
 jobs:
