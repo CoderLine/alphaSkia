@@ -52,21 +52,6 @@ std::pair<int16_t, int16_t> typo_ascender_and_descender(SkTypeface *typeface)
     return std::make_pair(0, 0);
 }
 
-const uint32_t layoutUnitFractionalBits_ = 6;
-const int fixedPointDenominator_ = 1 << layoutUnitFractionalBits_;
-
-int float_to_layout_unit(float value)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&ss=chromium%2Fchromium%2Fsrc
-    return static_cast<int>(roundf(value * fixedPointDenominator_));
-}
-
-float layout_unit_to_float(int value)
-{
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/geometry/layout_unit.h;l=147;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=FromFloatRound&sq=&ss=chromium%2Fchromium%2Fsrc    return static_cast<int>(roundf(value * kFixedPointDenominator))
-    return static_cast<float>(value) / fixedPointDenominator_;
-}
-
 bool try_set_normalized_typo_ascent_and_descent(float em_height, float typo_ascent, float typo_descent, int &ascent, int &descent)
 {
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=422;drc=5a2e12875a8fe207bfe6f0febc782b6297788b6d;bpv=1;bpt=1?q=NormalizedTypoAscentAndDescent&ss=chromium%2Fchromium%2Fsrc
@@ -76,8 +61,8 @@ bool try_set_normalized_typo_ascent_and_descent(float em_height, float typo_asce
         return false;
     }
 
-    ascent = float_to_layout_unit(typo_ascent * em_height / height);
-    descent = float_to_layout_unit(em_height) - ascent;
+    ascent = typo_ascent * em_height / height;
+    descent = em_height - ascent;
     return true;
 }
 
@@ -334,22 +319,51 @@ AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int te
         break;
     }
 
-    auto lineOffset = line0.offset();
-    float actual_bounding_box_left = -lineOffset.fX + text_align_dx_;
-    float actual_bounding_box_right = (lineOffset.fX + line0.width()) - text_align_dx_;
-
     SkFont font = paragraph->getFontAt(0);
-
     SkFontMetrics font_metrics;
     font.getMetrics(&font_metrics);
+
     const float ascent = float_ascent(font_metrics);
     const float descent = float_descent(font_metrics);
-    const float baseline_y = get_font_baseline(font, baseline, true);
+    float baseline_y = get_font_baseline(font, baseline, false);
+
+    auto lineOffsetX = line0.offset().fX;
+
+    float actual_bounding_box_ascent = 0;
+    float actual_bounding_box_descent = 0;
+
+    line0.iterateThroughVisualRuns(
+        false,
+        [&](const skia::textlayout::Run *run, SkScalar runOffsetInLine, skia::textlayout::TextRange textRange, SkScalar *runWidthInLine)
+        {
+            if (run->size() > 0)
+            {
+                std::vector<SkRect> bounds;
+                bounds.resize(run->size());
+                run->font().getBounds(&run->glyphs()[0], run->size(), bounds.data(), nullptr);
+
+                for (size_t i = 0; i < run->size(); i++)
+                {
+                    if(bounds[i].fTop < actual_bounding_box_ascent) {
+                        actual_bounding_box_ascent = bounds[i].fTop;
+                    }
+
+                    if(bounds[i].fBottom > actual_bounding_box_descent) {
+                        actual_bounding_box_descent = bounds[i].fBottom;
+                    }
+
+                }
+            }
+            return true;
+        });
+
+    actual_bounding_box_ascent = std::abs(actual_bounding_box_ascent);
+
+    float actual_bounding_box_left = -lineOffsetX + text_align_dx_;
+    float actual_bounding_box_right = (lineOffsetX + line0.width()) - text_align_dx_;
 
     float font_bounding_box_ascent = ascent - baseline_y;
     float font_bounding_box_descent = descent + baseline_y;
-    float actual_bounding_box_ascent = -lineOffset.fY - baseline_y;
-    float actual_bounding_box_descent = (lineOffset.fY + line0.height()) + baseline_y;
 
     int normalizedAscent = 0;
     int normalizedDescent = 0;
@@ -358,8 +372,10 @@ AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int te
     float em_height_descent = normalizedDescent + baseline_y;
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc;l=174;drc=1d737975521c1d4191937c2c659bd78d9f1681f4;bpv=0;bpt=1
     float hanging_baseline = ascent * kHangingAsPercentOfAscent / 100.0f - baseline_y;
-    float alphabetic_baseline = line0.alphabeticBaseline();
-    float ideographic_baseline = line0.ideographicBaseline();
+
+    // TODO: Read baselines value from OpenType Table. https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=229;drc=73bcf25e4b0c06b1a86422a2fc30023c7b850f33;bpv=1;bpt=1
+    float alphabetic_baseline = -baseline_y;
+    float ideographic_baseline = -descent - baseline_y;
 
     return new AlphaSkiaTextMetrics(
         width,
@@ -415,20 +431,21 @@ float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_base
     case alphaskia_text_baseline_middle: // kMiddleTextBaseline
     {
         normalized_typo_ascent_and_descent(font, ascent, descent);
-        auto middle = (layout_unit_to_float(ascent) - layout_unit_to_float(descent)) / 2.0f;
+        auto middle = (ascent - descent) / 2.0f;
         baselineOffset = middle;
         break;
     }
     case alphaskia_text_baseline_bottom: // kBottomTextBaseline
         normalized_typo_ascent_and_descent(font, ascent, descent);
-        baselineOffset = -layout_unit_to_float(descent);
+        baselineOffset = -descent;
         break;
     }
 
     // SkParagraph defines its baseline() as (fLeading / 2 - fAscent)
     // see: Run.h -> InternalLineMetrics::baseline()
     // we reset this here
-    if(correctSkParagraphBaseline) {
+    if (correctSkParagraphBaseline)
+    {
         const float skParagraphBaseline = metrics.fLeading / 2 + float_ascent(metrics);
         baselineOffset -= skParagraphBaseline;
     }
