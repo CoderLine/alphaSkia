@@ -10,7 +10,7 @@ extern "C"
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
         uint16_t value = alphaskia_text_metrics_get_width(reinterpret_cast<alphaskia_text_metrics_t>(handle));
-        return static_cast<jint>(value);
+        return static_cast<jfloat>(value);
     }
 
     JNIEXPORT jfloat JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextMetrics_getActualBoundingBoxLeft(JNIEnv *env, jobject instance)

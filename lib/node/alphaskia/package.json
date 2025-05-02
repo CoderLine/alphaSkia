@@ -1,6 +1,6 @@
 {
   "name": "@coderline/alphaskia",
-  "version": "3.1.135",
+  "version": "3.2.135",
   "description": "A Skia based rendering backend for alphaTab.",
   "module": "./dist/alphaskia.mjs",
   "typings": "./dist/alphaskia.d.ts",

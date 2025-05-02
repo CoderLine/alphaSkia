@@ -25,6 +25,7 @@ jobs:
         with:
           dotnet-version: '9'
       - run: dotnet publish --configuration Debug ./build/_build.csproj 
+        shell: bash
       - uses: actions/upload-artifact@v4
         with:
           name: nuke
