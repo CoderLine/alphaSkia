@@ -9,7 +9,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_width(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_width(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -18,7 +18,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_actual_bounding_box_left(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_actual_bounding_box_left(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -27,7 +27,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_actual_bounding_box_right(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_actual_bounding_box_right(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -36,7 +36,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_font_bounding_box_ascent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_font_bounding_box_ascent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -45,7 +45,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_font_bounding_box_descent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_font_bounding_box_descent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -54,7 +54,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_actual_bounding_box_ascent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_actual_bounding_box_ascent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -63,7 +63,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_actual_bounding_box_descent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_actual_bounding_box_descent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -72,7 +72,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_em_height_ascent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_em_height_ascent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -81,7 +81,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_em_height_descent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_em_height_descent(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -90,7 +90,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_hanging_baseline(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_hanging_baseline(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -99,7 +99,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_alphabetic_baseline(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_alphabetic_baseline(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
@@ -108,7 +108,7 @@ extern "C"
         jlong handle = get_handle(env, instance);
         CHECK_HANDLE_RETURN(handle, static_cast<jfloat>(0))
 
-        uint16_t value = alphaskia_text_metrics_get_ideographic_baseline(reinterpret_cast<alphaskia_text_metrics_t>(handle));
+        float value = alphaskia_text_metrics_get_ideographic_baseline(reinterpret_cast<alphaskia_text_metrics_t>(handle));
         return static_cast<jfloat>(value);
     }
 
