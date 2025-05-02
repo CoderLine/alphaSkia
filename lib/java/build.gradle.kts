@@ -20,7 +20,7 @@ var libAuthorId = ""
 var libAuthorName = ""
 var libOrgUrl = ""
 var libCompany = ""
-var libVersion = "3.2.135"
+var libVersion = "3.3.135"
 var libProjectUrl = ""
 var libGitUrlHttp = ""
 var libGitUrlGit = ""
@@ -70,6 +70,8 @@ loadSetting("ALPHASKIA_ISSUES_URL", "alphaskiaIssuesUrl") { libIssuesUrl = it }
 group = libGroup
 version = libVersion
 
+internal fun Project.findOptionalProperty(propertyName: String) = findProperty(propertyName)?.toString()
+
 subprojects {
     apply<MavenPublishPlugin>()
     apply(plugin = "maven-publish")
@@ -111,6 +113,15 @@ subprojects {
 
     afterEvaluate {
         configure<MavenPublishBaseExtension> {
+            val inMemoryKeyFile = project.findOptionalProperty("signingInMemoryKeyFile")
+            if (inMemoryKeyFile != null) {
+                val inMemoryKeyId = project.findOptionalProperty("signingInMemoryKeyId")
+                val inMemoryKeyPassword = project.findOptionalProperty("signingInMemoryKeyPassword").orEmpty()
+                val signing = project.extensions.getByType(SigningExtension::class.java)
+                val inMemoryKey = File(inMemoryKeyFile).readText()
+                signing.useInMemoryPgpKeys(inMemoryKeyId, inMemoryKey, inMemoryKeyPassword)
+            }
+
             pom {
                 val artifactId = tasks.withType<Jar>().firstOrNull()?.archiveBaseName?.get()
                     ?: throw Exception("Could not find artifact id for maven POM")
