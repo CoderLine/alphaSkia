@@ -34,7 +34,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         path: dist/.organize
-    - run: ./build.cmd Java
+    - run: dotnet build/bin/Debug/publish/_build.dll Java
     - uses: actions/upload-artifact@v4
       with:
         name: maven
@@ -67,7 +67,7 @@ jobs:
       with:
         name: maven
         path: dist/.organize/maven
-    - run: ./build.cmd JavaTest
+    - run: dotnet build/bin/Debug/publish/_build.dll JavaTest
     - uses: actions/upload-artifact@v4
       if: always()
       with:

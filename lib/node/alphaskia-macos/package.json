@@ -1,6 +1,6 @@
 {
   "name": "@coderline/alphaskia-macos",
-  "version": "3.1.135",
+  "version": "3.2.135",
   "description": "The node addon for alphaSkia enabling it to run on MacOS",
   "engines": {
     "node": ">=18.0.0"

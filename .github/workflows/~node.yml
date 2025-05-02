@@ -25,7 +25,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         path: dist/.organize
-    - run: ./build.cmd Node
+    - run: dotnet build/bin/Debug/publish/_build.dll Node
     - uses: actions/upload-artifact@v4
       with:
         name: nodetars
@@ -46,12 +46,16 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:
+        name: nuke
+        path: build/bin/Debug/publish/
+    - uses: actions/download-artifact@v4
+      with:
         name: nodetars
         path: dist/.organize/node
     - uses: actions/setup-node@v4
       with:
         node-version:  ${{ matrix.node }}
-    - run: ./build.cmd NodeTest
+    - run: dotnet build/bin/Debug/publish/_build.dll NodeTest
     - id: sanitize-node-version
       if: always()
       run:  echo "NODE_VERSION=${{ matrix.node }}" | sed 's/[*\/]//g' >> "$GITHUB_OUTPUT"
