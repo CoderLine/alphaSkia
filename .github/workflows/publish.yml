@@ -39,6 +39,7 @@ jobs:
           name: nupkgs
           path: dist/.organize/nupkgs
       - run: dotnet build/bin/Debug/publish/_build.dll DotNetPublish
+        shell: bash
 
   java-publish: 
     runs-on: ubuntu-latest
@@ -71,6 +72,7 @@ jobs:
           # path: dist/.organize/maven
           path: dist/.organize
       - run: dotnet build/bin/Debug/publish/_build.dll JavaPublish
+        shell: bash
 
   node-publish: 
     runs-on: ubuntu-latest
@@ -95,3 +97,4 @@ jobs:
           node-version: "lts/*"
           registry-url: https://registry.npmjs.org/
       - run: dotnet build/bin/Debug/publish/_build.dll NodePublish
+        shell: bash

@@ -26,6 +26,7 @@ jobs:
       with:
         path: dist/.organize
     - run: dotnet build/bin/Debug/publish/_build.dll Node
+      shell: bash
     - uses: actions/upload-artifact@v4
       with:
         name: nodetars
@@ -56,6 +57,7 @@ jobs:
       with:
         node-version:  ${{ matrix.node }}
     - run: dotnet build/bin/Debug/publish/_build.dll NodeTest
+      shell: bash
     - id: sanitize-node-version
       if: always()
       run:  echo "NODE_VERSION=${{ matrix.node }}" | sed 's/[*\/]//g' >> "$GITHUB_OUTPUT"

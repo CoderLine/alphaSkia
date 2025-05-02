@@ -65,6 +65,7 @@ jobs:
 
       - name: Compiling LibSkia
         run: dotnet build/bin/Debug/publish/_build.dll LibSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --use-cache ${{ inputs.use-skia-cache }}
+        shell: bash
         id: build
 
       - name: Uploading LibSkia to Artifacts
@@ -112,6 +113,7 @@ jobs:
 
       - name: Compiling LibAlphaSkia
         run: dotnet build/bin/Debug/publish/_build.dll LibAlphaSkia LibAlphaSkiaTest --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+        shell: bash
 
       - name: Uploading LibAlphaSkia to Artifacts
         uses: actions/upload-artifact@v4
