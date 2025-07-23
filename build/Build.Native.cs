@@ -400,4 +400,25 @@ partial class Build
             "  # env_setup = \"$shell set \\\"PATH=%PATH%;$win_vc\\\\Tools\\\\MSVC\\\\$win_toolchain_version\\\\bin\\\\HostX64\\\\x64\\\" && \""
         ));
     }
+
+    void PatchLlvm()
+    {
+        // https://github.com/llvm/llvm-project/issues/95133   
+        // https://github.com/llvm/llvm-project/commit/bac4171073399352e5bd0ba541820e2a9b3f37d7
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        AbsolutePath intrinHeaders = "C:\\Program Files\\LLVM\\lib\\clang";
+        var headers = intrinHeaders.GlobFiles("**/intrin.h");
+        foreach (var intrin in headers)
+        {
+            Log.Information("Rewriting clang header {header}", intrin);
+            intrin.WriteAllText(intrin.ReadAllText()
+                .Replace("unsigned __int32 xbegin(void);", "")
+                .Replace("void _xend(void);", "")
+            );
+        }
+    }
 }
