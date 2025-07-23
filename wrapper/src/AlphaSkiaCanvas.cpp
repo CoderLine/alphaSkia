@@ -252,7 +252,7 @@ std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(co
     }
 
     auto builder = skia::textlayout::ParagraphBuilder::make(paraStyle, font_collection_);
-    builder->addText(text);
+    builder->addText(std::u16string(text, static_cast<size_t>(text_length)));
 
     return builder->Build();
 }
