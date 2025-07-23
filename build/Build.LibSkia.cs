@@ -263,6 +263,7 @@ partial class Build
             PatchSkiaToolchain();
             PatchSkiaMacOsVersion();
             PatchVulcanAllocatorIncludes();
+            PatchLlvm();
         });
 
     void PatchVulcanAllocatorIncludes()
