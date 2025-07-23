@@ -415,10 +415,17 @@ partial class Build
         foreach (var intrin in headers)
         {
             Log.Information("Rewriting clang header {header}", intrin);
-            intrin.WriteAllText(intrin.ReadAllText()
-                .Replace("unsigned __int32 xbegin(void);", "")
-                .Replace("void _xend(void);", "")
-            );
+            try
+            {
+                intrin.WriteAllText(intrin.ReadAllText()
+                    .Replace("unsigned __int32 xbegin(void);", "")
+                    .Replace("void _xend(void);", "")
+                );
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error patching clang headers");
+            }
         }
     }
 }
