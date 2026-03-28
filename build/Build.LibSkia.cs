@@ -262,8 +262,55 @@ partial class Build
 
             PatchSkiaToolchain();
             PatchVulcanAllocatorIncludes();
+            PatchCpuFeaturesTarget();
             PatchLlvm();
         });
+
+    /// <summary>
+    /// NDK r26+ removed sources/android/cpufeatures/. Skia's third_party/cpu-features/BUILD.gn
+    /// still hardcodes that path. We patch it to accept a GN variable pointing at the
+    /// google/cpu_features ndk_compat shim (the official API-compatible replacement).
+    /// </summary>
+    void PatchCpuFeaturesTarget()
+    {
+        var buildFile = SkiaPath / "third_party" / "cpu-features" / "BUILD.gn";
+        var content = buildFile.ReadAllText();
+
+        // Idempotent: skip if already patched
+        if (content.Contains("cpu_features_ndk_compat"))
+        {
+            return;
+        }
+
+        buildFile.WriteAllText(
+            """
+            # Copyright 2016 Google Inc.
+            #
+            # Use of this source code is governed by a BSD-style license that can be
+            # found in the LICENSE file.
+            #
+            # Patched by alphaSkia: NDK r26+ removed sources/android/cpufeatures/.
+            # cpu_features_ndk_compat points at the ndk_compat shim from google/cpu_features
+            # (https://github.com/google/cpu_features), the official API-compatible replacement.
+
+            declare_args() {
+              cpu_features_ndk_compat = ""
+            }
+
+            import("../third_party.gni")
+
+            third_party("cpu-features") {
+              if (cpu_features_ndk_compat != "") {
+                public_include_dirs = [ cpu_features_ndk_compat ]
+                sources = [ cpu_features_ndk_compat + "/cpu-features.c" ]
+              } else {
+                public_include_dirs = [ "$ndk/sources/android/cpufeatures" ]
+                sources = [ "$ndk/sources/android/cpufeatures/cpu-features.c" ]
+              }
+            }
+            """
+        );
+    }
 
     void PatchVulcanAllocatorIncludes()
     {
@@ -331,6 +378,12 @@ partial class Build
         gnArgs["skia_enable_graphite"] = "false";
         gnArgs["skia_enable_ganesh"] = "true";
         gnArgs["skia_use_vulkan"] = "true";
+
+        if (TargetOs == TargetOperatingSystem.Android)
+        {
+            gnArgs["cpu_features_ndk_compat"] =
+                (RootDirectory / "externals" / "cpu_features" / "ndk_compat").ToString().Replace('\\', '/');
+        }
 
         GnNinja($"out/{libDir}", "skia", gnArgs, gnFlags, SkiaPath);
 
