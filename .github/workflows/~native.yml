@@ -63,14 +63,16 @@ jobs:
           key: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static-${{ github.run_id }}
           restore-keys: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
 
-      - name: Install Latest Android NDK
+      - name: Install Latest Stable Android NDK
         if: ${{ inputs.target-os == 'android' }}
         run: |
           SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          LATEST_NDK=$("$SDKMANAGER" --list --channel=0 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V | tail -1)
-          echo "Installing NDK: $LATEST_NDK"
-          "$SDKMANAGER" "$LATEST_NDK"
-          NDK_VERSION="${LATEST_NDK#ndk;}"
+          ALL_NDKS=$("$SDKMANAGER" --list --channel=0 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V)
+          LATEST_MAJOR=$(echo "$ALL_NDKS" | awk -F'[.;]' '{print $2}' | sort -Vu | tail -1)
+          STABLE_NDK=$(echo "$ALL_NDKS" | awk -F'[.;]' -v max="$LATEST_MAJOR" '$2+0 < max+0' | sort -V | tail -1)
+          echo "Installing NDK: $STABLE_NDK"
+          "$SDKMANAGER" "$STABLE_NDK"
+          NDK_VERSION="${STABLE_NDK#ndk;}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: Compiling LibSkia
@@ -121,14 +123,16 @@ jobs:
           path: dist/.organize/libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
           name: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
 
-      - name: Install Latest Android NDK
+      - name: Install Latest Stable Android NDK
         if: ${{ inputs.target-os == 'android' }}
         run: |
           SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          LATEST_NDK=$("$SDKMANAGER" --list --channel=0 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V | tail -1)
-          echo "Installing NDK: $LATEST_NDK"
-          "$SDKMANAGER" "$LATEST_NDK"
-          NDK_VERSION="${LATEST_NDK#ndk;}"
+          ALL_NDKS=$("$SDKMANAGER" --list --channel=0 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V)
+          LATEST_MAJOR=$(echo "$ALL_NDKS" | awk -F'[.;]' '{print $2}' | sort -Vu | tail -1)
+          STABLE_NDK=$(echo "$ALL_NDKS" | awk -F'[.;]' -v max="$LATEST_MAJOR" '$2+0 < max+0' | sort -V | tail -1)
+          echo "Installing NDK: $STABLE_NDK"
+          "$SDKMANAGER" "$STABLE_NDK"
+          NDK_VERSION="${STABLE_NDK#ndk;}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: Compiling LibAlphaSkia
