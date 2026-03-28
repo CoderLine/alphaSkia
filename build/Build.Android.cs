@@ -14,9 +14,11 @@ partial class Build
 {
     [Parameter] readonly string NdkPath = GetVariable<string>("ANDROID_NDK_HOME") ?? FindNdk();
 
-    // Google Play Store requires 16KB page alignment for Android 15+ (API 35+)
+    // Google Play Store requires 16KB page alignment for Android 15+ (API 35+) on 64-bit architectures only.
+    // 32-bit architectures (x86, arm) use 4KB page alignment and are exempt from this requirement.
     // https://developer.android.com/guide/practices/page-sizes
-    const int AndroidRequiredLoadSegmentAlignment = 0x4000;
+    const int AndroidRequiredLoadSegmentAlignment64Bit = 0x4000;
+    const int AndroidRequiredLoadSegmentAlignment32Bit = 0x1000;
 
     [PublicAPI]
     public Target CheckAndroidAlignment => t => t
@@ -30,6 +32,17 @@ partial class Build
             {
                 Log.Information("Skipping alignment check for static variant {Variant}", Variant);
                 return;
+            }
+
+            // 32-bit architectures (x86, arm) only support 4KB page alignment
+            var is64Bit = Architecture == Architecture.Arm64 || Architecture == Architecture.X64;
+            var requiredAlignment = is64Bit
+                ? AndroidRequiredLoadSegmentAlignment64Bit
+                : AndroidRequiredLoadSegmentAlignment32Bit;
+
+            if (!is64Bit)
+            {
+                Log.Information("Using 4KB alignment requirement for 32-bit architecture {Architecture}", Architecture);
             }
 
             var llvmReadElf = GetNdkLlvmReadElf();
@@ -53,7 +66,7 @@ partial class Build
 
             foreach (var soFile in soFiles)
             {
-                Log.Information("Checking 16KB alignment of {File}", soFile.Name);
+                Log.Information("Checking alignment (0x{Required:X}) of {File}", requiredAlignment, soFile.Name);
                 var output = readElfTool($"-l {soFile}", logOutput: false);
                 var stdOutput = string.Join("\n",
                     output.Where(o => o.Type == OutputType.Std).Select(o => o.Text));
@@ -67,11 +80,11 @@ partial class Build
 
                 foreach (var (index, alignment) in loadAlignments)
                 {
-                    if (alignment < AndroidRequiredLoadSegmentAlignment)
+                    if (alignment < requiredAlignment)
                     {
                         failures.Add(
                             $"{soFile.Name}: PT_LOAD[{index}] alignment is 0x{alignment:X}" +
-                            $" (expected >= 0x{AndroidRequiredLoadSegmentAlignment:X})");
+                            $" (expected >= 0x{requiredAlignment:X})");
                     }
                     else
                     {
@@ -87,13 +100,14 @@ partial class Build
                     Log.Error("Alignment failure: {Failure}", failure);
                 }
 
+                var alignmentKb = requiredAlignment / 1024;
                 throw new InvalidOperationException(
                     $"{failures.Count} Android library alignment issue(s) found. " +
-                    $"Google Play Store requires 16KB page alignment (0x{AndroidRequiredLoadSegmentAlignment:X}) for Android 15+. " +
+                    $"Required page alignment is 0x{requiredAlignment:X} ({alignmentKb}KB) for {Architecture}. " +
                     "See https://developer.android.com/guide/practices/page-sizes");
             }
 
-            Log.Information("All Android libraries pass 16KB page alignment check");
+            Log.Information("All Android libraries pass page alignment check (0x{Required:X})", requiredAlignment);
         });
 
     AbsolutePath GetNdkLlvmReadElf()
