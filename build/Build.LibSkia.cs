@@ -268,8 +268,14 @@ partial class Build
 
     /// <summary>
     /// NDK r26+ removed sources/android/cpufeatures/. Skia's third_party/cpu-features/BUILD.gn
-    /// still hardcodes that path. We patch it to accept a GN variable pointing at the
-    /// google/cpu_features ndk_compat shim (the official API-compatible replacement).
+    /// still hardcodes that path. We patch it to build the google/cpu_features ndk_compat shim
+    /// (the official API-compatible replacement) as a proper multi-file library.
+    ///
+    /// The old NDK cpufeatures was a monolithic single .c file. The ndk_compat shim is a full
+    /// library that requires: utils (filesystem, stack_line_reader, string_view), hardware
+    /// detection (hwcaps, hwcaps_linux_or_android), and an architecture-specific impl_*.c.
+    /// It also requires STACK_LINE_READER_BUFFER_SIZE=1024 injected as a compile definition
+    /// (normally done by CMake via setup_include_and_definitions()).
     /// </summary>
     void PatchCpuFeaturesTarget()
     {
@@ -277,7 +283,7 @@ partial class Build
         var content = buildFile.ReadAllText();
 
         // Idempotent: skip if already patched
-        if (content.Contains("cpu_features_ndk_compat"))
+        if (content.Contains("cpu_features_dir"))
         {
             return;
         }
@@ -290,22 +296,42 @@ partial class Build
             # found in the LICENSE file.
             #
             # Patched by alphaSkia: NDK r26+ removed sources/android/cpufeatures/.
-            # cpu_features_ndk_compat points at the ndk_compat shim from google/cpu_features
-            # (https://github.com/google/cpu_features), the official API-compatible replacement.
-            # cpu_features_include points at the include/ directory of that library, which
-            # ndk_compat/cpu-features.c needs for cpu_features_macros.h and related headers.
+            # cpu_features_dir points at the google/cpu_features repo root
+            # (https://github.com/google/cpu_features), the official replacement.
+            # ndk_compat/ provides the API-compatible header; src/ provides the
+            # implementation objects (utils + hardware detection + arch-specific).
+            # STACK_LINE_READER_BUFFER_SIZE must be injected at compile time (value 1024
+            # matches the default in cpu_features' CMakeLists.txt).
 
             declare_args() {
-              cpu_features_ndk_compat = ""
-              cpu_features_include = ""
+              cpu_features_dir = ""
             }
 
             import("../third_party.gni")
 
             third_party("cpu-features") {
-              if (cpu_features_ndk_compat != "") {
-                public_include_dirs = [ cpu_features_ndk_compat, cpu_features_include ]
-                sources = [ cpu_features_ndk_compat + "/cpu-features.c" ]
+              if (cpu_features_dir != "") {
+                public_include_dirs = [ cpu_features_dir + "/ndk_compat" ]
+                include_dirs = [ cpu_features_dir + "/include" ]
+                defines = [ "STACK_LINE_READER_BUFFER_SIZE=1024" ]
+                sources = [
+                  cpu_features_dir + "/ndk_compat/cpu-features.c",
+                  cpu_features_dir + "/src/filesystem.c",
+                  cpu_features_dir + "/src/stack_line_reader.c",
+                  cpu_features_dir + "/src/string_view.c",
+                  cpu_features_dir + "/src/hwcaps.c",
+                  cpu_features_dir + "/src/hwcaps_linux_or_android.c",
+                ]
+                if (target_cpu == "arm") {
+                  sources += [ cpu_features_dir + "/src/impl_arm_linux_or_android.c" ]
+                } else if (target_cpu == "arm64") {
+                  sources += [
+                    cpu_features_dir + "/src/impl_aarch64_cpuid.c",
+                    cpu_features_dir + "/src/impl_aarch64_linux_or_android.c",
+                  ]
+                } else if (target_cpu == "x86" || target_cpu == "x64") {
+                  sources += [ cpu_features_dir + "/src/impl_x86_linux_or_android.c" ]
+                }
               } else {
                 public_include_dirs = [ "$ndk/sources/android/cpufeatures" ]
                 sources = [ "$ndk/sources/android/cpufeatures/cpu-features.c" ]
@@ -384,10 +410,8 @@ partial class Build
 
         if (TargetOs == TargetOperatingSystem.Android)
         {
-            gnArgs["cpu_features_ndk_compat"] =
-                (RootDirectory / "externals" / "cpu_features" / "ndk_compat").ToString().Replace('\\', '/');
-            gnArgs["cpu_features_include"] =
-                (RootDirectory / "externals" / "cpu_features" / "include").ToString().Replace('\\', '/');
+            gnArgs["cpu_features_dir"] =
+                (RootDirectory / "externals" / "cpu_features").ToString().Replace('\\', '/');
         }
 
         GnNinja($"out/{libDir}", "skia", gnArgs, gnFlags, SkiaPath);
