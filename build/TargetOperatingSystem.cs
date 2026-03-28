@@ -50,7 +50,6 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_system_freetype2"] = "false",
             ["skia_enable_fontmgr_android"] = "false",
             ["skia_enable_fontmgr_empty"] = "false",
-            ["skia_enable_fontmgr_fuchsia"] = "false",
             ["skia_enable_fontmgr_FontConfigInterface"] = "false",
             ["skia_enable_fontmgr_fontconfig"] = "false",
             ["skia_enable_fontmgr_custom_directory"] = "false",

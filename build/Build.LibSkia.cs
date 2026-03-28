@@ -154,7 +154,7 @@ partial class Build
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
             }
 
-            var sourcesEnd = buildFileSource.IndexOf("if (is_fuchsia)", sourcesStart, StringComparison.Ordinal);
+            var sourcesEnd = buildFileSource.IndexOf("if (skia_enable_spirv_validation)", sourcesStart, StringComparison.Ordinal);
             if (sourcesEnd == -1)
             {
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
@@ -181,6 +181,7 @@ partial class Build
                 newSources += "  if (is_android) {\n";
                 newSources += "    deps += [ \"//third_party/expat\" ]\n";
                 newSources += "    sources += skia_ports_fontmgr_android_sources\n";
+                newSources += "    sources += skia_ports_fontmgr_android_parser_sources\n";
                 newSources += "  }\n";
                 newSources += "  frameworks = []\n";
                 newSources += "  if (is_mac) {\n";
@@ -261,7 +262,6 @@ partial class Build
             buildFile.WriteAllText(buildFileSource);
 
             PatchSkiaToolchain();
-            PatchSkiaMacOsVersion();
             PatchVulcanAllocatorIncludes();
             PatchLlvm();
         });
@@ -304,7 +304,6 @@ partial class Build
         // disable features we don't need
         gnArgs["skia_use_icu"] = "false";
         gnArgs["skia_use_piex"] = "false";
-        gnArgs["skia_use_sfntly"] = "false";
         gnArgs["skia_use_libgrapheme"] = "true";
         gnArgs["skia_enable_skshaper"] = "true";
         gnArgs["skia_enable_skparagraph"] = "true";
@@ -321,8 +320,6 @@ partial class Build
         gnArgs["skia_use_libavif"] = "false";
         gnArgs["skia_use_libjxl_decode"] = "false";
         gnArgs["skia_enable_vello_shaders"] = "false";
-
-        gnArgs["skia_enable_sksl"] = "false";
 
         gnArgs["skia_use_system_expat"] = "false";
         gnArgs["skia_use_system_libjpeg_turbo"] = "false";

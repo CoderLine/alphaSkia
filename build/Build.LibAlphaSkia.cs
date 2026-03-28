@@ -196,7 +196,6 @@ partial class Build
                                     """;
             PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew, "Build", "#");
             PatchSkiaToolchain();
-            PatchSkiaMacOsVersion();
             PatchLlvm();
         });
 
