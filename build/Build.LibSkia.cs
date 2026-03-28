@@ -292,16 +292,19 @@ partial class Build
             # Patched by alphaSkia: NDK r26+ removed sources/android/cpufeatures/.
             # cpu_features_ndk_compat points at the ndk_compat shim from google/cpu_features
             # (https://github.com/google/cpu_features), the official API-compatible replacement.
+            # cpu_features_include points at the include/ directory of that library, which
+            # ndk_compat/cpu-features.c needs for cpu_features_macros.h and related headers.
 
             declare_args() {
               cpu_features_ndk_compat = ""
+              cpu_features_include = ""
             }
 
             import("../third_party.gni")
 
             third_party("cpu-features") {
               if (cpu_features_ndk_compat != "") {
-                public_include_dirs = [ cpu_features_ndk_compat ]
+                public_include_dirs = [ cpu_features_ndk_compat, cpu_features_include ]
                 sources = [ cpu_features_ndk_compat + "/cpu-features.c" ]
               } else {
                 public_include_dirs = [ "$ndk/sources/android/cpufeatures" ]
@@ -383,6 +386,8 @@ partial class Build
         {
             gnArgs["cpu_features_ndk_compat"] =
                 (RootDirectory / "externals" / "cpu_features" / "ndk_compat").ToString().Replace('\\', '/');
+            gnArgs["cpu_features_include"] =
+                (RootDirectory / "externals" / "cpu_features" / "include").ToString().Replace('\\', '/');
         }
 
         GnNinja($"out/{libDir}", "skia", gnArgs, gnFlags, SkiaPath);
