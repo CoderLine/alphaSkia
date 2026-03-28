@@ -313,7 +313,14 @@ partial class Build
               if (cpu_features_dir != "") {
                 public_include_dirs = [ cpu_features_dir + "/ndk_compat" ]
                 include_dirs = [ cpu_features_dir + "/include" ]
-                defines = [ "STACK_LINE_READER_BUFFER_SIZE=1024" ]
+                defines = [
+                  "STACK_LINE_READER_BUFFER_SIZE=1024",
+                  # Android API 21+ always provides getauxval in sys/auxv.h.
+                  # CMake detects this via check_symbol_exists(getauxval "sys/auxv.h" ...)
+                  # and injects HAVE_STRONG_GETAUXVAL into unix_based_hardware_detection.
+                  # Without it hwcaps_linux_or_android.c hits #error at the else branch.
+                  "HAVE_STRONG_GETAUXVAL",
+                ]
                 sources = [
                   cpu_features_dir + "/ndk_compat/cpu-features.c",
                   cpu_features_dir + "/src/filesystem.c",
