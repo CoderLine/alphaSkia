@@ -19,24 +19,24 @@ jobs:
       ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{secrets.SONATYPE_SIGNING_PASSWORD}}
       ORG_GRADLE_PROJECT_signingInMemoryKey: ${{secrets.SONATYPE_SIGNING_KEY}}
     steps:
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '9'
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
+        dotnet-version: '10'
+    - uses: actions/checkout@v6
+    - uses: actions/download-artifact@v8
       with:
         name: nuke
         path: build/bin/Debug/publish/
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         path: dist/.organize
     - run: dotnet build/bin/Debug/publish/_build.dll Java
       shell: bash
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: maven
         path: |
@@ -52,25 +52,25 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     needs: [java]
     steps:
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '9'        
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
+        dotnet-version: '10'        
+    - uses: actions/checkout@v6
+    - uses: actions/download-artifact@v8
       with:
         name: nuke
         path: build/bin/Debug/publish/
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         name: maven
         path: dist/.organize/maven
     - run: dotnet build/bin/Debug/publish/_build.dll JavaTest
       shell: bash
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       if: always()
       with:
         name: javatest-${{ matrix.runs-on }}

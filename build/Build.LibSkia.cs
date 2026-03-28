@@ -154,7 +154,7 @@ partial class Build
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
             }
 
-            var sourcesEnd = buildFileSource.IndexOf("if (is_fuchsia)", sourcesStart, StringComparison.Ordinal);
+            var sourcesEnd = buildFileSource.IndexOf("if (skia_enable_spirv_validation)", sourcesStart, StringComparison.Ordinal);
             if (sourcesEnd == -1)
             {
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
@@ -261,10 +261,92 @@ partial class Build
             buildFile.WriteAllText(buildFileSource);
 
             PatchSkiaToolchain();
-            PatchSkiaMacOsVersion();
             PatchVulcanAllocatorIncludes();
+            PatchCpuFeaturesTarget();
             PatchLlvm();
         });
+
+    /// <summary>
+    /// NDK r26+ removed sources/android/cpufeatures/. Skia's third_party/cpu-features/BUILD.gn
+    /// still hardcodes that path. We patch it to build the google/cpu_features ndk_compat shim
+    /// (the official API-compatible replacement) as a proper multi-file library.
+    ///
+    /// The old NDK cpufeatures was a monolithic single .c file. The ndk_compat shim is a full
+    /// library that requires: utils (filesystem, stack_line_reader, string_view), hardware
+    /// detection (hwcaps, hwcaps_linux_or_android), and an architecture-specific impl_*.c.
+    /// It also requires STACK_LINE_READER_BUFFER_SIZE=1024 injected as a compile definition
+    /// (normally done by CMake via setup_include_and_definitions()).
+    /// </summary>
+    void PatchCpuFeaturesTarget()
+    {
+        var buildFile = SkiaPath / "third_party" / "cpu-features" / "BUILD.gn";
+        var content = buildFile.ReadAllText();
+
+        // Idempotent: skip if already patched
+        if (content.Contains("cpu_features_dir"))
+        {
+            return;
+        }
+
+        buildFile.WriteAllText(
+            """
+            # Copyright 2016 Google Inc.
+            #
+            # Use of this source code is governed by a BSD-style license that can be
+            # found in the LICENSE file.
+            #
+            # Patched by alphaSkia: NDK r26+ removed sources/android/cpufeatures/.
+            # cpu_features_dir points at the google/cpu_features repo root
+            # (https://github.com/google/cpu_features), the official replacement.
+            # ndk_compat/ provides the API-compatible header; src/ provides the
+            # implementation objects (utils + hardware detection + arch-specific).
+            # STACK_LINE_READER_BUFFER_SIZE must be injected at compile time (value 1024
+            # matches the default in cpu_features' CMakeLists.txt).
+
+            declare_args() {
+              cpu_features_dir = ""
+            }
+
+            import("../third_party.gni")
+
+            third_party("cpu-features") {
+              if (cpu_features_dir != "") {
+                public_include_dirs = [ cpu_features_dir + "/ndk_compat" ]
+                include_dirs = [ cpu_features_dir + "/include" ]
+                defines = [
+                  "STACK_LINE_READER_BUFFER_SIZE=1024",
+                  # Android API 21+ always provides getauxval in sys/auxv.h.
+                  # CMake detects this via check_symbol_exists(getauxval "sys/auxv.h" ...)
+                  # and injects HAVE_STRONG_GETAUXVAL into unix_based_hardware_detection.
+                  # Without it hwcaps_linux_or_android.c hits #error at the else branch.
+                  "HAVE_STRONG_GETAUXVAL",
+                ]
+                sources = [
+                  cpu_features_dir + "/ndk_compat/cpu-features.c",
+                  cpu_features_dir + "/src/filesystem.c",
+                  cpu_features_dir + "/src/stack_line_reader.c",
+                  cpu_features_dir + "/src/string_view.c",
+                  cpu_features_dir + "/src/hwcaps.c",
+                  cpu_features_dir + "/src/hwcaps_linux_or_android.c",
+                ]
+                if (target_cpu == "arm") {
+                  sources += [ cpu_features_dir + "/src/impl_arm_linux_or_android.c" ]
+                } else if (target_cpu == "arm64") {
+                  sources += [
+                    cpu_features_dir + "/src/impl_aarch64_cpuid.c",
+                    cpu_features_dir + "/src/impl_aarch64_linux_or_android.c",
+                  ]
+                } else if (target_cpu == "x86" || target_cpu == "x64") {
+                  sources += [ cpu_features_dir + "/src/impl_x86_linux_or_android.c" ]
+                }
+              } else {
+                public_include_dirs = [ "$ndk/sources/android/cpufeatures" ]
+                sources = [ "$ndk/sources/android/cpufeatures/cpu-features.c" ]
+              }
+            }
+            """
+        );
+    }
 
     void PatchVulcanAllocatorIncludes()
     {
@@ -304,7 +386,6 @@ partial class Build
         // disable features we don't need
         gnArgs["skia_use_icu"] = "false";
         gnArgs["skia_use_piex"] = "false";
-        gnArgs["skia_use_sfntly"] = "false";
         gnArgs["skia_use_libgrapheme"] = "true";
         gnArgs["skia_enable_skshaper"] = "true";
         gnArgs["skia_enable_skparagraph"] = "true";
@@ -322,8 +403,6 @@ partial class Build
         gnArgs["skia_use_libjxl_decode"] = "false";
         gnArgs["skia_enable_vello_shaders"] = "false";
 
-        gnArgs["skia_enable_sksl"] = "false";
-
         gnArgs["skia_use_system_expat"] = "false";
         gnArgs["skia_use_system_libjpeg_turbo"] = "false";
         gnArgs["skia_use_system_libpng"] = "false";
@@ -335,6 +414,12 @@ partial class Build
         gnArgs["skia_enable_graphite"] = "false";
         gnArgs["skia_enable_ganesh"] = "true";
         gnArgs["skia_use_vulkan"] = "true";
+
+        if (TargetOs == TargetOperatingSystem.Android)
+        {
+            gnArgs["cpu_features_dir"] =
+                (RootDirectory / "externals" / "cpu_features").ToString().Replace('\\', '/');
+        }
 
         GnNinja($"out/{libDir}", "skia", gnArgs, gnFlags, SkiaPath);
 

@@ -70,6 +70,10 @@ partial class Build
         return $"{libName.ToLowerInvariant()}-{targetOs?.RuntimeIdentifier}-{arch}-{variant}";
     }
 
+    static string GetAlphaSkiaLibName(Variant variant) => variant == Variant.Jni ? "libalphaskiajni"
+        : variant == Variant.Node ? "libalphaskianode"
+        : "libalphaskia";
+
     Task GitSyncDepsCustom(string[] requiredDependencies)
     {
         var depsFile = SkiaPath / "DEPS";
@@ -398,6 +402,11 @@ partial class Build
         ).Replace(
             "  env_setup = \"$shell set \\\"PATH=%PATH%;$win_vc\\\\Tools\\\\MSVC\\\\$win_toolchain_version\\\\bin\\\\HostX64\\\\x64\\\" && \"",
             "  # env_setup = \"$shell set \\\"PATH=%PATH%;$win_vc\\\\Tools\\\\MSVC\\\\$win_toolchain_version\\\\bin\\\\HostX64\\\\x64\\\" && \""
+        ).Replace(
+            // NDK r23+ removed arch-specific compiler wrappers (e.g. armv7a-linux-androideabi21-clang).
+            // Use clang --target= instead, matching the existing Windows-host pattern.
+            "      target_cc = \"$_prefix/$ndk_target$ndk_api-clang\"\n      target_cxx = \"$_prefix/$ndk_target$ndk_api-clang++\"",
+            "      target_cc = \"$_prefix/clang --target=$ndk_target$ndk_api -fno-addrsig\"\n      target_cxx = \"$_prefix/clang++ --target=$ndk_target$ndk_api -fno-addrsig\""
         ));
     }
 
