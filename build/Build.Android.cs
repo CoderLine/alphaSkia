@@ -40,7 +40,7 @@ partial class Build
 
             var readElfTool = ToolResolver.GetTool(llvmReadElf);
 
-            var libDir = GetLibDirectory(variant: Variant);
+            var libDir = GetLibDirectory(GetAlphaSkiaLibName(Variant), variant: Variant);
             var distPath = DistBasePath / libDir;
             var soFiles = distPath.GlobFiles("*.so").ToArray();
 

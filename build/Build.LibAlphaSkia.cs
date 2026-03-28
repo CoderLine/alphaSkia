@@ -248,18 +248,9 @@ partial class Build
         var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
         var gnFlags = new Dictionary<string, string>();
 
-        string buildTarget;
-        if (Variant == Variant.Static)
+        var buildTarget = GetAlphaSkiaLibName(Variant);
+        if (Variant == Variant.Jni)
         {
-            buildTarget = "libalphaskia";
-        }
-        else if (Variant == Variant.Shared)
-        {
-            buildTarget = "libalphaskia";
-        }
-        else if (Variant == Variant.Jni)
-        {
-            buildTarget = "libalphaskiajni";
 
             var alphaSkiaInclude = DistBasePath / "include";
             var jniInclude = JavaHome / "include";
@@ -293,8 +284,6 @@ partial class Build
         }
         else if (Variant == Variant.Node)
         {
-            buildTarget = "libalphaskianode";
-
             if (OperatingSystem.IsWindows())
             {
                 // windows requires a lib to link against, fetch it from the node downloads
@@ -308,10 +297,6 @@ partial class Build
                 // and as the node binary has them built-in
                 AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
             }
-        }
-        else
-        {
-            throw new ArgumentException("Unknown variant: " + Variant);
         }
 
         if (TargetOs == TargetOperatingSystem.Windows)

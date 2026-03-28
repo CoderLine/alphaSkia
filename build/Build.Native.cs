@@ -70,6 +70,10 @@ partial class Build
         return $"{libName.ToLowerInvariant()}-{targetOs?.RuntimeIdentifier}-{arch}-{variant}";
     }
 
+    static string GetAlphaSkiaLibName(Variant variant) => variant == Variant.Jni ? "libalphaskiajni"
+        : variant == Variant.Node ? "libalphaskianode"
+        : "libalphaskia";
+
     Task GitSyncDepsCustom(string[] requiredDependencies)
     {
         var depsFile = SkiaPath / "DEPS";
