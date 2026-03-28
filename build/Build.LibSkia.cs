@@ -181,7 +181,6 @@ partial class Build
                 newSources += "  if (is_android) {\n";
                 newSources += "    deps += [ \"//third_party/expat\" ]\n";
                 newSources += "    sources += skia_ports_fontmgr_android_sources\n";
-                newSources += "    sources += skia_ports_fontmgr_android_parser_sources\n";
                 newSources += "  }\n";
                 newSources += "  frameworks = []\n";
                 newSources += "  if (is_mac) {\n";
