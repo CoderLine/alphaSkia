@@ -132,7 +132,7 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: Compiling LibAlphaSkia
-        run: dotnet build/bin/Debug/publish/_build.dll LibAlphaSkia LibAlphaSkiaTest --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
+        run: dotnet build/bin/Debug/publish/_build.dll LibAlphaSkia LibAlphaSkiaTest CheckAndroidAlignment --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
         shell: bash
 
       - name: Uploading LibAlphaSkia to Artifacts
