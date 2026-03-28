@@ -20,13 +20,13 @@ jobs:
   nuke: 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9'
+          dotnet-version: '10'
       - run: dotnet publish --configuration Debug ./build/_build.csproj 
         shell: bash
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nuke
           path: build/bin/Debug/publish/
