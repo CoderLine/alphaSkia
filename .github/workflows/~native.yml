@@ -66,9 +66,10 @@ jobs:
       - name: Install Latest Android NDK
         if: ${{ inputs.target-os == 'android' }}
         run: |
-          LATEST_NDK=$(sdkmanager --list 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V | tail -1)
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          LATEST_NDK=$("$SDKMANAGER" --list 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V | tail -1)
           echo "Installing NDK: $LATEST_NDK"
-          sdkmanager "$LATEST_NDK"
+          "$SDKMANAGER" "$LATEST_NDK"
           NDK_VERSION="${LATEST_NDK#ndk;}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
@@ -123,9 +124,10 @@ jobs:
       - name: Install Latest Android NDK
         if: ${{ inputs.target-os == 'android' }}
         run: |
-          LATEST_NDK=$(sdkmanager --list 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V | tail -1)
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          LATEST_NDK=$("$SDKMANAGER" --list 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V | tail -1)
           echo "Installing NDK: $LATEST_NDK"
-          sdkmanager "$LATEST_NDK"
+          "$SDKMANAGER" "$LATEST_NDK"
           NDK_VERSION="${LATEST_NDK#ndk;}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
