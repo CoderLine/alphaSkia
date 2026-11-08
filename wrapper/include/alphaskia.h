@@ -18,6 +18,17 @@
 #endif
 #endif
 
+// Contract of the alphaSkia C API:
+// - Every function returning a handle transfers ownership, the handle must be freed with the matching *_free function.
+//   NULL is returned on invalid input or failure.
+// - Every function accepts NULL handles: getters return 0/NULL, other functions do nothing. *_free accepts NULL.
+// - Pointers returned by getters (alphaskia_data_get_data, alphaskia_string_get_utf8) stay valid until the owning handle
+//   is freed.
+// - Handles are independent: a handle can be freed while handles created from it are still in use (e.g. a typeface
+//   after registration, an image after end_render or the canvas it came from).
+// - A handle must not be used by several threads at the same time. Different handles, the font functions
+//   (typeface registration and lookup, switching the font manager) and the limits can be used concurrently.
+// - Text is UTF-16 with its length in code units, family names are UTF-8.
 extern "C"
 {
     // Process-wide limits protecting against untrusted input forcing large allocations.
@@ -57,6 +68,7 @@ extern "C"
     AS_API void alphaskia_switch_to_operating_system_fonts();
 
     typedef AS_API void *alphaskia_data_t;
+    // Copies the given bytes.
     AS_API alphaskia_data_t alphaskia_data_new_copy(const uint8_t *data, uint64_t length);
     AS_API const uint8_t *alphaskia_data_get_data(alphaskia_data_t data);
     AS_API uint64_t alphaskia_data_get_length(alphaskia_data_t data);
@@ -68,6 +80,8 @@ extern "C"
     AS_API void alphaskia_string_free(alphaskia_string_t string);
 
     typedef AS_API void *alphaskia_typeface_t;
+    // Registers the font for lookups by family name until the process ends; freeing the typeface or the data does not
+    // unregister it. Returns NULL if the data is no supported font.
     AS_API alphaskia_typeface_t alphaskia_typeface_register(alphaskia_data_t data);
     AS_API void alphaskia_typeface_free(alphaskia_typeface_t typeface);
     AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint16_t weight, uint8_t italic);
@@ -76,6 +90,7 @@ extern "C"
     AS_API uint8_t alphaskia_typeface_is_italic(alphaskia_typeface_t typeface);
 
     typedef AS_API void *alphaskia_text_style_t;
+    // Copies the family names. Returns NULL for family_names NULL with a family_name_count above 0.
     AS_API alphaskia_text_style_t alphaskia_text_style_new(uint8_t family_name_count, const char** family_names, uint16_t weight, uint8_t italic);
     AS_API uint8_t alphaskia_text_style_get_family_name_count(alphaskia_text_style_t text_style);
     AS_API alphaskia_string_t alphaskia_text_style_get_family_name(alphaskia_text_style_t text_style, uint8_t index);
@@ -86,9 +101,15 @@ extern "C"
     typedef AS_API void *alphaskia_image_t;
     AS_API int32_t alphaskia_image_get_width(alphaskia_image_t image);
     AS_API int32_t alphaskia_image_get_height(alphaskia_image_t image);
+    // Writes the pixels in the format of alphaskia_get_color_type with premultiplied alpha. Returns 0 if row_bytes is
+    // below width * 4 or the pixels do not fit into pixels_length bytes.
     AS_API uint8_t alphaskia_image_read_pixels(alphaskia_image_t image, uint8_t *pixels, uint64_t row_bytes, uint64_t pixels_length);
     AS_API alphaskia_data_t alphaskia_image_encode_png(alphaskia_image_t image);
+    // Copies the bytes. Returns NULL for unsupported or disabled formats (alphaskia_limit_image_formats) and images
+    // beyond the size limits.
     AS_API alphaskia_image_t alphaskia_image_decode(const uint8_t *data, uint64_t length);
+    // Copies width * height * 4 bytes in the format of alphaskia_get_color_type with premultiplied alpha. Returns NULL
+    // if pixels_length is smaller.
     AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels, uint64_t pixels_length);
     AS_API void alphaskia_image_free(alphaskia_image_t image);
 
@@ -117,6 +138,9 @@ extern "C"
     AS_API void alphaskia_canvas_set_line_width(alphaskia_canvas_t canvas, float line_width);
     AS_API float alphaskia_canvas_get_line_width(alphaskia_canvas_t canvas);
 
+    // Starts drawing on a new surface of width * height (at least 1) scaled by render_scale. Returns 0, leaving the
+    // canvas without surface, if render_scale is not positive and finite or the surface exceeds the limits or cannot be
+    // allocated. Without a surface all drawing is a no-op and alphaskia_canvas_end_render returns NULL.
     AS_API uint8_t alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int32_t width, int32_t height, float render_scale);
     AS_API alphaskia_image_t alphaskia_canvas_end_render(alphaskia_canvas_t canvas);
     AS_API void alphaskia_canvas_fill_rect(alphaskia_canvas_t canvas, float x, float y, float width, float height);
@@ -147,6 +171,8 @@ extern "C"
         alphaskia_text_baseline_middle = 2,
         alphaskia_text_baseline_bottom = 3
     } alphaskia_text_baseline_t;
+    // Text with a negative length, NULL text with a length, a non-finite font size or beyond the text limits is not
+    // drawn; alphaskia_canvas_measure_text returns NULL for it.
     AS_API void alphaskia_canvas_fill_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_text_style_t text_style, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
 
     AS_API alphaskia_text_metrics_t alphaskia_canvas_measure_text(alphaskia_canvas_t canvas, const char16_t *text, int text_length, alphaskia_text_style_t text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline);
