@@ -12,10 +12,12 @@
 #define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_DirectWrite()
 #elif defined(ALPHASKIA_FONTMGR_LINUX)
 #include "../../externals/skia/include/ports/SkFontMgr_fontconfig.h"
-#define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_FontConfig(nullptr)
+#include "../../externals/skia/include/ports/SkFontScanner_FreeType.h"
+#define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_FontConfig(nullptr, SkFontScanner_Make_FreeType())
 #elif defined(ALPHASKIA_FONTMGR_ANDROID)
 #include "../../externals/skia/include/ports/SkFontMgr_android.h"
-#define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_Android(nullptr)
+#include "../../externals/skia/include/ports/SkFontScanner_FreeType.h"
+#define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_Android(nullptr, SkFontScanner_Make_FreeType())
 #elif defined(ALPHASKIA_FONTMGR_MAC)
 #include "../../externals/skia/include/ports/SkFontMgr_mac_ct.h"
 #define CREATE_OPERATING_SYSTEM_FONTMGR SkFontMgr_New_CoreText(nullptr)

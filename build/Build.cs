@@ -37,6 +37,31 @@ static class VersionInfo
         return int.Parse(text[(startOfMarker + marker.Length)..endOfMarker].Trim());
     }
 
+    /// <summary>
+    /// Fails when the checked out Skia sources are not the milestone that .gitmodules (and therefore
+    /// the published version number) claims.
+    /// </summary>
+    public static void EnsureSkiaCheckoutMatchesVersion(AbsolutePath skiaPath)
+    {
+        var milestoneHeader = skiaPath / "include" / "core" / "SkMilestone.h";
+        const string marker = "#define SK_MILESTONE ";
+        var text = milestoneHeader.ReadAllText();
+        var startOfMarker = text.IndexOf(marker, StringComparison.Ordinal);
+        if (startOfMarker == -1)
+        {
+            throw new IOException($"{milestoneHeader} does not contain SK_MILESTONE");
+        }
+
+        var endOfMarker = text.IndexOf("\n", startOfMarker, StringComparison.Ordinal);
+        var checkedOutMilestone = int.Parse(text[(startOfMarker + marker.Length)..endOfMarker].Trim());
+        if (checkedOutMilestone != SkiaVersion)
+        {
+            throw new InvalidOperationException(
+                $"Skia checkout is m{checkedOutMilestone} but .gitmodules declares chrome/m{SkiaVersion}. " +
+                "Update the externals/skia submodule commit to match the branch.");
+        }
+    }
+
     static readonly Version FileVersionBase = new Version(3, 5, 0, 0);
 
     #endregion

@@ -30,7 +30,6 @@ partial class Build
                 "third_party/externals/libpng",
                 "third_party/externals/zlib",
                 "third_party/externals/wuffs",
-                "third_party/externals/vulkanmemoryallocator",
                 "third_party/externals/libgrapheme",
                 "third_party/externals/icu",
                 "third_party/externals/unicodetools",
@@ -160,7 +159,7 @@ partial class Build
                 throw new IOException("BUILD.gn of skia changed, cannot patch files");
             }
 
-            var sources = buildFileSource.Substring(sourcesStart, sourcesEnd);
+            var sources = buildFileSource.Substring(sourcesStart, sourcesEnd - sourcesStart);
             if (!sources.Contains("# AlphaSkia Patch FreeType and SkParagraph"))
             {
                 var newSources = "# AlphaSkia Patch FreeType and SkParagraph\n";
@@ -177,10 +176,12 @@ partial class Build
                 newSources += "  if (is_linux) {\n";
                 newSources += "    public_deps += [ \"//third_party:fontconfig\" ]\n";
                 newSources += "    sources += skia_ports_fontmgr_fontconfig_sources\n";
+                newSources += "    sources += skia_ports_typeface_proxy_sources\n";
                 newSources += "  }\n";
                 newSources += "  if (is_android) {\n";
                 newSources += "    deps += [ \"//third_party/expat\" ]\n";
                 newSources += "    sources += skia_ports_fontmgr_android_sources\n";
+                newSources += "    sources += skia_ports_typeface_proxy_sources\n";
                 newSources += "  }\n";
                 newSources += "  frameworks = []\n";
                 newSources += "  if (is_mac) {\n";
@@ -261,7 +262,6 @@ partial class Build
             buildFile.WriteAllText(buildFileSource);
 
             PatchSkiaToolchain();
-            PatchVulcanAllocatorIncludes();
             PatchCpuFeaturesTarget();
             PatchLlvm();
         });
@@ -348,33 +348,10 @@ partial class Build
         );
     }
 
-    void PatchVulcanAllocatorIncludes()
-    {
-        // https://github.com/microsoft/vcpkg/issues/31875
-        var buildFile = SkiaPath / "third_party" / "externals" / "vulkanmemoryallocator" / "include" / "vk_mem_alloc.h";
-
-        var include = """
-                          #if VMA_STATS_STRING_ENABLED
-                              #include <cstdio> // For snprintf
-                          #endif
-                      """;
-
-        PatchSkiaFile(buildFile, include, "cstdio", "//",
-            source =>
-            {
-                var stdLibInclude = source.IndexOf("#include <cstdlib>", StringComparison.Ordinal);
-                if (stdLibInclude == -1)
-                {
-                    throw new IOException("Could not find patch position for vulcan memory allocator");
-                }
-
-                var endOfLine = source.IndexOf("\n", stdLibInclude, StringComparison.Ordinal);
-                return endOfLine + 1;
-            });
-    }
-
     void BuildSkia()
     {
+        VersionInfo.EnsureSkiaCheckoutMatchesVersion(SkiaPath);
+
         var gnArgs = PrepareNativeBuild(Variant.Static);
         var gnFlags = new Dictionary<string, string>();
         var libDir = GetLibDirectory("libskia", TargetOs, Architecture, Variant.Static);
@@ -410,10 +387,15 @@ partial class Build
         gnArgs["skia_use_system_zlib"] = "false";
         gnArgs["skia_use_system_harfbuzz"] = "false";
 
-        // graphite is still in dev, stay on ganesh backend
+        // alphaSkia renders on raster surfaces only, no GPU backend is needed
         gnArgs["skia_enable_graphite"] = "false";
-        gnArgs["skia_enable_ganesh"] = "true";
-        gnArgs["skia_use_vulkan"] = "true";
+        gnArgs["skia_enable_ganesh"] = "false";
+        gnArgs["skia_use_gl"] = "false";
+        gnArgs["skia_use_vulkan"] = "false";
+        gnArgs["skia_use_metal"] = "false";
+
+        // only the Android font manager parses XML (fonts.xml)
+        gnArgs["skia_use_expat"] = (TargetOs == TargetOperatingSystem.Android).ToString().ToLowerInvariant();
 
         if (TargetOs == TargetOperatingSystem.Android)
         {

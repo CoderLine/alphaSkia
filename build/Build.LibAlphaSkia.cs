@@ -105,7 +105,7 @@ partial class Build
                                           }
                                           
                                           if (is_win) {
-                                            libs = [ "skia.lib", "user32.lib", "OpenGL32.lib", "alphaskia.rc.obj" ]
+                                            libs = [ "skia.lib", "user32.lib", "alphaskia.rc.obj" ]
                                           }
                                           
                                           if (is_linux) {
@@ -122,10 +122,6 @@ partial class Build
                                             frameworks = [
                                               "AppKit.framework",
                                               "ApplicationServices.framework",
-                                    
-                                              "OpenGL.framework",
-                                              
-                                              "Metal.framework",
                                               "Foundation.framework"
                                             ]   
                                           }
@@ -140,21 +136,27 @@ partial class Build
                                               "CoreText.framework",
                                               "ImageIO.framework",
                                               "MobileCoreServices.framework",
-                                    
-                                              "Metal.framework",
                                               "UIKit.framework"
                                             ]
                                           }
                                         }
                                     
+                                        # libraries without host-provided symbols must resolve everything at link time
+                                        alphaskia_no_undefined_ldflags = []
+                                        if (is_shared_alphaskia && (is_linux || is_android)) {
+                                          alphaskia_no_undefined_ldflags = [ "-Wl,-z,defs" ]
+                                        }
+                                    
                                         alphaskia_build("libalphaskia") {
                                           public_configs = [ ":alphaskia_public" ]
                                           configs += [ ":alphaskia_public" ]
+                                          ldflags = alphaskia_no_undefined_ldflags
                                           sources = alphaskia_wrapper_sources
                                         }
                                         alphaskia_build("libalphaskiajni") {
                                           public_configs = [ ":alphaskia_public" ]
                                           configs += [ ":alphaskia_public" ]
+                                          ldflags = alphaskia_no_undefined_ldflags
                                           sources = alphaskia_wrapper_sources
                                           sources += [
                                             "../../lib/java/jni/src/AlphaSkiaCanvas.cpp",

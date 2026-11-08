@@ -55,13 +55,18 @@ jobs:
           name: nuke
           path: build/bin/Debug/publish/
 
+      - name: Compute LibSkia Cache Key
+        id: skia-cache-key
+        shell: bash
+        run: echo "key=libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static-$(git rev-parse HEAD:externals/skia)-${{ hashFiles('build/Build.LibSkia.cs', 'build/Build.Native.cs', 'build/Build.Linux.cs', 'build/Build.Windows.cs', 'build/Build.MacOs.cs', 'build/Build.Android.cs', 'build/TargetOperatingSystem.cs', 'build/Architecture.cs') }}" >> "$GITHUB_OUTPUT"
+
       - name: Fetch Cached LibSkia
         uses: actions/cache/restore@v5
         if: ${{ inputs.use-skia-cache }}
         with:
           path: dist
-          key: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static-${{ github.run_id }}
-          restore-keys: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
+          key: ${{ steps.skia-cache-key.outputs.key }}-${{ github.run_id }}
+          restore-keys: ${{ steps.skia-cache-key.outputs.key }}-
 
       - name: Install Latest Stable Android NDK
         if: ${{ inputs.target-os == 'android' }}
@@ -91,7 +96,7 @@ jobs:
         if: ${{ steps.build.outputs.build-skipped != 'true' }}
         with:
           path: dist
-          key: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static-${{ github.run_id }} 
+          key: ${{ steps.skia-cache-key.outputs.key }}-${{ github.run_id }}
 
   alphaskia:
     runs-on: ${{ inputs.runs-on }}
