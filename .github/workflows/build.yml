@@ -1,15 +1,9 @@
 on:
   workflow_dispatch:
-    inputs:
-      use-skia-cache:
-        type: boolean
-        description: Use Skia Binary from cache
-        default: false
-        
+
 jobs:
   full_build:
     uses: ./.github/workflows/~reusable-full-build.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }}
       is-release-build: false
     secrets: inherit

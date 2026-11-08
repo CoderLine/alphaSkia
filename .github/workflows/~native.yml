@@ -1,12 +1,6 @@
 on:
   workflow_call:
     inputs:
-      # Caching  
-      use-skia-cache:
-        type: boolean
-        description: Use Skia Binary from cache
-        required: true
-      
       # Versioning
       is-release-build:
         type: boolean
@@ -35,19 +29,30 @@ env:
   IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
 
 jobs:
-  skia:
+  native:
     runs-on: ${{ inputs.runs-on }}
-    name: LibSkia ${{ inputs.target-os }}-${{ matrix.architecture }}
+    name: Native ${{ inputs.target-os }}-${{ matrix.architecture }}
     strategy:
       fail-fast: false
       matrix:
         architecture: ${{ fromJson( inputs.architectures ) }}
+    env:
+      # Windows builds use clang-cl, which sccache supports; the other platforms use ccache
+      ALPHASKIA_CC_WRAPPER: ${{ inputs.target-os == 'windows' && 'sccache' || 'ccache' }}
+      CCACHE_DIR: ${{ github.workspace }}/.compiler-cache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_NOHASHDIR: 'true'
+      CCACHE_MAXSIZE: 1G
+      SCCACHE_DIR: ${{ github.workspace }}/.compiler-cache
+      SCCACHE_CACHE_SIZE: 2G
     steps:
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10'      
+          dotnet-version: '10'
       - name: Cloning Repository
         uses: actions/checkout@v6
+        with:
+          submodules: recursive
 
       - name: Fetching Pre-Built Nuke
         uses: actions/download-artifact@v8
@@ -55,18 +60,25 @@ jobs:
           name: nuke
           path: build/bin/Debug/publish/
 
-      - name: Compute LibSkia Cache Key
-        id: skia-cache-key
-        shell: bash
-        run: echo "key=libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static-$(git rev-parse HEAD:externals/skia)-${{ hashFiles('build/Build.LibSkia.cs', 'build/Build.Native.cs', 'build/Build.Linux.cs', 'build/Build.Windows.cs', 'build/Build.MacOs.cs', 'build/Build.Android.cs', 'build/TargetOperatingSystem.cs', 'build/Architecture.cs') }}" >> "$GITHUB_OUTPUT"
+      # on Linux runners the build installs ccache with its other packages
+      - name: Install ccache
+        if: ${{ runner.os == 'macOS' }}
+        run: brew install ccache
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+      - name: Install sccache
+        if: ${{ runner.os == 'Windows' }}
+        run: choco install sccache --yes --no-progress
 
-      - name: Fetch Cached LibSkia
+      # The compiler cache identifies objects by their preprocessed sources and compiler flags, it needs no hand
+      # maintained key. Every run stores a new entry, the newest one of the target is restored.
+      - name: Restore Compiler Cache
         uses: actions/cache/restore@v5
-        if: ${{ inputs.use-skia-cache }}
         with:
-          path: dist
-          key: ${{ steps.skia-cache-key.outputs.key }}-${{ github.run_id }}
-          restore-keys: ${{ steps.skia-cache-key.outputs.key }}-
+          path: .compiler-cache
+          key: compiler-cache-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: compiler-cache-${{ inputs.target-os }}-${{ matrix.architecture }}-
 
       - name: Install Latest Stable Android NDK
         if: ${{ inputs.target-os == 'android' }}
@@ -80,83 +92,53 @@ jobs:
           NDK_VERSION="${STABLE_NDK#ndk;}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
-      - name: Compiling LibSkia
-        run: dotnet build/bin/Debug/publish/_build.dll LibSkiaWithCache --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --use-cache ${{ inputs.use-skia-cache }}
+      - name: Compiling LibSkia and LibAlphaSkia
+        run: dotnet build/bin/Debug/publish/_build.dll LibSkia LibAlphaSkia LibAlphaSkiaTest CheckAndroidAlignment --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variants ${{ join(fromJson(inputs.variants), ' ') }}
         shell: bash
-        id: build
 
-      - name: Uploading LibSkia to Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
-          path: artifacts
-  
-      - name: Uploading LibSkia to Build Cache
+      - name: Compiler Cache Statistics
+        if: ${{ always() }}
+        continue-on-error: true
+        run: $ALPHASKIA_CC_WRAPPER ${{ inputs.target-os == 'windows' && '--show-stats' || '--show-stats --verbose' }}
+        shell: bash
+
+      - name: Save Compiler Cache
         uses: actions/cache/save@v5
-        if: ${{ steps.build.outputs.build-skipped != 'true' }}
-        with:
-          path: dist
-          key: ${{ steps.skia-cache-key.outputs.key }}-${{ github.run_id }}
-
-  alphaskia:
-    runs-on: ${{ inputs.runs-on }}
-    needs: [skia]
-    name: LibAlphaSkia ${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}
-    strategy:
-      fail-fast: false
-      matrix:
-        architecture: ${{ fromJson( inputs.architectures ) }}
-        variant: ${{ fromJson( inputs.variants ) }}
-    steps:
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10'      
-      - name: Cloning Repository
-        uses: actions/checkout@v6
-        with:
-          submodules: true
-
-      - name: Fetching Pre-Built Nuke
-        uses: actions/download-artifact@v8
-        with:
-          name: nuke
-          path: build/bin/Debug/publish/
-
-      - name: Downloading LibSkia
-        uses: actions/download-artifact@v8
-        with:
-          path: dist/.organize/libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
-          name: libskia-${{ inputs.target-os }}-${{ matrix.architecture }}-static
-
-      - name: Install Latest Stable Android NDK
-        if: ${{ inputs.target-os == 'android' }}
-        run: |
-          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          ALL_NDKS=$("$SDKMANAGER" --list --channel=0 2>/dev/null | grep -E "^\s+ndk;" | awk '{print $1}' | sort -V)
-          LATEST_MAJOR=$(echo "$ALL_NDKS" | awk -F'[.;]' '{print $2}' | sort -Vu | tail -1)
-          STABLE_NDK=$(echo "$ALL_NDKS" | awk -F'[.;]' -v max="$LATEST_MAJOR" '$2+0 < max+0' | sort -V | tail -1)
-          echo "Installing NDK: $STABLE_NDK"
-          "$SDKMANAGER" "$STABLE_NDK"
-          NDK_VERSION="${STABLE_NDK#ndk;}"
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
-
-      - name: Compiling LibAlphaSkia
-        run: dotnet build/bin/Debug/publish/_build.dll LibAlphaSkia LibAlphaSkiaTest CheckAndroidAlignment --target-os ${{ inputs.target-os }} --architecture ${{ matrix.architecture }} --variant ${{ matrix.variant }}
-        shell: bash
-
-      - name: Uploading LibAlphaSkia to Artifacts
-        uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
-          name: libalphaskia-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}
-          path: artifacts
+          path: .compiler-cache
+          key: compiler-cache-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Uploading LibAlphaSkia (shared)
+        uses: actions/upload-artifact@v7
+        if: ${{ contains(fromJson(inputs.variants), 'shared') }}
+        with:
+          name: libalphaskia-${{ inputs.target-os }}-${{ matrix.architecture }}-shared
+          path: artifacts/shared
+          if-no-files-found: error
+
+      - name: Uploading LibAlphaSkia (jni)
+        uses: actions/upload-artifact@v7
+        if: ${{ contains(fromJson(inputs.variants), 'jni') }}
+        with:
+          name: libalphaskia-${{ inputs.target-os }}-${{ matrix.architecture }}-jni
+          path: artifacts/jni
+          if-no-files-found: error
+
+      - name: Uploading LibAlphaSkia (node)
+        uses: actions/upload-artifact@v7
+        if: ${{ contains(fromJson(inputs.variants), 'node') }}
+        with:
+          name: libalphaskia-${{ inputs.target-os }}-${{ matrix.architecture }}-node
+          path: artifacts/node
+          if-no-files-found: error
 
       - name: Uploading LibAlphaSkiaTest to Artifacts
         uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
-          name: libalphaskiatest-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}
+          name: libalphaskiatest-${{ inputs.target-os }}-${{ matrix.architecture }}
           if-no-files-found: ignore
           path: |
-            dist/libalphaskiatest-${{ inputs.target-os }}-${{ matrix.architecture }}-${{ matrix.variant }}/
+            dist/libalphaskiatest-*/
             test/test-outputs/

@@ -1,12 +1,6 @@
 on:
   workflow_call:
     inputs:
-      # Caching  
-      use-skia-cache:
-        type: boolean
-        description: Use Skia Binary from cache
-        required: true
-      
       # Versioning
       is-release-build:
         type: boolean
@@ -36,7 +30,6 @@ jobs:
     needs: [nuke]
     uses: ./.github/workflows/~native.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: windows-latest
       target-os: windows
@@ -47,7 +40,6 @@ jobs:
     needs: [nuke]
     uses: ./.github/workflows/~native.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: ubuntu-latest
       target-os: linux
@@ -58,7 +50,6 @@ jobs:
     needs: [nuke]
     uses: ./.github/workflows/~native.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: macos-latest
       target-os: macos
@@ -69,7 +60,6 @@ jobs:
     needs: [nuke]
     uses: ./.github/workflows/~native.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: ubuntu-latest
       target-os: android
@@ -80,7 +70,6 @@ jobs:
     needs: [nuke]
     uses: ./.github/workflows/~native.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: macos-latest
       target-os: ios
@@ -91,7 +80,6 @@ jobs:
     needs: [nuke]
     uses: ./.github/workflows/~native.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }} 
       is-release-build: ${{ inputs.is-release-build }}
       runs-on: macos-latest
       target-os: iossimulator

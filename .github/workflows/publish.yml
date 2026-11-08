@@ -5,10 +5,6 @@ on:
         type: boolean
         description: Is Release Build
         default: false
-      use-skia-cache:
-        type: boolean
-        description: Use Skia Binary from cache
-        default: false
 env:
   IS_RELEASE_BUILD: ${{ inputs.is-release-build }}
 
@@ -16,7 +12,6 @@ jobs:
   build:
     uses: ./.github/workflows/~reusable-full-build.yml
     with: 
-      use-skia-cache: ${{ inputs.use-skia-cache }} 
       is-release-build: ${{ inputs.is-release-build }}
     secrets: inherit
 

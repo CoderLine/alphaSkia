@@ -24,6 +24,7 @@ jobs:
         path: build/bin/Debug/publish/
     - uses: actions/download-artifact@v8
       with:
+        pattern: libalphaskia-*-node
         path: dist/.organize
     - run: dotnet build/bin/Debug/publish/_build.dll Node
       shell: bash
