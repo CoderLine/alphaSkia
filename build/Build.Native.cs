@@ -396,15 +396,22 @@ partial class Build
 
     void PatchSkiaToolchain()
     {
-        // NDK r23+ removed arch-specific compiler wrappers (e.g. armv7a-linux-androideabi21-clang).
-        // Use clang --target= instead, matching the existing Windows-host pattern.
-        const string ndkWrapperCompilers =
-            "      target_cc = \"$_prefix/$ndk_target$ndk_api-clang\"\n      target_cxx = \"$_prefix/$ndk_target$ndk_api-clang++\"";
-        const string ndkTargetCompilers =
-            "      target_cc = \"$_prefix/clang --target=$ndk_target$ndk_api -fno-addrsig\"\n      target_cxx = \"$_prefix/clang++ --target=$ndk_target$ndk_api -fno-addrsig\"";
+        if (TargetOs != TargetOperatingSystem.Android)
+        {
+            return;
+        }
 
         var buildConfigFile = SkiaPath / "gn" / "BUILDCONFIG.gn";
         var buildConfigSource = buildConfigFile.ReadAllText();
+        var newLine = buildConfigSource.Contains("\r\n") ? "\r\n" : "\n";
+
+        // NDK r23+ removed arch-specific compiler wrappers (e.g. armv7a-linux-androideabi21-clang).
+        // Use clang --target= instead, matching the existing Windows-host pattern.
+        var ndkWrapperCompilers =
+            "      target_cc = \"$_prefix/$ndk_target$ndk_api-clang\"" + newLine + "      target_cxx = \"$_prefix/$ndk_target$ndk_api-clang++\"";
+        var ndkTargetCompilers =
+            "      target_cc = \"$_prefix/clang --target=$ndk_target$ndk_api -fno-addrsig\"" + newLine + "      target_cxx = \"$_prefix/clang++ --target=$ndk_target$ndk_api -fno-addrsig\"";
+
         if (buildConfigSource.Contains(ndkTargetCompilers))
         {
             return;
