@@ -65,6 +65,14 @@ public class RobustnessTest {
             closedStyle.close();
             expectThrows(() -> canvas.fillText("a", closedStyle, 12, 0, 0, AlphaSkiaTextAlign.LEFT, AlphaSkiaTextBaseline.ALPHABETIC), IllegalArgumentException.class, "fill text with closed style");
 
+            check(AlphaSkiaLimits.getMaxImageDimension() == 32767, "default max image dimension");
+            check(AlphaSkiaLimits.getImageFormats().equals(java.util.EnumSet.of(AlphaSkiaImageFormat.PNG)), "default image formats");
+            expectThrows(() -> AlphaSkiaLimits.setMaxFontSize(-1), IllegalArgumentException.class, "negative limit");
+            AlphaSkiaLimits.setMaxImageDimension(100);
+            expectThrows(() -> canvas.beginRender(200, 10), IllegalArgumentException.class, "render above dimension limit");
+            AlphaSkiaLimits.setMaxImageDimension(32767);
+            canvas.beginRender(10, 10);
+
             try (var rendered = canvas.endRender()) {
                 check(rendered != null, "end render");
             }

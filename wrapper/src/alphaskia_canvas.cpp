@@ -1,4 +1,5 @@
 #include "../include/AlphaSkiaCanvas.h"
+#include "../include/AlphaSkiaLimits.h"
 #include "../include/SkFontMgr_alphaskia.h"
 
 #include "../../externals/skia/include/core/SkFontMgr.h"
@@ -14,7 +15,8 @@ namespace
 
     bool is_valid_text(const char16_t *text, int text_length, alphaskia_text_style_t text_style, float font_size)
     {
-        return text_style && text_length >= 0 && (text || text_length == 0) && std::isfinite(font_size);
+        return text_style && text_length >= 0 && (text || text_length == 0) && std::isfinite(font_size) &&
+               alphaskia_is_within_text_limits(text_length, font_size);
     }
 }
 

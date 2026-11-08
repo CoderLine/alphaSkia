@@ -1,10 +1,17 @@
 #include "../include/alphaskia.h"
+#include "../include/AlphaSkiaLimits.h"
 #include "../../externals/skia/include/core/SkImage.h"
 #include "../../externals/skia/include/core/SkBitmap.h"
 #include "../../externals/skia/include/core/SkPixmap.h"
 #include "../../externals/skia/include/core/SkStream.h"
 #include "../../externals/skia/include/encode/SkPngEncoder.h"
+#include "../../externals/skia/include/codec/SkBmpDecoder.h"
+#include "../../externals/skia/include/codec/SkGifDecoder.h"
+#include "../../externals/skia/include/codec/SkIcoDecoder.h"
 #include "../../externals/skia/include/codec/SkPngDecoder.h"
+#include "../../externals/skia/include/codec/SkWbmpDecoder.h"
+
+#include <vector>
 
 namespace
 {
@@ -21,6 +28,33 @@ namespace
             return nullptr;
         }
         return reinterpret_cast<alphaskia_image_t>(new sk_sp<SkImage>(std::move(image)));
+    }
+
+    std::vector<SkCodecs::Decoder> allowed_decoders()
+    {
+        const uint64_t formats = alphaskia_get_limit(alphaskia_limit_image_formats);
+        std::vector<SkCodecs::Decoder> decoders;
+        if (formats & alphaskia_image_format_png)
+        {
+            decoders.push_back(SkPngDecoder::Decoder());
+        }
+        if (formats & alphaskia_image_format_bmp)
+        {
+            decoders.push_back(SkBmpDecoder::Decoder());
+        }
+        if (formats & alphaskia_image_format_gif)
+        {
+            decoders.push_back(SkGifDecoder::Decoder());
+        }
+        if (formats & alphaskia_image_format_ico)
+        {
+            decoders.push_back(SkIcoDecoder::Decoder());
+        }
+        if (formats & alphaskia_image_format_wbmp)
+        {
+            decoders.push_back(SkWbmpDecoder::Decoder());
+        }
+        return decoders;
     }
 }
 
@@ -101,8 +135,9 @@ extern "C"
         }
 
         sk_sp<SkData> wrapped_data = SkData::MakeWithCopy(data, static_cast<size_t>(length));
-        std::unique_ptr<SkCodec> codec = SkCodec::MakeFromData(wrapped_data);
-        if (!codec)
+        const std::vector<SkCodecs::Decoder> decoders = allowed_decoders();
+        std::unique_ptr<SkCodec> codec = SkCodec::MakeFromData(wrapped_data, decoders);
+        if (!codec || !alphaskia_is_within_image_limits(codec->dimensions().width(), codec->dimensions().height()))
         {
             return nullptr;
         }
@@ -114,7 +149,7 @@ extern "C"
 
     AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels, uint64_t pixels_length)
     {
-        if (!pixels || width <= 0 || height <= 0)
+        if (!pixels || width <= 0 || height <= 0 || !alphaskia_is_within_image_limits(width, height))
         {
             return nullptr;
         }

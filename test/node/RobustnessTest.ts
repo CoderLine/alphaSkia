@@ -1,4 +1,4 @@
-import { AlphaSkiaCanvas, AlphaSkiaImage, AlphaSkiaTextAlign, AlphaSkiaTextBaseline, AlphaSkiaTextStyle, AlphaSkiaTypeface } from '@coderline/alphaskia';
+import { AlphaSkiaCanvas, AlphaSkiaImage, AlphaSkiaImageFormat, AlphaSkiaLimits, AlphaSkiaTextAlign, AlphaSkiaTextBaseline, AlphaSkiaTextStyle, AlphaSkiaTypeface } from '@coderline/alphaskia';
 
 // Invalid input must be rejected with undefined or a JavaScript error instead of crashing the process.
 export function robustnessTest(): boolean {
@@ -51,6 +51,14 @@ export function robustnessTest(): boolean {
     const disposedStyle = new AlphaSkiaTextStyle(["Noto Sans"], 400, false);
     disposedStyle[Symbol.dispose]();
     throws(() => canvas.fillText("a", disposedStyle, 12, 0, 0, AlphaSkiaTextAlign.Left, AlphaSkiaTextBaseline.Alphabetic), ReferenceError, "fill text with disposed style");
+
+    check(AlphaSkiaLimits.maxImageDimension === 32767, "default max image dimension");
+    check(AlphaSkiaLimits.imageFormats === AlphaSkiaImageFormat.Png, "default image formats");
+    throws(() => { AlphaSkiaLimits.maxFontSize = -1; }, RangeError, "negative limit");
+    AlphaSkiaLimits.maxImageDimension = 100;
+    throws(() => canvas.beginRender(200, 10), RangeError, "render above dimension limit");
+    AlphaSkiaLimits.maxImageDimension = 32767;
+    canvas.beginRender(10, 10);
 
     canvas.endRender()?.[Symbol.dispose]();
 

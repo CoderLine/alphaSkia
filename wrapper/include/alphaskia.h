@@ -20,6 +20,38 @@
 
 extern "C"
 {
+    // Process-wide limits protecting against untrusted input forcing large allocations.
+    // A numeric limit of 0 disables it. Inputs exceeding a limit are rejected like invalid input.
+    typedef enum
+    {
+        // Largest width or height of decoded images, images from pixels and render surfaces (after the render scale)
+        // in pixels. Default: 32767
+        alphaskia_limit_max_image_dimension = 0,
+        // Largest width * height of decoded images, images from pixels and render surfaces. Default: 268435456 (2^28)
+        alphaskia_limit_max_image_pixels = 1,
+        // Largest font data in bytes accepted by alphaskia_typeface_register. Default: 52428800 (50 MiB)
+        alphaskia_limit_max_font_data_length = 2,
+        // Largest font size for drawing and measuring text. Default: 4096
+        alphaskia_limit_max_font_size = 3,
+        // Longest text in UTF-16 code units for drawing and measuring. Default: 0 (unlimited)
+        alphaskia_limit_max_text_length = 4,
+        // Image formats accepted by alphaskia_image_decode, a combination of alphaskia_image_format_t.
+        // Default: alphaskia_image_format_png
+        alphaskia_limit_image_formats = 5
+    } alphaskia_limit_t;
+
+    typedef enum
+    {
+        alphaskia_image_format_png = 1,
+        alphaskia_image_format_bmp = 2,
+        alphaskia_image_format_gif = 4,
+        alphaskia_image_format_ico = 8,
+        alphaskia_image_format_wbmp = 16
+    } alphaskia_image_format_t;
+
+    AS_API uint64_t alphaskia_get_limit(alphaskia_limit_t limit);
+    AS_API void alphaskia_set_limit(alphaskia_limit_t limit, uint64_t value);
+
     AS_API int32_t alphaskia_get_color_type();
     AS_API void alphaskia_switch_to_freetype_fonts();
     AS_API void alphaskia_switch_to_operating_system_fonts();

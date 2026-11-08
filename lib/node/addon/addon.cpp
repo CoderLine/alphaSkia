@@ -218,6 +218,37 @@ DEFINE_FINALIZER(alphaskia_text_metrics_t, alphaskia_text_metrics_free)
   status = napi_get_value_bool(env, node_argv[index], &name); \
   ASSERT_STATUS();
 
+static napi_value node_alphaskia_get_limit(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_INT32_RANGE(0, limit, alphaskia_limit_max_image_dimension, alphaskia_limit_image_formats);
+
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(alphaskia_get_limit(static_cast<alphaskia_limit_t>(limit))), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_set_limit(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(2);
+  GET_ARGUMENT_INT32_RANGE(0, limit, alphaskia_limit_max_image_dimension, alphaskia_limit_image_formats);
+  GET_ARGUMENT_DOUBLE(1, value);
+  // integers up to 2^53 are exact in a double
+  if (!(value >= 0 && value <= 9007199254740991.0 && value == std::trunc(value)))
+  {
+    napi_throw_range_error(env, NULL, "Limit must be an integer between 0 and Number.MAX_SAFE_INTEGER");
+    return nullptr;
+  }
+
+  alphaskia_set_limit(static_cast<alphaskia_limit_t>(limit), static_cast<uint64_t>(value));
+  RETURN_UNDEFINED();
+}
+
 static napi_value node_alphaskia_get_color_type(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
@@ -1135,6 +1166,8 @@ napi_value init(napi_env env, napi_value exports)
 {
   std::vector<napi_property_descriptor> methods;
 
+  EXPORT_NODE_FUNCTION(alphaskia_get_limit);
+  EXPORT_NODE_FUNCTION(alphaskia_set_limit);
   EXPORT_NODE_FUNCTION(alphaskia_get_color_type);
   EXPORT_NODE_FUNCTION(alphaskia_switch_to_freetype_fonts);
   EXPORT_NODE_FUNCTION(alphaskia_switch_to_operating_system_fonts);

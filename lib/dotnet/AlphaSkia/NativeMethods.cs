@@ -24,6 +24,12 @@ internal static class NativeMethods
     public static extern alphaskia_data_t alphaskia_data_new_copy(byte[] data, ulong length);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern ulong alphaskia_get_limit(int limit);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void alphaskia_set_limit(int limit, ulong value);
+
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern int alphaskia_get_color_type();
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_switch_to_freetype_fonts();

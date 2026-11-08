@@ -14,6 +14,12 @@ extern "C"
         }
 
         sk_sp<SkData> *skData = reinterpret_cast<sk_sp<SkData> *>(data);
+        const uint64_t max_length = alphaskia_get_limit(alphaskia_limit_max_font_data_length);
+        if (max_length != 0 && (*skData)->size() > max_length)
+        {
+            return nullptr;
+        }
+
         auto fontMgr = SkFontMgr_AlphaSkia::instance();
         sk_sp<SkTypeface> skTypeface = fontMgr->makeFromData(*skData, 0);
         if (!skTypeface)

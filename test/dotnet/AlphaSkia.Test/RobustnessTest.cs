@@ -74,6 +74,13 @@ internal sealed class RobustnessTest
         disposedStyle.Dispose();
         Throws<ObjectDisposedException>(() => canvas.FillText("a", disposedStyle, 12, 0, 0, AlphaSkiaTextAlign.Left, AlphaSkiaTextBaseline.Alphabetic), "fill text with disposed style");
 
+        Check(AlphaSkiaLimits.MaxImageDimension == 32767, "default max image dimension");
+        Check(AlphaSkiaLimits.ImageFormats == AlphaSkiaImageFormats.Png, "default image formats");
+        AlphaSkiaLimits.MaxImageDimension = 100;
+        Throws<ArgumentException>(() => canvas.BeginRender(200, 10), "render above dimension limit");
+        AlphaSkiaLimits.MaxImageDimension = 32767;
+        canvas.BeginRender(10, 10);
+
         using (var rendered = canvas.EndRender())
         {
             Check(rendered != null, "end render");

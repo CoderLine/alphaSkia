@@ -166,9 +166,12 @@ namespace
         check(empty != nullptr && alphaskia_text_metrics_get_width(empty) == 0, "measure NULL text without length");
         alphaskia_text_metrics_free(empty);
 
+        // the metrics are converted to int, which must not overflow without the font size limit
+        alphaskia_set_limit(alphaskia_limit_max_font_size, 0);
         auto huge = alphaskia_canvas_measure_text(canvas, u"a", 1, style, 1e30f, align, alphaskia_text_baseline_middle);
         check(huge != nullptr, "measure huge font size");
         alphaskia_text_metrics_free(huge);
+        alphaskia_set_limit(alphaskia_limit_max_font_size, 4096);
 
         auto paired = alphaskia_canvas_measure_text(canvas, u"A\U0001D11EB", 4, style, 12, align, baseline);
         auto unpaired_high = alphaskia_canvas_measure_text(canvas, u"A\xD834" u"B", 3, style, 12, align, baseline);
@@ -229,6 +232,85 @@ namespace
     }
 }
 
+namespace
+{
+    // 1x1 pixel, 24 bit BMP
+    const std::vector<uint8_t> bmp_1x1 = {
+        'B', 'M', 58, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0,
+        40, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 24, 0, 0, 0, 0, 0, 4, 0, 0, 0,
+        0x13, 0x0B, 0, 0, 0x13, 0x0B, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0xFF, 0x00, 0x00, 0x00};
+
+    void test_limits(const std::filesystem::path &test_data_path)
+    {
+        check(alphaskia_get_limit(alphaskia_limit_max_image_dimension) == 32767, "default max image dimension");
+        check(alphaskia_get_limit(alphaskia_limit_max_image_pixels) == (uint64_t(1) << 28), "default max image pixels");
+        check(alphaskia_get_limit(alphaskia_limit_max_font_data_length) == 50 * 1024 * 1024, "default max font data length");
+        check(alphaskia_get_limit(alphaskia_limit_max_font_size) == 4096, "default max font size");
+        check(alphaskia_get_limit(alphaskia_limit_max_text_length) == 0, "default max text length");
+        check(alphaskia_get_limit(alphaskia_limit_image_formats) == alphaskia_image_format_png, "default image formats");
+        check(alphaskia_get_limit(static_cast<alphaskia_limit_t>(99)) == 0, "unknown limit");
+
+        // image formats
+        check(alphaskia_image_decode(bmp_1x1.data(), bmp_1x1.size()) == nullptr, "BMP rejected by default");
+        alphaskia_set_limit(alphaskia_limit_image_formats, alphaskia_image_format_png | alphaskia_image_format_bmp);
+        auto bmp = alphaskia_image_decode(bmp_1x1.data(), bmp_1x1.size());
+        check(bmp != nullptr && alphaskia_image_get_width(bmp) == 1, "BMP decoded when allowed");
+        alphaskia_image_free(bmp);
+        alphaskia_set_limit(alphaskia_limit_image_formats, alphaskia_image_format_png);
+
+        auto canvas = alphaskia_canvas_new();
+        check(alphaskia_canvas_begin_render(canvas, 4, 4, 1) == 1, "render 4x4");
+        auto rendered = alphaskia_canvas_end_render(canvas);
+        auto png = alphaskia_image_encode_png(rendered);
+        auto decoded = alphaskia_image_decode(alphaskia_data_get_data(png), alphaskia_data_get_length(png));
+        check(decoded != nullptr && alphaskia_image_get_width(decoded) == 4, "PNG decoded by default");
+        alphaskia_image_free(decoded);
+        alphaskia_data_free(png);
+        alphaskia_image_free(rendered);
+
+        // image sizes
+        std::vector<uint8_t> pixels(200 * 4);
+        alphaskia_set_limit(alphaskia_limit_max_image_dimension, 100);
+        check(alphaskia_canvas_begin_render(canvas, 200, 10, 1) == 0, "render width above dimension limit");
+        check(alphaskia_canvas_begin_render(canvas, 60, 10, 2) == 0, "scaled render width above dimension limit");
+        check(alphaskia_image_from_pixels(200, 1, pixels.data(), pixels.size()) == nullptr, "pixels width above dimension limit");
+        alphaskia_set_limit(alphaskia_limit_max_image_dimension, 0);
+        check(alphaskia_canvas_begin_render(canvas, 40000, 1, 1) == 1, "render width with disabled dimension limit");
+        alphaskia_set_limit(alphaskia_limit_max_image_dimension, 32767);
+
+        alphaskia_set_limit(alphaskia_limit_max_image_pixels, 100);
+        check(alphaskia_canvas_begin_render(canvas, 20, 20, 1) == 0, "render above pixel limit");
+        check(alphaskia_canvas_begin_render(canvas, 10, 10, 1) == 1, "render at pixel limit");
+        alphaskia_set_limit(alphaskia_limit_max_image_pixels, uint64_t(1) << 28);
+
+        // text
+        alphaskia_set_limit(alphaskia_limit_max_font_size, 100);
+        auto too_large = alphaskia_canvas_measure_text(canvas, u"a", 1, style, 200, alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);
+        check(too_large == nullptr, "font size above limit");
+        alphaskia_text_metrics_free(too_large);
+        alphaskia_set_limit(alphaskia_limit_max_font_size, 4096);
+
+        alphaskia_set_limit(alphaskia_limit_max_text_length, 3);
+        auto too_long = alphaskia_canvas_measure_text(canvas, u"abcd", 4, style, 12, alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);
+        check(too_long == nullptr, "text longer than limit");
+        alphaskia_text_metrics_free(too_long);
+        alphaskia_set_limit(alphaskia_limit_max_text_length, 0);
+
+        alphaskia_image_free(alphaskia_canvas_end_render(canvas));
+        alphaskia_canvas_free(canvas);
+
+        // fonts
+        std::vector<uint8_t> font_bytes;
+        read_file((test_data_path / "font" / "noto-sans" / "NotoSans-Regular.otf").generic_string(), font_bytes);
+        auto font_data = alphaskia_data_new_copy(font_bytes.data(), font_bytes.size());
+        alphaskia_set_limit(alphaskia_limit_max_font_data_length, 1000);
+        check(alphaskia_typeface_register(font_data) == nullptr, "font data above limit");
+        alphaskia_set_limit(alphaskia_limit_max_font_data_length, 50 * 1024 * 1024);
+        alphaskia_data_free(font_data);
+    }
+}
+
 bool robustness_test(const std::filesystem::path &test_data_path)
 {
     std::cout << "BEGIN: robustness_test" << std::endl;
@@ -240,6 +322,7 @@ bool robustness_test(const std::filesystem::path &test_data_path)
     test_canvas_without_surface();
     test_invalid_text();
     test_concurrent_font_use(test_data_path);
+    test_limits(test_data_path);
 
     alphaskia_text_style_free(style);
 

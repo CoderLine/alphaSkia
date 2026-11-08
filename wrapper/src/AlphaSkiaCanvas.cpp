@@ -1,4 +1,5 @@
 #include "../include/AlphaSkiaCanvas.h"
+#include "../include/AlphaSkiaLimits.h"
 #include "../include/SkFontMgr_alphaskia.h"
 
 #include "../../externals/skia/include/core/SkData.h"
@@ -152,7 +153,8 @@ bool AlphaSkiaCanvas::begin_render(int32_t width, int32_t height, float render_s
 
     const float scaled_width = std::max(width, 1) * render_scale;
     const float scaled_height = std::max(height, 1) * render_scale;
-    if (!fits_int(scaled_width) || !fits_int(scaled_height))
+    if (!fits_int(scaled_width) || !fits_int(scaled_height) ||
+        !alphaskia_is_within_image_limits(static_cast<int64_t>(scaled_width), static_cast<int64_t>(scaled_height)))
     {
         return false;
     }
