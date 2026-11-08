@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using JetBrains.Annotations;
 using Nuke.Common;
@@ -532,10 +533,27 @@ partial class Build
             // https://nodejs.org/dist/latest/win-x86/node.lib
             // https://nodejs.org/dist/latest/win-arm64/node.lib
             // NOTE: Node v23 has no win-x86 either, remove in future: https://github.com/nodejs/node/issues/42543
-            var url = $"https://nodejs.org/dist/v22.9.0/{TargetOs.RuntimeIdentifier}-{Architecture}/node.lib";
-            var libDir = TemporaryDirectory / $"libnode-{TargetOs.RuntimeIdentifier}-{Architecture}";
-            HttpTasks.HttpDownloadFile(url,
-                libDir / "node.lib");
+            var platform = $"{TargetOs.RuntimeIdentifier}-{Architecture}";
+            var url = $"https://nodejs.org/dist/v22.9.0/{platform}/node.lib";
+            var libDir = TemporaryDirectory / $"libnode-{platform}";
+            var nodeLib = libDir / "node.lib";
+            HttpTasks.HttpDownloadFile(url, nodeLib);
+
+            // from https://nodejs.org/dist/v22.9.0/SHASUMS256.txt, the import library is linked into the Node addon
+            var expectedSha256 = platform switch
+            {
+                "win-x64" => "3581a06b68c4584d146372113eaa8c4d102127222e5041195ba38f185eef419c",
+                "win-x86" => "45399070d1d247cf223d12e80d3e638635af24d2f7a4714bc8e38a6a918f162a",
+                "win-arm64" => "ad65afe5b192644fec9d599c77f0e38a8421d0d7ad2389679882a288c8df444b",
+                _ => throw new InvalidOperationException($"No known node.lib checksum for {platform}")
+            };
+            var actualSha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(nodeLib))).ToLowerInvariant();
+            if (actualSha256 != expectedSha256)
+            {
+                nodeLib.DeleteFile();
+                throw new InvalidOperationException($"Checksum mismatch for {url}: expected {expectedSha256}, got {actualSha256}");
+            }
+
             return libDir;
         }
 
