@@ -18,6 +18,7 @@
 #include "../../externals/skia/third_party/externals/harfbuzz/src/hb-ot.h"
 
 #include <algorithm>
+#include <cmath>
 #include <codecvt>
 #include <locale>
 #include <optional>
@@ -25,6 +26,14 @@
 #include <iostream>
 
 #define kHangingAsPercentOfAscent 80
+
+namespace
+{
+bool fits_int(float value)
+{
+    // converting a float outside of the int range to int is undefined
+    return std::fabs(value) < 2147483648.0f;
+}
 
 float float_ascent(const SkFontMetrics &metrics)
 {
@@ -65,7 +74,13 @@ bool try_set_normalized_typo_ascent_and_descent(float em_height, float typo_asce
         return false;
     }
 
-    ascent = typo_ascent * em_height / height;
+    const float scaled_ascent = typo_ascent * em_height / height;
+    if (!fits_int(scaled_ascent) || !fits_int(em_height - std::trunc(scaled_ascent)))
+    {
+        return false;
+    }
+
+    ascent = scaled_ascent;
     descent = em_height - ascent;
     return true;
 }
@@ -89,6 +104,7 @@ void normalized_typo_ascent_and_descent(const SkFont &font, int &ascent, int &de
     {
         return;
     }
+}
 }
 
 AlphaSkiaCanvas::AlphaSkiaCanvas()
@@ -126,28 +142,54 @@ void AlphaSkiaCanvas::set_line_width(float line_width)
     line_width_ = line_width;
 }
 
-void AlphaSkiaCanvas::begin_render(int32_t width, int32_t height, float render_scale)
+bool AlphaSkiaCanvas::begin_render(int32_t width, int32_t height, float render_scale)
 {
-    SkSurfaceProps props(0, kRGB_H_SkPixelGeometry);
+    surface_.reset();
+    if (!std::isfinite(render_scale) || render_scale <= 0)
+    {
+        return false;
+    }
 
+    const float scaled_width = std::max(width, 1) * render_scale;
+    const float scaled_height = std::max(height, 1) * render_scale;
+    if (!fits_int(scaled_width) || !fits_int(scaled_height))
+    {
+        return false;
+    }
+
+    SkSurfaceProps props(0, kRGB_H_SkPixelGeometry);
     surface_ = SkSurfaces::Raster(SkImageInfo::Make(
-                                      std::max(width, 1) * render_scale,
-                                      std::max(height, 1) * render_scale,
+                                      static_cast<int>(scaled_width),
+                                      static_cast<int>(scaled_height),
                                       kN32_SkColorType,
                                       kPremul_SkAlphaType),
                                   &props);
+    if (!surface_)
+    {
+        return false;
+    }
 
     surface_->getCanvas()->scale(render_scale, render_scale);
     path_.transform(SkMatrix::Scale(1 / render_scale, 1 / render_scale));
+    return true;
 }
 
 sk_sp<SkImage> AlphaSkiaCanvas::end_render()
 {
+    if (!surface_)
+    {
+        return nullptr;
+    }
     return surface_->makeImageSnapshot();
 }
 
 void AlphaSkiaCanvas::fill_rect(float x, float y, float width, float height)
 {
+    if (!surface_)
+    {
+        return;
+    }
+
     SkPaint paint(create_paint());
     paint.setBlendMode(SkBlendMode::kSrcOver);
     paint.setStyle(SkPaint::kFill_Style);
@@ -156,6 +198,11 @@ void AlphaSkiaCanvas::fill_rect(float x, float y, float width, float height)
 
 void AlphaSkiaCanvas::stroke_rect(float x, float y, float width, float height)
 {
+    if (!surface_)
+    {
+        return;
+    }
+
     SkPaint paint(create_paint());
     paint.setStrokeWidth(line_width_);
     paint.setBlendMode(SkBlendMode::kSrcOver);
@@ -214,7 +261,10 @@ void AlphaSkiaCanvas::fill()
 {
     SkPaint paint(create_paint());
     paint.setStyle(SkPaint::kFill_Style);
-    surface_->getCanvas()->drawPath(path_.snapshot(), paint);
+    if (surface_)
+    {
+        surface_->getCanvas()->drawPath(path_.snapshot(), paint);
+    }
     path_.reset();
 }
 
@@ -223,10 +273,15 @@ void AlphaSkiaCanvas::stroke()
     SkPaint paint(create_paint());
     paint.setStrokeWidth(line_width_);
     paint.setStyle(SkPaint::kStroke_Style);
-    surface_->getCanvas()->drawPath(path_.snapshot(), paint);
+    if (surface_)
+    {
+        surface_->getCanvas()->drawPath(path_.snapshot(), paint);
+    }
     path_.reset();
 }
 
+namespace
+{
 struct TextRun
 {
     SkFont font;
@@ -269,7 +324,12 @@ OpenTypeBaselines read_open_type_baselines(const SkFont &font)
     hb_face_set_upem(face, typeface->getUnitsPerEm());
     hb_font_t *hb_font = hb_font_create(face);
     // 16.16 fixed point scaled to the font size, like Chromium's HarfBuzzFace::GetScaledFont
-    const int scale = static_cast<int>(font.getSize() * (1 << 16));
+    const float scaled_size = font.getSize() * (1 << 16);
+    if (!fits_int(scaled_size))
+    {
+        return baselines;
+    }
+    const int scale = static_cast<int>(scaled_size);
     hb_font_set_scale(hb_font, scale, scale);
 
     auto read = [hb_font](hb_ot_layout_baseline_tag_t tag) -> std::optional<float>
@@ -352,9 +412,11 @@ TextLayout layout_text(const sk_sp<skia::textlayout::FontCollection> &font_colle
     // Like Chromium's IsNormalizedCanvasSpaceCharacter, U+000B is replaced as well.
     // Deviation from Chromium: U+2028 is replaced because SkParagraph would start a new line at it. Chromium shapes it
     // like any other character, typically as .notdef glyph of the primary font.
+    // Unpaired surrogates become U+FFFD, SkParagraph would drop the whole text as invalid UTF-16.
     std::u16string prepared_text(text, static_cast<size_t>(text_length));
-    for (auto &c : prepared_text)
+    for (size_t i = 0; i < prepared_text.size(); i++)
     {
+        char16_t &c = prepared_text[i];
         switch (c)
         {
         case u'\t':
@@ -364,6 +426,17 @@ TextLayout layout_text(const sk_sp<skia::textlayout::FontCollection> &font_colle
         case u'\r':
         case u'\u2028':
             c = u' ';
+            break;
+        default:
+            if (c >= 0xD800 && c <= 0xDBFF && i + 1 < prepared_text.size() &&
+                prepared_text[i + 1] >= 0xDC00 && prepared_text[i + 1] <= 0xDFFF)
+            {
+                i++;
+            }
+            else if (c >= 0xD800 && c <= 0xDFFF)
+            {
+                c = u'\uFFFD';
+            }
             break;
         }
     }
@@ -472,9 +545,15 @@ float get_font_baseline(const SkFont &font, const OpenTypeBaselines &open_type_b
 
     return 0;
 }
+}
 
 void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
+    if (!surface_)
+    {
+        return;
+    }
+
     auto layout(layout_text(font_collection_, unicode_, text, text_length, text_style, font_size));
     if (layout.runs.empty())
     {
@@ -542,6 +621,11 @@ AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int te
 
 void AlphaSkiaCanvas::begin_rotate(float center_x, float center_y, float angle)
 {
+    if (!surface_)
+    {
+        return;
+    }
+
     surface_->getCanvas()->save();
     surface_->getCanvas()->translate(center_x, center_y);
     surface_->getCanvas()->rotate(angle);
@@ -549,11 +633,21 @@ void AlphaSkiaCanvas::begin_rotate(float center_x, float center_y, float angle)
 
 void AlphaSkiaCanvas::end_rotate()
 {
+    if (!surface_)
+    {
+        return;
+    }
+
     surface_->getCanvas()->restore();
 }
 
 void AlphaSkiaCanvas::draw_image(sk_sp<SkImage> image, float x, float y, float w, float h)
 {
+    if (!surface_)
+    {
+        return;
+    }
+
     SkSamplingOptions sampling;
     surface_->getCanvas()->drawImageRect(image, SkRect::MakeXYWH(x, y, w, h), sampling);
 }

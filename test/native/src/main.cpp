@@ -1,5 +1,6 @@
 #include "../include/AlphaTabGeneratedTest.h"
 #include "../include/PixelMatch.h"
+#include "../include/RobustnessTest.h"
 #include "../include/TextRenderingTest.h"
 
 #include <filesystem>
@@ -572,6 +573,11 @@ int main(int argc, char **argv)
     }
 
     if (!measure_test(repository_root, test_data_path, isFreeType))
+    {
+        error = true;
+    }
+
+    if (!robustness_test())
     {
         error = true;
     }

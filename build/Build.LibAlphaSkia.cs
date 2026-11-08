@@ -187,6 +187,7 @@ partial class Build
                                               "../../test/native/src/AlphaTabGeneratedTest.cpp",
                                               "../../test/native/src/main.cpp",
                                               "../../test/native/src/PixelMatch.cpp",
+                                              "../../test/native/src/RobustnessTest.cpp",
                                               "../../test/native/src/TextRenderingTest.cpp"
                                           ]
                                           if (is_win) {

@@ -165,19 +165,31 @@ sk_sp<SkTypeface> SkFontMgr_AlphaSkia::onMakeFromFile(const char path[], int ttc
 
 sk_sp<SkTypeface> SkFontMgr_AlphaSkia::onLegacyMakeTypeface(const char familyName[], SkFontStyle style) const
 {
-    auto typeface = currentFontMgr_->legacyMakeTypeface(familyName, style);
-    registerTypeface(typeface);
-    return typeface;
+    // Typefaces of the underlying manager are found by it again. Registering them would shadow the other styles
+    // of their family and grow the registry on every lookup.
+    return currentFontMgr_->legacyMakeTypeface(familyName, style);
 }
 
 void SkFontMgr_AlphaSkia::registerTypeface(const sk_sp<SkTypeface> &typeface) const
 {
+    if (!typeface)
+    {
+        return;
+    }
+
     SkString familyName;
     typeface->getFamilyName(&familyName);
 
     auto it = currentFontMgrFontStyleSets_->find(familyName);
     if (it)
     {
+        for (int i = 0; i < (*it)->count(); i++)
+        {
+            if ((*it)->createTypeface(i) == typeface)
+            {
+                return;
+            }
+        }
         (*it)->appendTypeface(typeface);
     }
     else
