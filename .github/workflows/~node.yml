@@ -37,7 +37,8 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macos-latest]
-        node: [latest, "lts/*"]
+        # '*' resolves to the newest stable release, 'latest' would also pick pre-releases
+        node: ["*", "lts/*"]
     runs-on: ${{ matrix.runs-on }}
     needs: [node]
     steps:
@@ -60,7 +61,7 @@ jobs:
       shell: bash
     - id: sanitize-node-version
       if: always()
-      run:  echo "NODE_VERSION=${{ matrix.node }}" | sed 's/[*\/]//g' >> "$GITHUB_OUTPUT"
+      run:  echo "NODE_VERSION=${{ matrix.node == '*' && 'current' || matrix.node }}" | sed 's/[*\/]//g' >> "$GITHUB_OUTPUT"
       shell: bash
     - uses: actions/upload-artifact@v7
       if: always()
