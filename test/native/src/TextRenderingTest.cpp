@@ -577,6 +577,31 @@ namespace
         check(!raster.ink().empty, "text in a system font is drawn");
     }
 
+    // Registered fonts are found by their family name in both font modes, the operating system does not know them.
+    void test_registered_font_is_found_by_name()
+    {
+        struct Expected
+        {
+            const char *family;
+            uint16_t weight;
+            uint8_t italic;
+        };
+        for (const auto &expected : {Expected{"Bravura", 400, 0}, Expected{"Noto Serif", 700, 1}})
+        {
+            const std::string context = std::string(expected.family) + " " + std::to_string(expected.weight) +
+                                        (expected.italic ? " italic" : "");
+            auto typeface = alphaskia_typeface_make_from_name(expected.family, expected.weight, expected.italic);
+            auto family_name = alphaskia_typeface_get_family_name(typeface);
+            check(family_name && std::string(alphaskia_string_get_utf8(family_name)) == expected.family,
+                  "family of the typeface by name (" + context + ")");
+            check(alphaskia_typeface_get_weight(typeface) == expected.weight &&
+                      alphaskia_typeface_is_italic(typeface) == expected.italic,
+                  "style of the typeface by name (" + context + ")");
+            alphaskia_string_free(family_name);
+            alphaskia_typeface_free(typeface);
+        }
+    }
+
     // Purging the font caches releases fonts which are still in use, they are loaded again with the same rendering.
     void test_purge_font_caches(const std::vector<const TextStyle *> &styles)
     {
@@ -754,6 +779,9 @@ bool text_rendering_test(const std::filesystem::path &overview_output_file)
 
     std::cout << "  system fonts" << std::endl;
     test_system_font_is_available(system);
+
+    std::cout << "  registered fonts by name" << std::endl;
+    test_registered_font_is_found_by_name();
 
     std::cout << "  purge font caches" << std::endl;
     test_purge_font_caches({&styles[0], &system});

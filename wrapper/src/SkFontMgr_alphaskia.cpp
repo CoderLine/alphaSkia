@@ -392,17 +392,19 @@ sk_sp<SkTypeface> SkFontMgr_AlphaSkia::onLegacyMakeTypeface(const char familyNam
     // Typefaces of the underlying manager are found by it again. Registering them would shadow the other styles
     // of their family and grow the registry on every lookup.
     const Current current = this->current();
+
+    // the operating system font managers do not find fonts created from data by their family name
+    if (familyName)
+    {
+        if (auto registered = findRegisteredFamily(current, familyName))
+        {
+            return registered->matchStyle(style);
+        }
+    }
+
     if (!current.systemFontMgr)
     {
         return current.fontMgr->legacyMakeTypeface(familyName, style);
-    }
-
-    if (familyName)
-    {
-        if (auto typeface = onMatchFamilyStyle(familyName, style))
-        {
-            return typeface;
-        }
     }
 
     // the operating system also resolves a null or unknown family to its default font

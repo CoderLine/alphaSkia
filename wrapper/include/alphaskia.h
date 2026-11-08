@@ -90,6 +90,8 @@ extern "C"
     // unregister it. Returns NULL if the data is no supported font.
     AS_API alphaskia_typeface_t alphaskia_typeface_register(alphaskia_data_t data);
     AS_API void alphaskia_typeface_free(alphaskia_typeface_t typeface);
+    // Registered fonts take precedence over the fonts installed on the operating system. An unknown family resolves to
+    // the default font of the operating system.
     AS_API alphaskia_typeface_t alphaskia_typeface_make_from_name(const char *family_name, uint16_t weight, uint8_t italic);
     AS_API alphaskia_string_t alphaskia_typeface_get_family_name(alphaskia_typeface_t typeface);
     AS_API uint16_t alphaskia_typeface_get_weight(alphaskia_typeface_t typeface);
