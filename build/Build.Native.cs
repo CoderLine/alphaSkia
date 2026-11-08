@@ -116,10 +116,35 @@ partial class Build
         var commitHash = parts[1];
 
         var directory = SkiaPath / dependencyName;
-        GitCheckoutToDirectory(repo, commitHash, directory);
+        GitCheckoutToDirectory(repo, commitHash, directory, GetSparseCheckoutPaths(dependencyName));
     }
 
-    void GitCheckoutToDirectory(string repo, string commitHash, AbsolutePath directory)
+    /// <summary>
+    /// The paths needed from dependencies which are mostly unused, null to check out everything.
+    /// </summary>
+    string[] GetSparseCheckoutPaths(string dependencyName)
+    {
+        switch (dependencyName)
+        {
+            // ~3.5 GB of Unicode data, libgrapheme only reads the files of one Unicode version
+            case "third_party/externals/unicodetools":
+                var libGraphemeBuild = (SkiaPath / "third_party" / "libgrapheme" / "BUILD.gn").ReadAllText();
+                const string marker = "UNICODE_VERSION = \"";
+                var start = libGraphemeBuild.IndexOf(marker, StringComparison.Ordinal);
+                if (start == -1)
+                {
+                    throw new InvalidOperationException("third_party/libgrapheme/BUILD.gn does not declare UNICODE_VERSION");
+                }
+
+                start += marker.Length;
+                var unicodeVersion = libGraphemeBuild[start..libGraphemeBuild.IndexOf('"', start)];
+                return [$"/unicodetools/data/ucd/{unicodeVersion}/"];
+            default:
+                return null;
+        }
+    }
+
+    void GitCheckoutToDirectory(string repo, string commitHash, AbsolutePath directory, string[] sparseCheckoutPaths)
     {
         Log.Debug("Handling dependency {repo}@{commitHash}", repo, commitHash);
         if (!(directory / ".git").DirectoryExists())
@@ -129,13 +154,27 @@ partial class Build
                 workingDirectory: directory);
             GitTool($"remote add origin {repo}",
                 workingDirectory: directory);
+            if (sparseCheckoutPaths != null)
+            {
+                GitTool($"sparse-checkout set --no-cone {string.Join(" ", sparseCheckoutPaths)}",
+                    workingDirectory: directory);
+            }
         }
 
         if (!commitHash.Equals(GetGitHash(directory), StringComparison.OrdinalIgnoreCase))
         {
             Log.Information("Fetching {repo}@{commitHash}", repo, commitHash);
-            GitTool($"fetch origin {commitHash}",
-                workingDirectory: directory, logOutput: false);
+            // without history, sparse checkouts download only the blobs they check out
+            if (sparseCheckoutPaths != null)
+            {
+                GitTool($"fetch --depth=1 --filter=blob:none origin {commitHash}",
+                    workingDirectory: directory, logOutput: false);
+            }
+            else
+            {
+                GitTool($"fetch --depth=1 origin {commitHash}",
+                    workingDirectory: directory, logOutput: false);
+            }
             GitTool($"reset --hard {commitHash}",
                 workingDirectory: directory, logOutput: false);
         }
