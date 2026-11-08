@@ -13,10 +13,13 @@
 #include "../../externals/skia/include/core/SkRefCnt.h"
 #include "../../externals/skia/modules/skparagraph/include/FontCollection.h"
 #include "../../externals/skia/modules/skparagraph/include/ParagraphBuilder.h"
-#include "../../externals/skia/modules/skparagraph/src/ParagraphImpl.h"
+#include "../../externals/skia/third_party/externals/harfbuzz/src/hb.h"
+#include "../../externals/skia/third_party/externals/harfbuzz/src/hb-ot.h"
 
+#include <algorithm>
 #include <codecvt>
 #include <locale>
+#include <optional>
 #include <string>
 #include <iostream>
 
@@ -222,179 +225,290 @@ void AlphaSkiaCanvas::stroke()
     path_.reset();
 }
 
-std::unique_ptr<skia::textlayout::Paragraph> AlphaSkiaCanvas::build_paragraph(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align)
+struct TextRun
 {
+    SkFont font;
+    std::vector<SkGlyphID> glyphs;
+    std::vector<SkPoint> positions;
+};
+
+// Baselines from the OpenType BASE table in pixels, positive values are above the alphabetic baseline.
+struct OpenTypeBaselines
+{
+    std::optional<float> alphabetic;
+    std::optional<float> hanging;
+    std::optional<float> ideographic;
+};
+
+hb_blob_t *get_typeface_table(hb_face_t *, hb_tag_t tag, void *user_data)
+{
+    auto data = reinterpret_cast<SkTypeface *>(user_data)->copyTableData(tag);
+    if (!data)
+    {
+        return nullptr;
+    }
+    SkData *raw_data = data.release();
+    return hb_blob_create(reinterpret_cast<const char *>(raw_data->data()), static_cast<unsigned int>(raw_data->size()),
+                          HB_MEMORY_MODE_READONLY, raw_data, [](void *context)
+                          { SkSafeUnref(reinterpret_cast<SkData *>(context)); });
+}
+
+OpenTypeBaselines read_open_type_baselines(const SkFont &font)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/opentype/open_type_baseline_metrics.cc
+    OpenTypeBaselines baselines;
+    SkTypeface *typeface = font.getTypeface();
+    if (typeface->getTableSize(SkSetFourByteTag('B', 'A', 'S', 'E')) == 0)
+    {
+        return baselines;
+    }
+
+    hb_face_t *face = hb_face_create_for_tables(get_typeface_table, typeface, nullptr);
+    hb_face_set_upem(face, typeface->getUnitsPerEm());
+    hb_font_t *hb_font = hb_font_create(face);
+    // 16.16 fixed point scaled to the font size, like Chromium's HarfBuzzFace::GetScaledFont
+    const int scale = static_cast<int>(font.getSize() * (1 << 16));
+    hb_font_set_scale(hb_font, scale, scale);
+
+    auto read = [hb_font](hb_ot_layout_baseline_tag_t tag) -> std::optional<float>
+    {
+        hb_position_t position;
+        if (hb_ot_layout_get_baseline(hb_font, tag, HB_DIRECTION_LTR, HB_OT_TAG_DEFAULT_SCRIPT, HB_OT_TAG_DEFAULT_LANGUAGE, &position))
+        {
+            return position / static_cast<float>(1 << 16);
+        }
+        return std::nullopt;
+    };
+    baselines.alphabetic = read(HB_OT_LAYOUT_BASELINE_TAG_ROMAN);
+    baselines.hanging = read(HB_OT_LAYOUT_BASELINE_TAG_HANGING);
+    baselines.ideographic = read(HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_BOTTOM_OR_LEFT);
+
+    hb_font_destroy(hb_font);
+    hb_face_destroy(face);
+    return baselines;
+}
+
+// Text shaped into a single line, positioned relative to the alphabetic baseline at the start of the text.
+struct TextLayout
+{
+    // The first available font of the text style, all baselines and font metrics are taken from it.
+    SkFont primary_font;
+    OpenTypeBaselines primary_baselines;
+    float width = 0;
+    SkRect glyph_bounds = SkRect::MakeEmpty();
+    std::vector<TextRun> runs;
+};
+
+SkFont make_shaping_font(sk_sp<SkTypeface> typeface, const AlphaSkiaTextStyle &text_style, float font_size)
+{
+    // Same settings as SkParagraph's OneLineShaper uses for the shaped runs, so metrics match the drawn glyphs.
+    SkFont font(std::move(typeface), font_size);
+    font.setEdging(SkFont::Edging::kAntiAlias);
+    font.setHinting(SkFontHinting::kSlight);
+    font.setSubpixel(true);
+
+    const int wanted_weight = text_style.get_font_style().weight();
+    const bool fake_bold = wanted_weight >= SkFontStyle::kSemiBold_Weight &&
+                           wanted_weight - font.getTypeface()->fontStyle().weight() >= 200;
+    const bool fake_italic = text_style.get_font_style().slant() == SkFontStyle::kItalic_Slant &&
+                             font.getTypeface()->fontStyle().slant() != SkFontStyle::kItalic_Slant;
+    font.setEmbolden(fake_bold);
+    font.setSkewX(fake_italic ? -SK_Scalar1 / 4 : 0);
+    return font;
+}
+
+TextLayout layout_text(const sk_sp<skia::textlayout::FontCollection> &font_collection, const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size)
+{
+    // https://html.spec.whatwg.org/multipage/canvas.html#text-preparation-algorithm
+    // Like Chromium's IsNormalizedCanvasSpaceCharacter, U+000B is replaced as well.
+    // Deviation from Chromium: U+2028 is replaced because SkParagraph would start a new line at it. Chromium shapes it
+    // like any other character, typically as .notdef glyph of the primary font.
+    std::u16string prepared_text(text, static_cast<size_t>(text_length));
+    for (auto &c : prepared_text)
+    {
+        switch (c)
+        {
+        case u'\t':
+        case u'\n':
+        case u'\v':
+        case u'\f':
+        case u'\r':
+        case u'\u2028':
+            c = u' ';
+            break;
+        }
+    }
+
     skia::textlayout::TextStyle style;
-
-    SkPaint foregroundColor;
-    foregroundColor.setColor(color_);
-    style.setForegroundColor(foregroundColor);
-
-    style.setFontFamilies(std::vector<SkString>(text_style.get_family_names()));
+    style.setFontFamilies(text_style.get_family_names());
     style.setFontStyle(text_style.get_font_style());
     style.setFontSize(font_size);
 
-    skia::textlayout::ParagraphStyle paraStyle;
-    paraStyle.setTextHeightBehavior(skia::textlayout::TextHeightBehavior::kDisableAll);
-    paraStyle.setTextStyle(style);
+    skia::textlayout::ParagraphStyle paragraph_style;
+    paragraph_style.setTextStyle(style);
+    paragraph_style.setTextAlign(skia::textlayout::TextAlign::kLeft);
+    paragraph_style.setApplyRoundingHack(false);
 
-    switch (text_align)
+    auto builder = skia::textlayout::ParagraphBuilder::make(paragraph_style, font_collection);
+    builder->addText(prepared_text);
+    auto paragraph = builder->Build();
+    paragraph->layout(SK_ScalarInfinity);
+
+    TextLayout layout;
+
+    // https://drafts.csswg.org/css-fonts-4/#first-available-font
+    // Unavailable families are skipped, SkParagraph shapes with the same list.
+    auto typefaces = font_collection->findTypefaces(text_style.get_family_names(), text_style.get_font_style());
+    layout.primary_font = make_shaping_font(typefaces.empty() ? nullptr : typefaces.front(), text_style, font_size);
+    layout.primary_baselines = read_open_type_baselines(layout.primary_font);
+
+    layout.width = paragraph->getMaxIntrinsicWidth();
+
+    // Only the glyph runs are taken from the paragraph. Its line box would place the baseline below the
+    // largest ascent of all fonts, while canvas text uses the baseline of the primary font for all glyphs.
+    paragraph->visit(
+        [&](int, const skia::textlayout::Paragraph::VisitorInfo *info)
+        {
+            if (info == nullptr || info->count == 0)
+            {
+                return;
+            }
+
+            TextRun run{info->font, std::vector<SkGlyphID>(info->glyphs, info->glyphs + info->count), {}};
+            run.positions.reserve(info->count);
+            for (int i = 0; i < info->count; i++)
+            {
+                // info->origin.fY is SkParagraph's line baseline, glyph positions are relative to it
+                run.positions.push_back(SkPoint::Make(info->origin.fX + info->positions[i].fX, info->positions[i].fY));
+            }
+
+            std::vector<SkRect> bounds(info->count);
+            run.font.getBounds(run.glyphs.data(), info->count, bounds.data(), nullptr);
+            for (int i = 0; i < info->count; i++)
+            {
+                if (!bounds[i].isEmpty())
+                {
+                    layout.glyph_bounds.join(bounds[i].makeOffset(run.positions[i]));
+                }
+            }
+
+            layout.runs.push_back(std::move(run));
+        });
+
+    if (layout.glyph_bounds.isEmpty())
     {
-    case alphaskia_text_align_left:
-        paraStyle.setTextAlign(skia::textlayout::TextAlign::kLeft);
-        break;
-    case alphaskia_text_align_center:
-        paraStyle.setTextAlign(skia::textlayout::TextAlign::kCenter);
-        break;
-    case alphaskia_text_align_right:
-        paraStyle.setTextAlign(skia::textlayout::TextAlign::kRight);
-        break;
+        layout.glyph_bounds = SkRect::MakeEmpty();
     }
 
-    auto builder = skia::textlayout::ParagraphBuilder::make(paraStyle, font_collection_);
-    builder->addText(std::u16string(text, static_cast<size_t>(text_length)));
+    return layout;
+}
 
-    return builder->Build();
+float get_text_align_dx(alphaskia_text_align_t text_align, float width)
+{
+    switch (text_align)
+    {
+    case alphaskia_text_align_center:
+        return width / 2;
+    case alphaskia_text_align_right:
+        return width;
+    case alphaskia_text_align_left:
+    default:
+        return 0;
+    }
+}
+
+float get_font_baseline(const SkFont &font, const OpenTypeBaselines &open_type_baselines, alphaskia_text_baseline_t baseline)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc
+    // TextMetrics::GetFontBaseline
+    SkFontMetrics metrics;
+    font.getMetrics(&metrics);
+
+    int ascent(0);
+    int descent(0);
+
+    switch (baseline)
+    {
+    case alphaskia_text_baseline_alphabetic: // kAlphabeticTextBaseline
+        return open_type_baselines.alphabetic.value_or(0);
+    case alphaskia_text_baseline_top: // kHangingTextBaseline
+        return open_type_baselines.hanging.value_or(float_ascent(metrics) * kHangingAsPercentOfAscent / 100.0f);
+    case alphaskia_text_baseline_middle: // kMiddleTextBaseline
+        normalized_typo_ascent_and_descent(font, ascent, descent);
+        return (ascent - descent) / 2.0f;
+    case alphaskia_text_baseline_bottom: // kBottomTextBaseline
+        normalized_typo_ascent_and_descent(font, ascent, descent);
+        return -descent;
+    }
+
+    return 0;
 }
 
 void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    auto paragraph(build_paragraph(text, text_length, text_style, font_size, text_align));
-
-    // layout with enough space for our text to definitely fit
-    const float layoutWidth = surface_->width() * 2;
-    paragraph->layout(surface_->width() * 2);
-
-    // NOTE: SkParagraph has no support for font/line specific baselines, first font is better than nothing
-    y += get_font_baseline(paragraph->getFontAt(0), baseline, true);
-
-    switch (text_align)
+    auto layout(layout_text(font_collection_, text, text_length, text_style, font_size));
+    if (layout.runs.empty())
     {
-    case alphaskia_text_align_left:
-        // doesn't matter
-        break;
-    case alphaskia_text_align_center:
-        x -= layoutWidth / 2;
-        break;
-    case alphaskia_text_align_right:
-        // text is aligned at layoutWidth, shift it left
-        x -= layoutWidth;
-        break;
+        return;
     }
 
-    paragraph->paint(surface_->getCanvas(), x, y);
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
+    // BaseRenderingContext2D::DrawTextInternal
+    x -= get_text_align_dx(text_align, layout.width);
+    y += get_font_baseline(layout.primary_font, layout.primary_baselines, baseline);
+
+    SkTextBlobBuilder builder;
+    for (const auto &run : layout.runs)
+    {
+        const auto &buffer = builder.allocRunPos(run.font, static_cast<int>(run.glyphs.size()));
+        std::copy(run.glyphs.begin(), run.glyphs.end(), buffer.glyphs);
+        std::copy(run.positions.begin(), run.positions.end(), buffer.points());
+    }
+
+    SkPaint paint;
+    paint.setColor(color_);
+    surface_->getCanvas()->drawTextBlob(builder.make(), x, y, paint);
 }
 
 AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    auto paragraph(build_paragraph(text, text_length, text_style, font_size, alphaskia_text_align_t::alphaskia_text_align_left));
-    const float layoutWidth = 10000;
-    paragraph->layout(layoutWidth);
+    auto layout(layout_text(font_collection_, text, text_length, text_style, font_size));
 
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc;l=1290
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc
+    // TextMetrics::InitFromShapedText and TextMetrics::PopulateVerticalMetrics
+    const float width = layout.width;
+    const float text_align_dx = get_text_align_dx(text_align, width);
+    const SkRect &glyph_bounds = layout.glyph_bounds;
 
-    // the original HTML5 canvas doesn't really support newlines, we simply calculate everything with the
-    // first line
-
-    skia::textlayout::ParagraphImpl *paragraphImpl = reinterpret_cast<skia::textlayout::ParagraphImpl *>(paragraph.get());
-
-    float width = static_cast<float>(paragraph->getMaxIntrinsicWidth());
-
-    auto text_align_dx_ = 0.0f;
-    switch (text_align)
-    {
-    case alphaskia_text_align_left:
-        // doesn't matter
-        break;
-    case alphaskia_text_align_center:
-        text_align_dx_ = width / 2.0f;
-        text_align_dx_ -= layoutWidth / 2;
-        break;
-    case alphaskia_text_align_right:
-        // text is aligned at layoutWidth, shift it left
-        text_align_dx_ = width;
-        text_align_dx_ -= layoutWidth;
-        break;
-    }
-
-    SkFont font = paragraph->getFontAt(0);
     SkFontMetrics font_metrics;
-    font.getMetrics(&font_metrics);
-
+    layout.primary_font.getMetrics(&font_metrics);
     const float ascent = float_ascent(font_metrics);
     const float descent = float_descent(font_metrics);
-    float baseline_y = get_font_baseline(font, baseline, false);
-    float actual_bounding_box_ascent = 0;
-    float actual_bounding_box_descent = 0;
-    float lineOffsetX = 0;
-    float actual_bounding_box_left = -lineOffsetX + text_align_dx_;
-    float actual_bounding_box_right = actual_bounding_box_left;
+    const float baseline_y = get_font_baseline(layout.primary_font, layout.primary_baselines, baseline);
 
-    if (paragraphImpl->lines().size() > 0)
-    {
+    int normalized_ascent = 0;
+    int normalized_descent = 0;
+    normalized_typo_ascent_and_descent(layout.primary_font, normalized_ascent, normalized_descent);
 
-        auto &line0 = paragraphImpl->lines()[0];
-        lineOffsetX = line0.offset().fX;
+    // Deviation from Chromium: the reported width is rounded to 1/100 px like SkParagraph's applyRoundingHack, which
+    // layouts built on measured widths (e.g. alphaTab references) depend on. Chromium reports the unrounded advance.
+    // Alignment, here and in fill_text, uses the unrounded width; the difference is at most 0.005 px.
+    const float reported_width = SkScalarRoundToScalar(width * 100.0) / 100.0;
 
-        line0.iterateThroughVisualRuns(
-            false,
-            [&](const skia::textlayout::Run *run, SkScalar runOffsetInLine, skia::textlayout::TextRange textRange, SkScalar *runWidthInLine)
-            {
-                if (run->size() > 0)
-                {
-                    std::vector<SkRect> bounds;
-                    bounds.resize(run->size());
-                    run->font().getBounds(&run->glyphs()[0], run->size(), bounds.data(), nullptr);
-
-                    for (size_t i = 0; i < run->size(); i++)
-                    {
-                        if (bounds[i].fTop < actual_bounding_box_ascent)
-                        {
-                            actual_bounding_box_ascent = bounds[i].fTop;
-                        }
-
-                        if (bounds[i].fBottom > actual_bounding_box_descent)
-                        {
-                            actual_bounding_box_descent = bounds[i].fBottom;
-                        }
-                    }
-                }
-                return true;
-            });
-        actual_bounding_box_ascent = std::abs(actual_bounding_box_ascent);
-        actual_bounding_box_left = -lineOffsetX + text_align_dx_;
-        actual_bounding_box_right = (lineOffsetX + line0.width()) - text_align_dx_;
-    }
-
-    float font_bounding_box_ascent = ascent - baseline_y;
-    float font_bounding_box_descent = descent + baseline_y;
-
-    int normalizedAscent = 0;
-    int normalizedDescent = 0;
-    normalized_typo_ascent_and_descent(font, normalizedAscent, normalizedDescent);
-    float em_height_ascent = normalizedAscent - baseline_y;
-    float em_height_descent = normalizedDescent + baseline_y;
-    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc;l=174;drc=1d737975521c1d4191937c2c659bd78d9f1681f4;bpv=0;bpt=1
-    float hanging_baseline = ascent * kHangingAsPercentOfAscent / 100.0f - baseline_y;
-
-    // TODO: Read baselines value from OpenType Table. https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/simple_font_data.cc;l=229;drc=73bcf25e4b0c06b1a86422a2fc30023c7b850f33;bpv=1;bpt=1
-    float alphabetic_baseline = -baseline_y;
-    float ideographic_baseline = -descent - baseline_y;
-
+    const OpenTypeBaselines &open_type_baselines = layout.primary_baselines;
     return new AlphaSkiaTextMetrics(
-        width,
-        actual_bounding_box_left,
-        actual_bounding_box_right,
-        font_bounding_box_ascent,
-        font_bounding_box_descent,
-        actual_bounding_box_ascent,
-        actual_bounding_box_descent,
-        em_height_ascent,
-        em_height_descent,
-        hanging_baseline,
-        alphabetic_baseline,
-        ideographic_baseline);
+        reported_width,
+        -glyph_bounds.left() + text_align_dx,
+        glyph_bounds.right() - text_align_dx,
+        ascent - baseline_y,
+        descent + baseline_y,
+        -glyph_bounds.top() - baseline_y,
+        glyph_bounds.bottom() + baseline_y,
+        normalized_ascent - baseline_y,
+        normalized_descent + baseline_y,
+        open_type_baselines.hanging.value_or(ascent * kHangingAsPercentOfAscent / 100.0f) - baseline_y,
+        open_type_baselines.alphabetic.value_or(0) - baseline_y,
+        open_type_baselines.ideographic.value_or(-descent) - baseline_y);
 }
 
 void AlphaSkiaCanvas::begin_rotate(float center_x, float center_y, float angle)
@@ -413,47 +527,4 @@ void AlphaSkiaCanvas::draw_image(sk_sp<SkImage> image, float x, float y, float w
 {
     SkSamplingOptions sampling;
     surface_->getCanvas()->drawImageRect(image, SkRect::MakeXYWH(x, y, w, h), sampling);
-}
-
-float AlphaSkiaCanvas::get_font_baseline(const SkFont &font, alphaskia_text_baseline_t baseline, bool correctSkParagraphBaseline)
-{
-    // https://github.com/chromium/chromium/blob/99314be8152e688bafbbf9a615536bdbb289ea87/third_party/blink/renderer/core/html/canvas/text_metrics.cc#L14
-    SkFontMetrics metrics;
-    font.getMetrics(&metrics);
-
-    float baselineOffset = 0;
-    int ascent(0);
-    int descent(0);
-
-    switch (baseline)
-    {
-    case alphaskia_text_baseline_alphabetic: // kAlphabeticTextBaseline
-        baselineOffset = 0;
-        break;
-    case alphaskia_text_baseline_top: // kHangingTextBaseline
-        baselineOffset = float_ascent(metrics) * kHangingAsPercentOfAscent / 100.0f;
-        break;
-    case alphaskia_text_baseline_middle: // kMiddleTextBaseline
-    {
-        normalized_typo_ascent_and_descent(font, ascent, descent);
-        auto middle = (ascent - descent) / 2.0f;
-        baselineOffset = middle;
-        break;
-    }
-    case alphaskia_text_baseline_bottom: // kBottomTextBaseline
-        normalized_typo_ascent_and_descent(font, ascent, descent);
-        baselineOffset = -descent;
-        break;
-    }
-
-    // SkParagraph defines its baseline() as (fLeading / 2 - fAscent)
-    // see: Run.h -> InternalLineMetrics::baseline()
-    // we reset this here
-    if (correctSkParagraphBaseline)
-    {
-        const float skParagraphBaseline = metrics.fLeading / 2 + float_ascent(metrics);
-        baselineOffset -= skParagraphBaseline;
-    }
-
-    return baselineOffset;
 }
