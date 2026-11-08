@@ -184,7 +184,8 @@ partial class Build
                                               "../../test/native/src/AlphaSkiaTestBridge.cpp",
                                               "../../test/native/src/AlphaTabGeneratedTest.cpp",
                                               "../../test/native/src/main.cpp",
-                                              "../../test/native/src/PixelMatch.cpp"
+                                              "../../test/native/src/PixelMatch.cpp",
+                                              "../../test/native/src/TextRenderingTest.cpp"
                                           ]
                                           if (is_win) {
                                             libs = [ "libalphaskia.dll.lib" ]
