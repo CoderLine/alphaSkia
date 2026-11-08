@@ -117,6 +117,16 @@ partial class Build
         .Requires(() => Framework)
         .Executes(() =>
         {
+            // local builds reuse the version number, NuGet would keep the previously extracted packages
+            var packagesDirectory = TemporaryDirectory / "packages";
+            if (packagesDirectory.DirectoryExists())
+            {
+                foreach (var cachedPackage in packagesDirectory.GetDirectories("alphaskia*"))
+                {
+                    cachedPackage.DeleteDirectory();
+                }
+            }
+
             Log.Information($"Running DotNet tests on {TargetOperatingSystem.Current.RuntimeIdentifier}-{Architecture.Current} host system (OS fonts)");
             DotNetTasks.DotNetRun(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "dotnet" / "AlphaSkia.Test")
