@@ -476,7 +476,6 @@ run();
 
     size_t index = 0;
 
-    std::cout << "FAILED: measure_test, empty text" << std::endl;
     auto empty_text = alphaskia_canvas_measure_text(
         canvas,
         u"",
