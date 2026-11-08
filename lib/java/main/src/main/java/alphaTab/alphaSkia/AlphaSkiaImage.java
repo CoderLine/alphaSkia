@@ -23,7 +23,11 @@ public class AlphaSkiaImage extends AlphaSkiaNative {
     }
 
     @Override
-    public native void close();
+    public void close() {
+        release(takeHandle());
+    }
+
+    private static native void release(long handle);
 
     /**
      * Reads the raw pixel data of this image as byte array.

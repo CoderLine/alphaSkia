@@ -41,11 +41,11 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_setLineWidth
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
- * Method:    close
- * Signature: ()V
+ * Method:    release
+ * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_close
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_release
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
@@ -57,10 +57,10 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_beginRender
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
- * Method:    drawImage
+ * Method:    nativeDrawImage
  * Signature: (LalphaTab/alphaSkia/AlphaSkiaImage;FFFF)V
  */
-JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_drawImage
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_nativeDrawImage
   (JNIEnv *, jobject, jobject, jfloat, jfloat, jfloat, jfloat);
 
 /*
@@ -169,19 +169,19 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_stroke
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
- * Method:    fillText
- * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTextStyle;FFFLalphaTab/alphaSkia/AlphaSkiaTextAlign;LalphaTab/alphaSkia/AlphaSkiaTextBaseline;)V
+ * Method:    nativeFillText
+ * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTextStyle;FFFII)V
  */
-JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillText
-  (JNIEnv *, jobject, jstring, jobject, jfloat, jfloat, jfloat, jobject, jobject);
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_nativeFillText
+  (JNIEnv *, jobject, jstring, jobject, jfloat, jfloat, jfloat, jint, jint);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
- * Method:    measureText
- * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTextStyle;FLalphaTab/alphaSkia/AlphaSkiaTextAlign;LalphaTab/alphaSkia/AlphaSkiaTextBaseline;)LalphaTab/alphaSkia/AlphaSkiaTextMetrics;
+ * Method:    nativeMeasureText
+ * Signature: (Ljava/lang/String;LalphaTab/alphaSkia/AlphaSkiaTextStyle;FII)LalphaTab/alphaSkia/AlphaSkiaTextMetrics;
  */
-JNIEXPORT jobject JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_measureText
-  (JNIEnv *, jobject, jstring, jobject, jfloat, jobject, jobject);
+JNIEXPORT jobject JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_nativeMeasureText
+  (JNIEnv *, jobject, jstring, jobject, jfloat, jint, jint);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas

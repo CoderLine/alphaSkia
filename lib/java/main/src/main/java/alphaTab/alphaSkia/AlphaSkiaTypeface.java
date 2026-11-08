@@ -1,5 +1,8 @@
 package alphaTab.alphaSkia;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 /**
  * Represents a typeface to draw text.
  */
@@ -15,7 +18,8 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
      */
     public String getFamilyName() {
         if(this.familyName == null){
-            this.familyName = AlphaSkiaTypeface.loadFamilyName(this.handle);
+            byte[] utf8 = AlphaSkiaTypeface.loadFamilyName(this.handle);
+            this.familyName = utf8 == null ? null : new String(utf8, StandardCharsets.UTF_8);
         }
         return this.familyName;
     }
@@ -51,12 +55,11 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
         if (data != null) {
             data.close();
         }
-        release(handle);
-        handle = 0;
+        release(takeHandle());
     }
 
-    private static native String loadFamilyName(long handle);
-    private native void release(long handle);
+    private static native byte[] loadFamilyName(long handle);
+    private static native void release(long handle);
 
     /**
      * Register a new custom font from the given binary data containing the data of a font compatible with Skia (e.g. TTF).
@@ -65,7 +68,7 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
      * @return The loaded typeface to use for text rendering or {@code null} if the loading failed.
      */
     public static AlphaSkiaTypeface register(byte[] data) {
-        var nativeData = new AlphaSkiaData(data);
+        var nativeData = new AlphaSkiaData(Objects.requireNonNull(data, "data"));
         var typeface = register(nativeData.handle);
         if (typeface == 0) {
             nativeData.close();
@@ -85,7 +88,8 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
      * @return The typeface if it can be found in the already loaded fonts or the system fonts, otherwise {@code null}.
      */
     public static AlphaSkiaTypeface create(String name, int weight, boolean italic) {
-        var typeface = makeFromName(name, weight, italic);
+        Objects.requireNonNull(name, "name");
+        var typeface = makeFromName(name.getBytes(StandardCharsets.UTF_8), AlphaSkiaTextStyle.checkWeight(weight), italic);
         if (typeface == 0) {
             return null;
         }
@@ -104,5 +108,5 @@ public class AlphaSkiaTypeface extends AlphaSkiaNative {
         return create(name, bold ? 700 : 400, italic);
     }
 
-    private static native long makeFromName(String name, int weight, boolean italic);
+    private static native long makeFromName(byte[] utf8Name, int weight, boolean italic);
 }

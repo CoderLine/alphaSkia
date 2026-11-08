@@ -7,7 +7,7 @@ import java.io.IOException;
  * by alphaSkia.
  */
 public abstract class AlphaSkiaPlatform {
-    private static boolean nativeLibLoaded = false;
+    private static volatile boolean nativeLibLoaded = false;
 
     /**
      * Gets a value indicating whether the native libraries required by alphaSkia were loaded.

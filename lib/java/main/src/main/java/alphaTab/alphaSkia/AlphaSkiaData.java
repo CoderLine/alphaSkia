@@ -12,7 +12,11 @@ class AlphaSkiaData extends AlphaSkiaNative {
     private static native long allocateCopy(byte[] raw);
 
     @Override
-    public native void close();
+    public void close() {
+        release(takeHandle());
+    }
+
+    private static native void release(long handle);
 
     public native byte[] toArray();
 }

@@ -1,5 +1,7 @@
 package alphaTab.alphaSkia;
 
+import java.util.Objects;
+
 /**
  * A Skia based canvas for rendering images.
  */
@@ -66,7 +68,11 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
     }
 
     @Override
-    public native void close();
+    public void close() {
+        release(takeHandle());
+    }
+
+    private static native void release(long handle);
 
     /**
      * Starts a new rendering session in the canvas.
@@ -98,7 +104,12 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param w     The target width to which the image should be scaled.
      * @param h     The target height to which the image should be scaled.
      */
-    public native void drawImage(AlphaSkiaImage image, float x, float y, float w, float h);
+    public void drawImage(AlphaSkiaImage image, float x, float y, float w, float h) {
+        Objects.requireNonNull(image, "image");
+        nativeDrawImage(image, x, y, w, h);
+    }
+
+    private native void nativeDrawImage(AlphaSkiaImage image, float x, float y, float w, float h);
 
     /**
      * Ends the rendering session and provides the rendered result.
@@ -214,9 +225,18 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param textAlign How to align the text at the given position horizontally.
      * @param baseline  How to align the text at the given position vertically.
      */
-    public native void fillText(String text, AlphaSkiaTextStyle textStyle, float fontSize, float x, float y,
-                                AlphaSkiaTextAlign textAlign,
-                                AlphaSkiaTextBaseline baseline);
+    public void fillText(String text, AlphaSkiaTextStyle textStyle, float fontSize, float x, float y,
+                         AlphaSkiaTextAlign textAlign,
+                         AlphaSkiaTextBaseline baseline) {
+        Objects.requireNonNull(text, "text");
+        Objects.requireNonNull(textStyle, "textStyle");
+        nativeFillText(text, textStyle, fontSize, x, y,
+                Objects.requireNonNull(textAlign, "textAlign").getValue(),
+                Objects.requireNonNull(baseline, "baseline").getValue());
+    }
+
+    private native void nativeFillText(String text, AlphaSkiaTextStyle textStyle, float fontSize, float x, float y,
+                                       int textAlign, int baseline);
 
     /**
      * Returns a {@see AlphaSkiaTextMetrics} object that contains information about the measured text (such as its width, for example).
@@ -227,10 +247,20 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param textAlign How to align the text at the given position horizontally.
      * @param baseline  How to align the text at the given position vertically.
      * @return The text metrics.
+     * @throws IllegalArgumentException if the font size is not finite.
      */
-    public native AlphaSkiaTextMetrics measureText(String text, AlphaSkiaTextStyle textStyle, float fontSize, 
-                                    AlphaSkiaTextAlign textAlign,
-                                    AlphaSkiaTextBaseline baseline);
+    public AlphaSkiaTextMetrics measureText(String text, AlphaSkiaTextStyle textStyle, float fontSize,
+                                            AlphaSkiaTextAlign textAlign,
+                                            AlphaSkiaTextBaseline baseline) {
+        Objects.requireNonNull(text, "text");
+        Objects.requireNonNull(textStyle, "textStyle");
+        return nativeMeasureText(text, textStyle, fontSize,
+                Objects.requireNonNull(textAlign, "textAlign").getValue(),
+                Objects.requireNonNull(baseline, "baseline").getValue());
+    }
+
+    private native AlphaSkiaTextMetrics nativeMeasureText(String text, AlphaSkiaTextStyle textStyle, float fontSize,
+                                                          int textAlign, int baseline);
 
     /**
      * Rotates the canvas allowing angled drawing

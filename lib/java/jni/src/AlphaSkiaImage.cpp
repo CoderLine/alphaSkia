@@ -21,13 +21,9 @@ extern "C"
         return alphaskia_image_get_height(reinterpret_cast<alphaskia_image_t>(handle));
     }
 
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_close(JNIEnv *env, jobject instance)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_release(JNIEnv *, jclass, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE(handle)
-
         alphaskia_image_free(reinterpret_cast<alphaskia_image_t>(handle));
-        set_handle(env, instance, 0);
     }
 
     JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_readPixels(JNIEnv *env, jobject instance)

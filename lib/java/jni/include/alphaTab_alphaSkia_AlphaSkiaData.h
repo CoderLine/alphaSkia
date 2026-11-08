@@ -17,11 +17,11 @@ JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_allocateCopy
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaData
- * Method:    close
- * Signature: ()V
+ * Method:    release
+ * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_close
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_release
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaData

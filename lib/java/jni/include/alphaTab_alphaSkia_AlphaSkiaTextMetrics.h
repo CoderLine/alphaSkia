@@ -105,11 +105,11 @@ JNIEXPORT jfloat JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextMetrics_getIdeogra
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTextMetrics
- * Method:    close
- * Signature: ()V
+ * Method:    release
+ * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextMetrics_close
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextMetrics_release
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }

@@ -25,14 +25,9 @@ extern "C"
         return reinterpret_cast<jlong>(nativeData);
     }
     
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_close(JNIEnv *env, jobject instance)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_release(JNIEnv *, jclass, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE(handle)
-
-        alphaskia_data_t data = reinterpret_cast<alphaskia_data_t>(handle);
-        alphaskia_data_free(data);
-        set_handle(env, instance, 0);
+        alphaskia_data_free(reinterpret_cast<alphaskia_data_t>(handle));
     }
 
     JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaData_toArray(JNIEnv *env, jobject instance)
