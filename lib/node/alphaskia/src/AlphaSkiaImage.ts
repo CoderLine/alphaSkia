@@ -12,7 +12,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public get width(): number {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_get_width(this.handle!);
+        return loadAddon().alphaskia_image_get_width(this.checkedHandle);
     }
 
     /**
@@ -22,7 +22,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public get height(): number {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_get_height(this.handle!);
+        return loadAddon().alphaskia_image_get_height(this.checkedHandle);
     }
 
     /**
@@ -39,7 +39,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public readPixels(): ArrayBuffer | undefined {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_read_pixels(this.handle!);
+        return loadAddon().alphaskia_image_read_pixels(this.checkedHandle);
     }
 
     /**
@@ -49,7 +49,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public toPng(): ArrayBuffer | undefined {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_encode_png(this.handle!);
+        return loadAddon().alphaskia_image_encode_png(this.checkedHandle);
     }
 
     /**

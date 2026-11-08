@@ -21,6 +21,16 @@ export class AlphaSkiaNative<THandle> implements Disposable {
     }
 
     /**
+     * The native handle of this object.
+     * @throws {@link ReferenceError} Thrown if this instance was already disposed.
+     * @internal
+     */
+    public get checkedHandle(): THandle {
+        this.checkDisposed();
+        return this.#handle!;
+    }
+
+    /**
      * Checks whether the object has already been disposed and throws an exception if so.
      * @throws {@link ReferenceError} Thrown if this instance was already disposed.
      */

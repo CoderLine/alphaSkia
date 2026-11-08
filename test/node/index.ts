@@ -7,6 +7,7 @@ import { AlphaSkiaCanvas, AlphaSkiaImage, AlphaSkiaTextStyle } from '@coderline/
 import TestBase from './AlphaTabGeneratedRenderTestBase'
 import Test from './AlphaTabGeneratedRenderTest'
 import { match } from 'PixelMatch';
+import { robustnessTest } from './RobustnessTest';
 
 
 function findRepositoryRoot(current: string): string {
@@ -93,6 +94,10 @@ function main(): number {
         TestBase.loadTypeface(path.join(testDataPath, "font", "noto-music", "NotoMusic-Regular.otf"));
         TestBase.loadTypeface(path.join(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
         console.log("Fonts loaded");
+
+        if (!robustnessTest()) {
+            return 1;
+        }
 
         // render full image
         console.log("Rendering image");

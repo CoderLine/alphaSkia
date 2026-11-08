@@ -14,8 +14,9 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
      * Gets the name of the font family of this typeface.
      */
     public get familyName(): string {
+        this.checkDisposed();
         if (this.#familyName === undefined) {
-            this.#familyName = loadAddon().alphaskia_typeface_get_family_name(this.handle!);
+            this.#familyName = loadAddon().alphaskia_typeface_get_family_name(this.checkedHandle);
         }
 
         return this.#familyName;
@@ -32,14 +33,14 @@ export class AlphaSkiaTypeface extends AlphaSkiaNative<AlphaSkiaTypefaceHandle> 
      * Gets the weight of the font.
      */
     public get weight(): number {
-        return loadAddon().alphaskia_typeface_get_weight(this.handle!)
+        return loadAddon().alphaskia_typeface_get_weight(this.checkedHandle)
     }
 
     /**
      * Gets a value indicating whether the typeface is italic.
      */
     public get isItalic(): boolean {
-        return loadAddon().alphaskia_typeface_is_italic(this.handle!);
+        return loadAddon().alphaskia_typeface_is_italic(this.checkedHandle);
     }
 
     /**
