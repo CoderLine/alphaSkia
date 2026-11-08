@@ -148,7 +148,9 @@ partial class Build
     void SetClangLinux(Dictionary<string, string> gnArgs)
     {
         AppendToFlagList(gnArgs, "extra_cflags", "'-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'");
-        AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc'");
+        // The statically linked runtime and Skia's FreeType must neither be exported nor interposed: only the
+        // alphaSkia API (and the JNI / N-API entry points) leave the library, the rest is subject to --gc-sections.
+        AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc', '-Wl,--exclude-libs,ALL', '-Wl,--strip-debug'");
 
         var crossCompileToolchainArch = Architecture.LinuxCrossToolchain;
         var crossCompileTargetArch = Architecture.LinuxCrossTargetArch;

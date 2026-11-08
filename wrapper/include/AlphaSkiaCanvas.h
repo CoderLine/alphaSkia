@@ -2,13 +2,14 @@
 
 #include "alphaskia.h"
 
-#include "../../externals/skia/include/core/SkPath.h"
+#include "../../externals/skia/include/core/SkPathBuilder.h"
 #include "../../externals/skia/include/core/SkCanvas.h"
 #include "../../externals/skia/include/core/SkSurface.h"
 #include "../../externals/skia/include/core/SkFont.h"
 #include "../../externals/skia/include/core/SkTypeface.h"
 #include "../../externals/skia/modules/skparagraph/include/FontCollection.h"
 #include "../../externals/skia/modules/skparagraph/include/Paragraph.h"
+#include "../../externals/skia/modules/skunicode/include/SkUnicode.h"
 
 #include <vector>
 
@@ -131,7 +132,8 @@ private:
     SkColor color_;
     float line_width_;
     sk_sp<SkSurface> surface_;
-    SkPath path_;
+    SkPathBuilder path_;
 
     sk_sp<skia::textlayout::FontCollection> font_collection_;
+    sk_sp<SkUnicode> unicode_;
 };

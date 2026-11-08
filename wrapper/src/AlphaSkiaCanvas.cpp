@@ -13,6 +13,7 @@
 #include "../../externals/skia/include/core/SkRefCnt.h"
 #include "../../externals/skia/modules/skparagraph/include/FontCollection.h"
 #include "../../externals/skia/modules/skparagraph/include/ParagraphBuilder.h"
+#include "../../externals/skia/modules/skunicode/include/SkUnicode_libgrapheme.h"
 #include "../../externals/skia/third_party/externals/harfbuzz/src/hb.h"
 #include "../../externals/skia/third_party/externals/harfbuzz/src/hb-ot.h"
 
@@ -95,6 +96,7 @@ AlphaSkiaCanvas::AlphaSkiaCanvas()
 {
     font_collection_ = sk_make_sp<skia::textlayout::FontCollection>();
     font_collection_->setDefaultFontManager(SkFontMgr_AlphaSkia::instance());
+    unicode_ = SkUnicodes::Libgrapheme::Make();
 }
 
 SkPaint AlphaSkiaCanvas::create_paint()
@@ -212,7 +214,7 @@ void AlphaSkiaCanvas::fill()
 {
     SkPaint paint(create_paint());
     paint.setStyle(SkPaint::kFill_Style);
-    surface_->getCanvas()->drawPath(path_, paint);
+    surface_->getCanvas()->drawPath(path_.snapshot(), paint);
     path_.reset();
 }
 
@@ -221,7 +223,7 @@ void AlphaSkiaCanvas::stroke()
     SkPaint paint(create_paint());
     paint.setStrokeWidth(line_width_);
     paint.setStyle(SkPaint::kStroke_Style);
-    surface_->getCanvas()->drawPath(path_, paint);
+    surface_->getCanvas()->drawPath(path_.snapshot(), paint);
     path_.reset();
 }
 
@@ -292,15 +294,14 @@ void get_glyph_path_bounds(const SkFont &font, const std::vector<SkGlyphID> &gly
 {
     for (size_t i = 0; i < glyphs.size(); i++)
     {
-        SkPath path;
-        if (font.getPath(glyphs[i], &path))
+        if (auto path = font.getPath(glyphs[i]))
         {
-            bounds[i] = path.getBounds();
+            bounds[i] = path->getBounds();
         }
         else
         {
             // glyphs without outline like color emoji
-            font.getBounds(&glyphs[i], 1, &bounds[i], nullptr);
+            bounds[i] = font.getBounds(glyphs[i], nullptr);
         }
     }
 }
@@ -312,7 +313,7 @@ void get_glyph_bounds(const SkFont &font, const std::vector<SkGlyphID> &glyphs, 
 #if defined(SK_BUILD_FOR_MAC) || defined(SK_BUILD_FOR_IOS)
     get_glyph_path_bounds(font, glyphs, bounds);
 #else
-    font.getBounds(glyphs.data(), static_cast<int>(glyphs.size()), bounds.data(), nullptr);
+    font.getBounds(glyphs, bounds, nullptr);
 #endif
 }
 
@@ -345,7 +346,7 @@ SkFont make_shaping_font(sk_sp<SkTypeface> typeface, const AlphaSkiaTextStyle &t
     return font;
 }
 
-TextLayout layout_text(const sk_sp<skia::textlayout::FontCollection> &font_collection, const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size)
+TextLayout layout_text(const sk_sp<skia::textlayout::FontCollection> &font_collection, const sk_sp<SkUnicode> &unicode, const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size)
 {
     // https://html.spec.whatwg.org/multipage/canvas.html#text-preparation-algorithm
     // Like Chromium's IsNormalizedCanvasSpaceCharacter, U+000B is replaced as well.
@@ -377,7 +378,7 @@ TextLayout layout_text(const sk_sp<skia::textlayout::FontCollection> &font_colle
     paragraph_style.setTextAlign(skia::textlayout::TextAlign::kLeft);
     paragraph_style.setApplyRoundingHack(false);
 
-    auto builder = skia::textlayout::ParagraphBuilder::make(paragraph_style, font_collection);
+    auto builder = skia::textlayout::ParagraphBuilder::make(paragraph_style, font_collection, unicode);
     builder->addText(prepared_text);
     auto paragraph = builder->Build();
     paragraph->layout(SK_ScalarInfinity);
@@ -474,7 +475,7 @@ float get_font_baseline(const SkFont &font, const OpenTypeBaselines &open_type_b
 
 void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, float x, float y, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    auto layout(layout_text(font_collection_, text, text_length, text_style, font_size));
+    auto layout(layout_text(font_collection_, unicode_, text, text_length, text_style, font_size));
     if (layout.runs.empty())
     {
         return;
@@ -500,7 +501,7 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
 
 AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    auto layout(layout_text(font_collection_, text, text_length, text_style, font_size));
+    auto layout(layout_text(font_collection_, unicode_, text, text_length, text_style, font_size));
 
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc
     // TextMetrics::InitFromShapedText and TextMetrics::PopulateVerticalMetrics

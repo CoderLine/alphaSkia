@@ -5,7 +5,7 @@
 [submodule "externals/skia"]
 	path = externals/skia
 	url = https://skia.googlesource.com/skia.git
-	branch = chrome/m147
+	branch = chrome/m157
 [submodule "externals/cpu_features"]
 	path = externals/cpu_features
 	url = https://github.com/google/cpu_features.git

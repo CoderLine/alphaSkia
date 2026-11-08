@@ -233,6 +233,9 @@ partial class Build
     {
         gnArgs["skia_enable_tools"] = "false";
         gnArgs["is_official_build"] = "true";
+        // raw_ptr only protects allocations made through PartitionAlloc, which is never the process
+        // allocator inside the Node, JVM and CLR hosts; the no-op raw_ptr avoids the extra dependency.
+        gnArgs["skia_use_partition_alloc"] = "false";
 
         const string quote = "\"";
         // To get a raw double-quote in the output we need as string with 3 double-quotes
@@ -303,7 +306,7 @@ partial class Build
         var gnArgs = new Dictionary<string, string>(TargetOs.SkiaGnArgs)
         {
             ["cc"] = "clang",
-            ["cxx"] = "'clang++'"
+            ["cxx"] = "clang++"
         };
 
         if (OperatingSystem.IsWindows())
@@ -393,21 +396,26 @@ partial class Build
 
     void PatchSkiaToolchain()
     {
-        // Bug in skia toolchain, setenv.cmd is not existing in this path. 
-        var toolChainBuildFile = SkiaPath / "gn" / "toolchain" / "BUILD.gn";
-        var oldToolChainSource = toolChainBuildFile.ReadAllText();
-        toolChainBuildFile.WriteAllText(oldToolChainSource.Replace(
-            "  env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86",
-            "  # env_setup = \"$shell $win_sdk/bin/SetEnv.cmd /x86"
-        ).Replace(
-            "  env_setup = \"$shell set \\\"PATH=%PATH%;$win_vc\\\\Tools\\\\MSVC\\\\$win_toolchain_version\\\\bin\\\\HostX64\\\\x64\\\" && \"",
-            "  # env_setup = \"$shell set \\\"PATH=%PATH%;$win_vc\\\\Tools\\\\MSVC\\\\$win_toolchain_version\\\\bin\\\\HostX64\\\\x64\\\" && \""
-        ).Replace(
-            // NDK r23+ removed arch-specific compiler wrappers (e.g. armv7a-linux-androideabi21-clang).
-            // Use clang --target= instead, matching the existing Windows-host pattern.
-            "      target_cc = \"$_prefix/$ndk_target$ndk_api-clang\"\n      target_cxx = \"$_prefix/$ndk_target$ndk_api-clang++\"",
-            "      target_cc = \"$_prefix/clang --target=$ndk_target$ndk_api -fno-addrsig\"\n      target_cxx = \"$_prefix/clang++ --target=$ndk_target$ndk_api -fno-addrsig\""
-        ));
+        // NDK r23+ removed arch-specific compiler wrappers (e.g. armv7a-linux-androideabi21-clang).
+        // Use clang --target= instead, matching the existing Windows-host pattern.
+        const string ndkWrapperCompilers =
+            "      target_cc = \"$_prefix/$ndk_target$ndk_api-clang\"\n      target_cxx = \"$_prefix/$ndk_target$ndk_api-clang++\"";
+        const string ndkTargetCompilers =
+            "      target_cc = \"$_prefix/clang --target=$ndk_target$ndk_api -fno-addrsig\"\n      target_cxx = \"$_prefix/clang++ --target=$ndk_target$ndk_api -fno-addrsig\"";
+
+        var buildConfigFile = SkiaPath / "gn" / "BUILDCONFIG.gn";
+        var buildConfigSource = buildConfigFile.ReadAllText();
+        if (buildConfigSource.Contains(ndkTargetCompilers))
+        {
+            return;
+        }
+
+        if (!buildConfigSource.Contains(ndkWrapperCompilers))
+        {
+            throw new IOException("gn/BUILDCONFIG.gn of skia changed, cannot patch Android NDK compilers");
+        }
+
+        buildConfigFile.WriteAllText(buildConfigSource.Replace(ndkWrapperCompilers, ndkTargetCompilers));
     }
 
     void PatchLlvm()

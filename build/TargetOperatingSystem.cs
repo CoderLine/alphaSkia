@@ -70,7 +70,6 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_system_freetype2"] = "false",
             ["skia_use_fonthost_mac"] = "false",
             ["skia_enable_fontmgr_empty"] = "false",
-            ["skia_use_metal"] = "true",
         },
         RuntimeIdentifier = "macos",
         DotNetRid = "osx"
@@ -85,8 +84,7 @@ public class TargetOperatingSystem : Enumeration
         {
             ["skia_use_system_freetype2"] = "false",
             ["skia_use_fonthost_mac"] = "false",
-            ["skia_enable_fontmgr_empty"] = "false",
-            ["skia_use_metal"] = "true"
+            ["skia_enable_fontmgr_empty"] = "false"
         },
         RuntimeIdentifier = "ios"
     };
@@ -101,7 +99,6 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_system_freetype2"] = "false",
             ["skia_use_fonthost_mac"] = "false",
             ["skia_enable_fontmgr_empty"] = "false",
-            ["skia_use_metal"] = "true",
             ["ios_use_simulator"] = "true"
         },
         RuntimeIdentifier = "iossimulator"
