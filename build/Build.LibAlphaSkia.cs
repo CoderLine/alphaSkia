@@ -28,420 +28,227 @@ partial class Build
 
     [PublicAPI]
     public Target LibAlphaSkia => t => t
-        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles,
+        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPrepareBuildFiles,
             InstallDependenciesLinux)
+        .After(LibSkia)
         .Requires(() => Architecture)
-        .Requires(() => Variant)
         .Requires(() => TargetOs)
         .Executes(BuildAlphaSkia);
 
     [PublicAPI]
     public Target LibAlphaSkiaTest => t => t
-        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles,
+        .DependsOn(PrepareGitHubArtifacts, LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPrepareBuildFiles,
             InstallDependenciesLinux)
         .After(LibAlphaSkia)
         .Requires(() => Architecture)
-        .OnlyWhenStatic(() => Variant == Variant.Shared)
         .Requires(() => TargetOs)
+        .OnlyWhenDynamic(() => AlphaSkiaVariants.Contains(Variant.Shared))
         .Executes(BuildAlphaSkiaTest);
 
     [PublicAPI]
-    public Target LibAlphaSkiaPatchSkiaBuildFiles => t => t
+    public Target LibAlphaSkiaPrepareBuildFiles => t => t
         .Unlisted()
         .Executes(() =>
         {
-            // it is a lot easier to inject a bit of custom GN code into the BUILD.gn of skia
-            // and build through that, instead of setting up the whole configuration on our own. 
-            // this way we get the same compile settings and platform support
-            const string buildConfigNew = """
-                                              declare_args() {
-                                                  is_shared_alphaskia = true
-                                              }
-                                              template("alphaskia_build") {
-                                                  _alphaskia_mode = "shared_library"
-                                                  if (!is_shared_alphaskia) {
-                                                      _alphaskia_mode = "static_library"
-                                                  }
-                                              
-                                                  target(_alphaskia_mode, target_name) {
-                                                      forward_variables_from(invoker, "*")
-                                                  }
-                                              }
-                                              template("alphaskia_executable") {
-                                                  _alphaskia_mode = "executable"
-                                                  target(_alphaskia_mode, target_name) {
-                                                      forward_variables_from(invoker, "*")
-                                                  }
-                                              }
-                                              set_defaults("alphaskia_build") {
-                                                configs = default_configs
-                                                if (!is_shared_alphaskia) {
-                                                    complete_static_lib = true
-                                                }
-                                              }
-                                          """;
-            PatchSkiaFile(SkiaPath / "gn" / "BUILDCONFIG.gn", buildConfigNew, "BuildConfig", "#");
+            // Our targets live in their own build file within the Skia tree, this way they get the compile settings
+            // and platform support of Skia without changes to Skia's build files.
+            (RootDirectory / "build" / "gn" / "alphaskia" / "BUILD.gn").Copy(
+                SkiaPath / "alphaskia" / "BUILD.gn", ExistsPolicy.FileOverwrite);
 
-            const string buildNew = """
-                                        alphaskia_wrapper_sources = [
-                                            "../../wrapper/src/AlphaSkiaCanvas.cpp",
-                                            "../../wrapper/src/alphaskia_canvas.cpp",
-                                            "../../wrapper/src/alphaskia_image.cpp",
-                                            "../../wrapper/src/alphaskia_typeface.cpp",
-                                            "../../wrapper/src/alphaskia_text_style.cpp",
-                                            "../../wrapper/src/alphaskia_text_metrics.cpp",
-                                            "../../wrapper/src/alphaskia_data.cpp",
-                                            "../../wrapper/src/alphaskia_limits.cpp",
-                                            "../../wrapper/src/alphaskia_string.cpp",
-                                            "../../wrapper/src/SkFontMgr_alphaskia.cpp"
-                                        ]
-                                        if (is_win) {
-                                            alphaskia_wrapper_sources += [ "../../wrapper/src/alphaskia.rc" ]
-                                        }
-                                        config("alphaskia_fontmgr") {
-                                          if (is_win) {
-                                            defines = [ "ALPHASKIA_FONTMGR_WINDOWS" ]
-                                          }
-                                          if (is_linux) {
-                                            defines = [ "ALPHASKIA_FONTMGR_LINUX" ]
-                                          }
-                                          if (is_android) {
-                                            defines = [ "ALPHASKIA_FONTMGR_ANDROID" ]
-                                          }
-                                          if (is_mac) {
-                                            defines = [ "ALPHASKIA_FONTMGR_MAC" ]
-                                          }
-                                          if (is_ios) {
-                                            defines = [ "ALPHASKIA_FONTMGR_IOS" ]
-                                          }
-                                        }
-                                        config("alphaskia_public") {
-                                          defines = [ "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING", "ALPHASKIA_IMPLEMENTATION=1" ]
-                                          include_dirs = [ "." ]
-                                          
-                                    
-                                          if (is_shared_alphaskia) {
-                                            defines += [ "ALPHASKIA_DLL" ]
-                                          }
-                                          
-                                          if (is_win) {
-                                            libs = [ "skia.lib", "user32.lib", "alphaskia.rc.obj" ]
-                                          }
-                                          
-                                          if (is_linux) {
-                                            libs = [ "skia", "fontconfig" ]
-                                          }
-                                          
-                                          if (is_android) {
-                                            libs = [ "skia" ]
-                                          }
-                                          
-                                          if (is_mac) {
-                                            libs = [ "skia" ]
-                                              
-                                            frameworks = [
-                                              "AppKit.framework",
-                                              "ApplicationServices.framework",
-                                              "Foundation.framework"
-                                            ]   
-                                          }
-                                          
-                                          if (is_ios) {
-                                            libs = [ "skia" ]
-                                              
-                                            frameworks = [
-                                              "Foundation.framework",
-                                              "CoreFoundation.framework",
-                                              "CoreGraphics.framework",
-                                              "CoreText.framework",
-                                              "ImageIO.framework",
-                                              "MobileCoreServices.framework",
-                                              "UIKit.framework"
-                                            ]
-                                          }
-                                        }
-                                    
-                                        # libraries without host-provided symbols must resolve everything at link time
-                                        alphaskia_no_undefined_ldflags = []
-                                        if (is_shared_alphaskia && (is_linux || is_android)) {
-                                          alphaskia_no_undefined_ldflags = [ "-Wl,-z,defs" ]
-                                        }
-                                    
-                                        alphaskia_build("libalphaskia") {
-                                          public_configs = [ ":alphaskia_public" ]
-                                          configs += [ ":alphaskia_public", ":alphaskia_fontmgr" ]
-                                          ldflags = alphaskia_no_undefined_ldflags
-                                          sources = alphaskia_wrapper_sources
-                                        }
-                                        alphaskia_build("libalphaskiajni") {
-                                          public_configs = [ ":alphaskia_public" ]
-                                          configs += [ ":alphaskia_public", ":alphaskia_fontmgr" ]
-                                          ldflags = alphaskia_no_undefined_ldflags
-                                          sources = alphaskia_wrapper_sources
-                                          sources += [
-                                            "../../lib/java/jni/src/AlphaSkiaCanvas.cpp",
-                                            "../../lib/java/jni/src/AlphaSkiaData.cpp",
-                                            "../../lib/java/jni/src/AlphaSkiaImage.cpp",
-                                            "../../lib/java/jni/src/AlphaSkiaLimits.cpp",
-                                            "../../lib/java/jni/src/AlphaSkiaTextStyle.cpp",
-                                            "../../lib/java/jni/src/AlphaSkiaTextMetrics.cpp",
-                                            "../../lib/java/jni/src/AlphaSkiaTypeface.cpp"
-                                          ]
-                                        }
-                                        alphaskia_build("libalphaskianode") {
-                                          public_configs = [ ":alphaskia_public" ]
-                                          configs += [ ":alphaskia_public", ":alphaskia_fontmgr" ]
-                                          defines = [ "NODE_GYP_MODULE_NAME=libalphaskianode", "USING_UV_SHARED=1", "USING_V8_SHARED=1", "V8_DEPRECATION_WARNINGS=1", "BUILDING_NODE_EXTENSION" ]
-                                          sources = alphaskia_wrapper_sources
-                                          output_extension = "node"
-                                          sources += [
-                                            "../../lib/node/addon/addon.cpp"
-                                          ]
-                                          if( is_win ) {
-                                            sources += [ "../../lib/node/addon/win_delay_load_hook.cpp"]
-                                          }
-                                        }
-                                    
-                                        alphaskia_executable("libalphaskiatest") {
-                                          sources = [
-                                              "../../test/native/src/AlphaSkiaTestBridge.cpp",
-                                              "../../test/native/src/AlphaTabGeneratedTest.cpp",
-                                              "../../test/native/src/main.cpp",
-                                              "../../test/native/src/PixelMatch.cpp",
-                                              "../../test/native/src/RobustnessTest.cpp",
-                                              "../../test/native/src/TextRenderingTest.cpp"
-                                          ]
-                                          if (is_win) {
-                                            libs = [ "libalphaskia.dll.lib" ]
-                                          }
-                                          else {
-                                            libs = [ "alphaskia" ]
-                                          }
-                                        }
-                                    """;
-            PatchSkiaFile(SkiaPath / "BUILD.gn", buildNew, "Build", "#");
+            // checkouts built by earlier versions of this build still contain our targets in Skia's build files
+            RemoveSkiaFilePatch(SkiaPath / "gn" / "BUILDCONFIG.gn", "BuildConfig");
+            RemoveSkiaFilePatch(SkiaPath / "BUILD.gn", "Build");
+
             PatchSkiaToolchain();
             PatchLlvm();
         });
 
-
-    void PatchSkiaFile(AbsolutePath file, string newText, string patchName, string patchCommentPrefix,
-        Func<string, int> findInsertOffset = null)
+    static void RemoveSkiaFilePatch(AbsolutePath file, string patchName)
     {
-        var existingText = file.ReadAllText();
-        string startMarker = patchCommentPrefix + " AlphaSkia Patch Start - " + patchName;
-        string endMarker = patchCommentPrefix + " AlphaSkia Patch End - " + patchName;
-        var newTextWithMarker = new StringBuilder();
-        newTextWithMarker.AppendLine();
-        newTextWithMarker.AppendLine(startMarker);
-        newTextWithMarker.AppendLine(newText);
-        newTextWithMarker.AppendLine(endMarker);
-
-        var beforePatchIndex = existingText.IndexOf(startMarker, StringComparison.OrdinalIgnoreCase);
-        if (beforePatchIndex == -1 && findInsertOffset != null)
+        var text = file.ReadAllText();
+        var startMarker = "# AlphaSkia Patch Start - " + patchName;
+        var start = text.IndexOf(startMarker, StringComparison.Ordinal);
+        // "Build" is a prefix of "BuildConfig"
+        while (start != -1 && text.Length > start + startMarker.Length &&
+               text[start + startMarker.Length] is not ('\r' or '\n'))
         {
-            beforePatchIndex = findInsertOffset.Invoke(existingText);
+            start = text.IndexOf(startMarker, start + startMarker.Length, StringComparison.Ordinal);
         }
 
-        if (beforePatchIndex == -1)
+        if (start == -1)
         {
-            // not yet patched
-            file.WriteAllText(existingText + newTextWithMarker);
+            return;
         }
-        else
+
+        var endMarker = "# AlphaSkia Patch End - " + patchName;
+        var end = text.IndexOf(endMarker, start, StringComparison.Ordinal);
+        if (end == -1)
         {
-            var afterPatchIndex = existingText.IndexOf(endMarker, beforePatchIndex, StringComparison.OrdinalIgnoreCase);
-            if (afterPatchIndex == -1)
-            {
-                // corrupt patch (no end) or custom insert position
-                file.WriteAllText(existingText[..beforePatchIndex].TrimEnd() + newTextWithMarker +
-                                  existingText[beforePatchIndex..]);
-            }
-            else
-            {
-                // already patched
-                file.WriteAllText(existingText[..beforePatchIndex].TrimEnd() + newTextWithMarker +
-                                  existingText[(afterPatchIndex + endMarker.Length)..].TrimStart());
-            }
+            throw new IOException($"{file} contains an incomplete alphaSkia patch, restore the file from Git");
         }
+
+        file.WriteAllText(text[..start].TrimEnd() + "\n" + text[(end + endMarker.Length)..].TrimStart());
     }
 
-    void BuildAlphaSkia()
+    const string AlphaSkiaRootTarget = "//alphaskia";
+
+    string AlphaSkiaOutDir => $"out/libalphaskia-{TargetOs.RuntimeIdentifier}-{Architecture}";
+
+    AbsolutePath AlphaSkiaRcObjDir => SkiaPath / AlphaSkiaOutDir / "obj" / "alphaskia_rc";
+
+    /// <summary>
+    /// The GN args of all alphaSkia targets, identical for the libraries and the tests so the build is only
+    /// generated once.
+    /// </summary>
+    Dictionary<string, string> PrepareAlphaSkiaBuild()
     {
-        SyncAlphaSkiaBaseVersion();
-        var gnArgs = PrepareNativeBuild(Variant);
-        var staticLibPath = DistBasePath / GetLibDirectory(variant: Variant.Static);
-        var gnFlags = new Dictionary<string, string>();
+        var gnArgs = PrepareNativeBuild();
+        gnArgs["alphaskia_skia_lib_dir"] = ToGnPath(DistBasePath / GetLibDirectory("libskia", Variant.Static));
+        gnArgs["alphaskia_test_rid"] = TargetOs.RuntimeIdentifier;
 
-        var buildTarget = GetAlphaSkiaLibName(Variant);
-        if (Variant == Variant.Jni)
+        if (AlphaSkiaVariants.Contains(Variant.Jni))
         {
-
-            var alphaSkiaInclude = DistBasePath / "include";
-            var jniInclude = JavaHome / "include";
-            AbsolutePath jniPlatformInclude;
-            if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
-            {
-                jniPlatformInclude = jniInclude / "win32";
-            }
-            else if (OperatingSystem.IsLinux() && TargetOs == TargetOperatingSystem.Linux)
-            {
-                jniPlatformInclude = jniInclude / "linux";
-            }
-            else if (OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
-            {
-                jniPlatformInclude = jniInclude / "darwin";
-            }
-            else if (TargetOs == TargetOperatingSystem.Android)
-            {
-                jniPlatformInclude = null;
-            }
-            else
-            {
-                throw new PlatformNotSupportedException();
-            }
-
-            AppendToFlagList(gnArgs, "extra_cflags",
-                jniPlatformInclude != null
-                    ? $"'-I{alphaSkiaInclude}', '-I{jniInclude}', '-I{jniPlatformInclude}'"
-                    : $"'-I{alphaSkiaInclude}'"
-            );
+            gnArgs["alphaskia_jni_include_dirs"] = GetJniIncludeDirs();
         }
-        else if (Variant == Variant.Node)
+
+        if (AlphaSkiaVariants.Contains(Variant.Node))
         {
-            if (OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
             {
                 // windows requires a lib to link against, fetch it from the node downloads
                 var nodeLibPath = DownloadNodeLib();
-                AppendToFlagList(gnArgs, "extra_ldflags",
-                    $"'/DELAYLOAD:node.exe', '/LIBPATH:{nodeLibPath}', 'node.lib', 'DelayImp.lib'");
+                gnArgs["alphaskia_node_ldflags"] =
+                    $"[ '/DELAYLOAD:node.exe', '/LIBPATH:{nodeLibPath}', 'node.lib', 'DelayImp.lib' ]";
             }
             else if (OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
             {
-                // disable need of a libnode.dylib dependencies are resolve dynamically during runtime 
-                // and as the node binary has them built-in
-                AppendToFlagList(gnArgs, "extra_ldflags", "'-undefined', 'dynamic_lookup'");
+                // the N-API symbols are resolved at runtime from the node binary, there is no libnode to link
+                gnArgs["alphaskia_node_ldflags"] = "[ '-undefined', 'dynamic_lookup' ]";
             }
         }
 
         if (TargetOs == TargetOperatingSystem.Windows)
         {
-            // TODO: check if clang-cl also works with the linux flags
-            AppendToFlagList(gnArgs, "extra_ldflags", $"'/LIBPATH:{staticLibPath}'");
-            NativeWriteVersionInfoHeader();
+            gnArgs["alphaskia_rc_obj_dir"] = ToGnPath(AlphaSkiaRcObjDir);
+        }
+
+        return gnArgs;
+    }
+
+    /// <summary>
+    /// A system-absolute path as GN expects it in lib_dirs and include_dirs ("/C:/dir" on Windows).
+    /// </summary>
+    static string ToGnPath(AbsolutePath path)
+    {
+        var gnPath = path.ToString().Replace('\\', '/');
+        return gnPath.Length > 1 && gnPath[1] == ':' ? "/" + gnPath : gnPath;
+    }
+
+    string GetJniIncludeDirs()
+    {
+        if (TargetOs == TargetOperatingSystem.Android)
+        {
+            // provided by the NDK
+            return "[]";
+        }
+
+        var jniInclude = JavaHome / "include";
+        AbsolutePath jniPlatformInclude;
+        if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
+        {
+            jniPlatformInclude = jniInclude / "win32";
+        }
+        else if (OperatingSystem.IsLinux() && TargetOs == TargetOperatingSystem.Linux)
+        {
+            jniPlatformInclude = jniInclude / "linux";
+        }
+        else if (OperatingSystem.IsMacOS() && TargetOs == TargetOperatingSystem.MacOs)
+        {
+            jniPlatformInclude = jniInclude / "darwin";
         }
         else
         {
-            AppendToFlagList(gnArgs, "extra_ldflags", $"'-L{staticLibPath}'");
+            throw new PlatformNotSupportedException();
         }
 
-        var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
-        var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
-        var distPath = DistBasePath / libDir;
-        var outDir = SkiaPath / "out" / libDir;
-        var libExtensions = new HashSet<string>(GetLibExtensions(Variant), StringComparer.OrdinalIgnoreCase);
+        return $"[ '{ToGnPath(jniInclude)}', '{ToGnPath(jniPlatformInclude)}' ]";
+    }
 
-        AbsolutePath rcOutputDir = null;
-        if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
-        {
-            rcOutputDir = outDir / "obj" / "alphaskia_wrapper";
-            AppendToFlagList(gnArgs, "extra_ldflags", $"'/LIBPATH:{rcOutputDir}'");
-        }
+    void BuildAlphaSkia()
+    {
+        SyncAlphaSkiaBaseVersion();
+        var gnArgs = PrepareAlphaSkiaBuild();
+        var variants = AlphaSkiaVariants;
+        var targets = string.Join(" ", variants.Select(v => $"alphaskia:{GetAlphaSkiaLibName(v)}"));
 
-        GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath,
+        GnNinja(AlphaSkiaOutDir, targets, gnArgs, new Dictionary<string, string>(), SkiaPath,
             () =>
             {
                 if (OperatingSystem.IsWindows() && TargetOs == TargetOperatingSystem.Windows)
                 {
-                    // compile resource file. Is is added as "library" in the BUILD.gn as input
+                    // version resources, linked as "library" <target>.rc.obj by the BUILD.gn
                     // "llvm-rc.exe" /FO alphaskia.rc.obj alphaskia.rc /D RC_INVOKED /C 65001
-
                     var input = RootDirectory / "wrapper" / "src" / "alphaskia.rc";
-                    rcOutputDir.CreateDirectory();
-                    var output = rcOutputDir / "alphaskia.rc.obj";
-
-                    const int utf8CodePage = 65001;
-                    ToolResolver.GetTool((AbsolutePath)LlvmHome / "bin" / "llvm-rc.exe")(
-                        $"/FO {output} {input} /D RC_INVOKED /C {utf8CodePage}",
-                        workingDirectory: SkiaPath);
+                    AlphaSkiaRcObjDir.CreateDirectory();
+                    foreach (var variant in variants)
+                    {
+                        NativeWriteVersionInfoHeader(variant);
+                        var output = AlphaSkiaRcObjDir / $"{GetAlphaSkiaLibName(variant)}.rc.obj";
+                        const int utf8CodePage = 65001;
+                        ToolResolver.GetTool((AbsolutePath)LlvmHome / "bin" / "llvm-rc.exe")(
+                            $"/FO {output} {input} /D RC_INVOKED /C {utf8CodePage}",
+                            workingDirectory: SkiaPath);
+                    }
                 }
-            });
+            },
+            AlphaSkiaRootTarget);
 
-        try
+        var outDir = SkiaPath / AlphaSkiaOutDir;
+        foreach (var variant in variants)
         {
-            void CopyBuildOutputTo(AbsolutePath path)
+            var libName = GetAlphaSkiaLibName(variant);
+            var libDir = GetLibDirectory(libName, variant);
+            var libExtensions = new HashSet<string>(GetLibExtensions(variant), StringComparer.OrdinalIgnoreCase);
+            // all variants share the output directory, each one only takes the files of its own library
+            var libFiles = outDir.GetFiles()
+                .Where(f => f.Name.StartsWith(libName + ".", StringComparison.OrdinalIgnoreCase) &&
+                            libExtensions.Contains(f.Extension))
+                .ToArray();
+            if (libFiles.Length == 0)
             {
-                // libs
-                outDir.Copy(path,
-                    ExistsPolicy.MergeAndOverwrite,
-                    null,
-                    file => !libExtensions.Contains(file.Extension)
-                );
-                // copy header
-                (RootDirectory / "wrapper" / "include" / "alphaskia.h").Copy(
-                    DistBasePath / "include" / "alphaskia" / "alphaskia.h",
-                    ExistsPolicy.MergeAndOverwrite
-                );
+                throw new IOException($"No {libName} files found in {outDir}");
             }
 
-            CopyBuildOutputTo(distPath);
-            if (artifactsLibPath != null)
+            foreach (var file in libFiles)
             {
-                CopyBuildOutputTo(artifactsLibPath);
+                file.Copy(DistBasePath / libDir / file.Name, ExistsPolicy.FileOverwrite);
+                if (IsGitHubActions)
+                {
+                    // one artifact root per variant, the workflow uploads each one as separate artifact
+                    file.Copy(ArtifactBasePath / variant.ToString() / libDir / file.Name, ExistsPolicy.FileOverwrite);
+                }
             }
         }
-        catch (Exception e)
-        {
-            var fileList = Directory.EnumerateFileSystemEntries(outDir).Select(d =>
-                File.GetAttributes(d).HasFlag(FileAttributes.Directory) ? "[" + d + "]" : d);
-            throw new IOException("Copy files failed. existing files: " + string.Join(", ", fileList), e);
-        }
+
+        (RootDirectory / "wrapper" / "include" / "alphaskia.h").Copy(
+            DistBasePath / "include" / "alphaskia" / "alphaskia.h",
+            ExistsPolicy.FileOverwrite
+        );
     }
 
     void BuildAlphaSkiaTest()
     {
-        if (Variant != Variant.Shared)
-        {
-            Log.Information("Skipping build of BuildAlphaSkiaTest, not relevant for variant {Variant}", Variant);
-            return;
-        }
-
-        var gnArgs = PrepareNativeBuild(Variant);
-        var sharedLibPath = DistBasePath / GetLibDirectory("libalphaskia", variant: Variant);
-        var gnFlags = new Dictionary<string, string>();
-
-        if (!sharedLibPath.DirectoryExists())
-        {
-            throw new IOException(sharedLibPath + " is fully missing, needed for linking!");
-        }
-
-        Log.Debug("Available libs for linking: " + string.Join(", ", sharedLibPath.GetFiles().Select(f => f.Name)));
-        AppendToFlagList(gnArgs, "extra_cflags", $"'-DALPHASKIA_TEST_RID={TargetOs.RuntimeIdentifier}'");
-
-        // TODO: check if clang-cl also works with the linux flags
-        AppendToFlagList(gnArgs, "extra_ldflags",
-            TargetOs == TargetOperatingSystem.Windows ? $"'/LIBPATH:{sharedLibPath}'" : $"'-L{sharedLibPath}'");
-
         var buildTarget = "libalphaskiatest";
-        var libDir = GetLibDirectory(buildTarget, TargetOs, Architecture, Variant);
-        var outDir = SkiaPath / "out" / libDir;
-        var exeExtension = GetExeExtension();
-
-        GnNinja($"out/{libDir}", buildTarget, gnArgs, gnFlags, SkiaPath);
+        GnNinja(AlphaSkiaOutDir, $"alphaskia:{buildTarget}", PrepareAlphaSkiaBuild(),
+            new Dictionary<string, string>(), SkiaPath, rootTarget: AlphaSkiaRootTarget);
 
         // copy for artifacts
-        var distPath = DistBasePath / libDir;
-        var exePath = outDir / (buildTarget + exeExtension);
-        exePath.Copy(distPath / exePath.Name, ExistsPolicy.MergeAndOverwrite);
+        var outDir = SkiaPath / AlphaSkiaOutDir;
+        var exePath = outDir / (buildTarget + GetExeExtension());
+        exePath.Copy(DistBasePath / GetLibDirectory(buildTarget, Variant.Shared) / exePath.Name,
+            ExistsPolicy.FileOverwrite);
 
-        // copy shared lib beside executable
-        var libExtensions = new HashSet<string>(GetLibExtensions(Variant), StringComparer.OrdinalIgnoreCase);
-        foreach (var file in sharedLibPath.GetFiles().Where(f => libExtensions.Contains(f.Extension)))
-        {
-            file.Copy(outDir / file.Name, ExistsPolicy.MergeAndOverwrite);
-        }
-
-        // run executable
+        // run executable, the shared library is next to it in the output directory
         if (LibAlphaSkiaCanRunTests)
         {
             Log.Information(
@@ -487,9 +294,9 @@ partial class Build
         }
     }
 
-    void NativeWriteVersionInfoHeader()
+    void NativeWriteVersionInfoHeader(Variant variant)
     {
-        var libExtension = GetLibExtensions(Variant)[0];
+        var libExtension = GetLibExtensions(variant)[0];
 
         var versionInfo = new StringBuilder();
         versionInfo.AppendLine("#pragma once");
@@ -515,17 +322,17 @@ partial class Build
         versionInfo.AppendLine($"#define VER_COMPANY_STR \"{VersionInfo.Company}\"");
         versionInfo.AppendLine($"#define VER_FILE_DESCRIPTION_STR \"{VersionInfo.Description}\"");
 
-        if (Variant == Variant.Shared)
+        if (variant == Variant.Shared)
         {
             versionInfo.AppendLine("#define VER_INTERNALNAME_STR \"libalphaskia\"");
             versionInfo.AppendLine($"#define VER_ORIGINALFILENAME_STR \"libalphaskia{libExtension}\"");
         }
-        else if (Variant == Variant.Jni)
+        else if (variant == Variant.Jni)
         {
             versionInfo.AppendLine("#define VER_INTERNALNAME_STR \"libalphaskiajni\"");
             versionInfo.AppendLine($"#define VER_ORIGINALFILENAME_STR \"libalphaskiajni{libExtension}\"");
         }
-        else if (Variant == Variant.Node)
+        else if (variant == Variant.Node)
         {
             versionInfo.AppendLine("#define VER_INTERNALNAME_STR \"libalphaskianode\"");
             versionInfo.AppendLine($"#define VER_ORIGINALFILENAME_STR \"libalphaskianode{libExtension}\"");

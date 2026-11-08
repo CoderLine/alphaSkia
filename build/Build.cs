@@ -217,20 +217,4 @@ partial class Build : NukeBuild
             }
         }
     }
-
-    bool CanUseCachedBinaries(string buildTarget, Variant variant)
-    {
-        if (!UseCache)
-        {
-            Log.Debug($"Cache for {GetLibDirectory(buildTarget, variant: variant)} is disabled");
-            return false;
-        }
-
-        if (!HasCachedFiles(buildTarget, variant))
-        {
-            return false;
-        }
-
-        return true;
-    }
 }

@@ -53,19 +53,22 @@ partial class Build
     // Output Options
     [Parameter] readonly TargetOperatingSystem TargetOs;
     [Parameter] readonly Architecture Architecture;
-    [Parameter] readonly Variant Variant;
+    [Parameter("The alphaSkia library variants to build, defaults to all variants of the target OS")]
+    readonly Variant[] Variants;
+
+    Variant[] AlphaSkiaVariants => Variants is { Length: > 0 } ? Variants : TargetOs.AlphaSkiaVariants;
+
     [Parameter] readonly bool GnVerbose;
     [Parameter] readonly bool NinjaVerbose;
 
-    [Parameter(Name = "use-cache")] readonly string UseCacheParam;
-    bool UseCache => "true".Equals(UseCacheParam, StringComparison.OrdinalIgnoreCase);
+    [Parameter("Compiler cache wrapping all compiler calls, e.g. ccache or sccache")]
+    readonly string CcWrapper = GetVariable<string>("ALPHASKIA_CC_WRAPPER");
 
-    string GetLibDirectory(string libName = "libskia", TargetOperatingSystem targetOs = null,
-        Architecture arch = null, Variant variant = null)
+    string GetLibDirectory(string libName, Variant variant, TargetOperatingSystem targetOs = null,
+        Architecture arch = null)
     {
         targetOs ??= TargetOs;
         arch ??= Architecture;
-        variant ??= Variant;
 
         return $"{libName.ToLowerInvariant()}-{targetOs?.RuntimeIdentifier}-{arch}-{variant}";
     }
@@ -247,7 +250,6 @@ partial class Build
     [PublicAPI]
     public Target SetupDepotTools => t => t
         .Unlisted()
-        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Executes(() =>
         {
             var oldValue = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
@@ -265,10 +267,15 @@ partial class Build
             );
         });
 
-    void GnNinja(string outDir, string target, Dictionary<string, string> gnArgs,
+    readonly HashSet<string> RebuiltOutDirs = new();
+
+    /// <param name="targets">space separated ninja targets</param>
+    /// <param name="rootTarget">the GN build file to start loading from, null for Skia's BUILD.gn</param>
+    void GnNinja(string outDir, string targets, Dictionary<string, string> gnArgs,
         Dictionary<string, string> gnFlags,
         AbsolutePath workingDirectory,
-        Action beforeCompile = null)
+        Action beforeCompile = null,
+        string rootTarget = null)
     {
         gnArgs["skia_enable_tools"] = "false";
         gnArgs["is_official_build"] = "true";
@@ -300,6 +307,10 @@ partial class Build
         }
 
         gnFlags["script-executable"] = PythonExe;
+        if (rootTarget != null)
+        {
+            gnFlags["root-target"] = rootTarget;
+        }
         gnFlags["args"] = string.Join(" ", gnArgs.Select(o => $"{o.Key}={QuoteValue(o.Value)}"));
         if (GnVerbose)
         {
@@ -309,7 +320,8 @@ partial class Build
         var gnFlagsString = string.Join(" ",
             gnFlags.Select(kvp => kvp.Value.Length > 0 ? $"--{kvp.Key}={quote}{kvp.Value}{quote}" : $"--{kvp.Key}"));
 
-        if (Rebuild)
+        // several targets share an output directory, a rebuild must not delete the outputs of the previous ones
+        if (Rebuild && RebuiltOutDirs.Add(outDir))
         {
             (SkiaPath / outDir).DeleteDirectory();
         }
@@ -326,7 +338,7 @@ partial class Build
 
         beforeCompile?.Invoke();
 
-        var ninjaArgs = $"-d keeprsp -C {outDir} {target}";
+        var ninjaArgs = $"-d keeprsp -C {outDir} {targets}";
         if (NinjaVerbose)
         {
             ninjaArgs = "-v " + ninjaArgs;
@@ -340,13 +352,18 @@ partial class Build
         );
     }
 
-    Dictionary<string, string> PrepareNativeBuild(Variant variant)
+    Dictionary<string, string> PrepareNativeBuild()
     {
-        var gnArgs = new Dictionary<string, string>(TargetOs.SkiaGnArgs)
+        var gnArgs = new Dictionary<string, string>(TargetOs.ToolchainGnArgs)
         {
             ["cc"] = "clang",
             ["cxx"] = "clang++"
         };
+
+        if (!string.IsNullOrEmpty(CcWrapper))
+        {
+            gnArgs["cc_wrapper"] = CcWrapper;
+        }
 
         if (OperatingSystem.IsWindows())
         {
@@ -369,7 +386,6 @@ partial class Build
 
         gnArgs["target_os"] = TargetOs.SkiaTargetOs;
         gnArgs["target_cpu"] = Architecture;
-        gnArgs["is_shared_alphaskia"] = variant.IsShared.ToString().ToLowerInvariant();
 
         return gnArgs;
     }
@@ -412,25 +428,6 @@ partial class Build
         {
             return "";
         }
-    }
-
-    bool HasCachedFiles(string buildTarget, Variant variant)
-    {
-        var libraryDir = GetLibDirectory(buildTarget, variant: variant);
-        var expectedDirectory = DistBasePath / libraryDir;
-        if (!expectedDirectory.DirectoryExists())
-        {
-            Log.Debug($"Cache for {libraryDir} is not usable, folder doesn't exist");
-            return false;
-        }
-
-        if (!expectedDirectory.GetFiles().Any())
-        {
-            Log.Debug($"Cache for {libraryDir} is not usable, no files in folder");
-            return false;
-        }
-
-        return true;
     }
 
     void PatchSkiaToolchain()

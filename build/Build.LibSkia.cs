@@ -8,12 +8,9 @@ using Serilog;
 
 partial class Build
 {
-    Lazy<bool> LibSkiaSkip => new(() => CanUseCachedBinaries("libskia", Variant.Static));
-
     [PublicAPI]
     public Target LibSkiaGitSyncDeps => t => t
         .Unlisted()
-        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .DependsOn(SetupDepotTools)
         .Executes(() =>
         {
@@ -41,43 +38,9 @@ partial class Build
             return GitSyncDepsCustom(requiredDependencies);
         });
 
-    public Target LibSkiaWithCache => t => t
-        .Unlisted()
-        .Requires(() => Architecture)
-        .Requires(() => TargetOs)
-        // ensure it runs before any oher targets
-        .Before(SetupDepotTools, LibSkiaPatchSkiaBuildFiles, LibSkiaGitSyncDeps)
-        .Executes(() =>
-        {
-            if (IsGitHubActions)
-            {
-                var outputsFile = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
-                if (File.Exists(outputsFile))
-                {
-                    File.AppendAllLines(outputsFile,
-                        [$"build-skipped={LibSkiaSkip.Value.ToString().ToLowerInvariant()}\n"]);
-                }
-                else
-                {
-                    Log.Warning("Could not set output parameter, GITHUB_OUTPUT not found");
-                }
-            }
-
-            if (LibSkiaSkip.Value)
-            {
-                DistBasePath.Copy(ArtifactBasePath, ExistsPolicy.MergeAndOverwrite);
-            }
-            else
-            {
-                GitTool("submodule update --init --recursive --depth=1");
-            }
-        })
-        .Triggers(LibSkia);
-
     [PublicAPI]
     public Target LibSkia => t => t
         .DependsOn(LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles, InstallDependenciesLinux)
-        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .Requires(() => Architecture)
         .Requires(() => TargetOs)
         .Executes(BuildSkia);
@@ -85,7 +48,6 @@ partial class Build
     [PublicAPI]
     public Target LibSkiaPatchSkiaBuildFiles => t => t
         .Unlisted()
-        .OnlyWhenStatic(() => !LibSkiaSkip.Value)
         .After(LibSkiaGitSyncDeps)
         .Executes(() =>
         {
@@ -331,10 +293,14 @@ partial class Build
     {
         VersionInfo.EnsureSkiaCheckoutMatchesVersion(SkiaPath);
 
-        var gnArgs = PrepareNativeBuild(Variant.Static);
+        var gnArgs = PrepareNativeBuild();
+        foreach (var (key, value) in TargetOs.SkiaGnArgs)
+        {
+            gnArgs[key] = value;
+        }
+
         var gnFlags = new Dictionary<string, string>();
-        var libDir = GetLibDirectory("libskia", TargetOs, Architecture, Variant.Static);
-        var artifactsLibPath = IsGitHubActions ? ArtifactBasePath / libDir : null;
+        var libDir = GetLibDirectory("libskia", Variant.Static);
         var distPath = DistBasePath / libDir;
         var outDir = SkiaPath / "out" / libDir;
         var libExtension = new HashSet<string>(GetLibExtensions(Variant.Static), StringComparer.OrdinalIgnoreCase);
@@ -384,17 +350,7 @@ partial class Build
 
         GnNinja($"out/{libDir}", "skia", gnArgs, gnFlags, SkiaPath);
 
-        void CopyBuildOutputTo(AbsolutePath path)
-        {
-            // libs
-            outDir.Copy(path, ExistsPolicy.MergeAndOverwrite, null,
-                file => !libExtension.Contains(file.Extension));
-        }
-
-        CopyBuildOutputTo(distPath);
-        if (artifactsLibPath != null)
-        {
-            CopyBuildOutputTo(artifactsLibPath);
-        }
+        outDir.Copy(distPath, ExistsPolicy.MergeAndOverwrite, null,
+            file => !libExtension.Contains(file.Extension));
     }
 }

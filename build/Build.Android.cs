@@ -25,15 +25,8 @@ partial class Build
         .After(LibAlphaSkia)
         .OnlyWhenStatic(() => TargetOs == TargetOperatingSystem.Android)
         .Requires(() => Architecture)
-        .Requires(() => Variant)
         .Executes(() =>
         {
-            if (!Variant.IsShared)
-            {
-                Log.Information("Skipping alignment check for static variant {Variant}", Variant);
-                return;
-            }
-
             // 32-bit architectures (x86, arm) only support 4KB page alignment
             var is64Bit = Architecture == Architecture.Arm64 || Architecture == Architecture.X64;
             var requiredAlignment = is64Bit
@@ -53,14 +46,17 @@ partial class Build
 
             var readElfTool = ToolResolver.GetTool(llvmReadElf);
 
-            var libDir = GetLibDirectory(GetAlphaSkiaLibName(Variant), variant: Variant);
-            var distPath = DistBasePath / libDir;
-            var soFiles = distPath.GlobFiles("*.so").ToArray();
-
-            if (soFiles.Length == 0)
+            var soFiles = AlphaSkiaVariants.SelectMany(variant =>
             {
-                throw new IOException($"No .so files found in {distPath} to check alignment");
-            }
+                var distPath = DistBasePath / GetLibDirectory(GetAlphaSkiaLibName(variant), variant);
+                var files = distPath.GlobFiles("*.so").ToArray();
+                if (files.Length == 0)
+                {
+                    throw new IOException($"No .so files found in {distPath} to check alignment");
+                }
+
+                return files;
+            }).ToArray();
 
             var failures = new List<string>();
 
