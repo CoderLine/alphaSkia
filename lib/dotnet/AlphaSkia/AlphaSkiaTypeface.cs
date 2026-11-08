@@ -17,6 +17,7 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
     {
         get
         {
+            CheckDisposed();
             if (_fontFamily == null)
             {
                 var skFamilyName = NativeMethods.alphaskia_typeface_get_family_name(Handle);
@@ -71,6 +72,11 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
     /// <returns>The loaded typeface to use for text rendering or <code>null</code> if the loading failed.</returns>
     public static AlphaSkiaTypeface? Register(byte[] data)
     {
+        if (data == null)
+        {
+            throw new ArgumentNullException(nameof(data));
+        }
+
         var nativeData = new AlphaSkiaData(data);
         var typeface = NativeMethods.alphaskia_typeface_register(nativeData.Handle);
         if (typeface == IntPtr.Zero)
@@ -91,8 +97,13 @@ public sealed class AlphaSkiaTypeface : AlphaSkiaNative
     /// <returns>The typeface if it can be found in the already loaded fonts or the system fonts, otherwise <code>null</code>.</returns>
     public static AlphaSkiaTypeface? Create(string name, ushort weight, bool italic)
     {
-        var typeface =
-            NativeMethods.alphaskia_typeface_make_from_name(name, weight, italic ? (byte)1 : (byte)0);
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        var typeface = NativeMethods.alphaskia_typeface_make_from_name(Encoding.UTF8.GetBytes(name + "\0"), weight,
+            italic ? (byte)1 : (byte)0);
         if (typeface == IntPtr.Zero)
         {
             return null;

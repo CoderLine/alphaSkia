@@ -1,26 +1,19 @@
-﻿using System.ComponentModel;
-
-namespace AlphaSkia;
+﻿namespace AlphaSkia;
 
 /// <summary>
 /// The base class for AlphaSkia objects wrapping native Skia objects.
 /// </summary>
+/// <remarks>
+/// Instances are not thread-safe. Disposing an object while another thread uses it is safe: the native object is
+/// released once the running call returns, later calls throw <see cref="ObjectDisposedException"/>.
+/// </remarks>
 public class AlphaSkiaNative : IDisposable
 {
-    private readonly Action<IntPtr> _release;
-
-    internal IntPtr Handle { get; private set; }
+    internal NativeHandle Handle { get; }
 
     internal AlphaSkiaNative(IntPtr handle, Action<IntPtr> release)
     {
-        _release = release;
-        Handle = handle;
-    }
-
-    private void ReleaseUnmanagedResources()
-    {
-        _release(Handle);
-        Handle = IntPtr.Zero;
+        Handle = new NativeHandle(handle, release);
     }
 
     /// <summary>
@@ -31,7 +24,10 @@ public class AlphaSkiaNative : IDisposable
     /// </param>
     protected virtual void Dispose(bool disposing)
     {
-        ReleaseUnmanagedResources();
+        if (disposing)
+        {
+            Handle.Dispose();
+        }
     }
 
     /// <inheritdoc />
@@ -42,22 +38,14 @@ public class AlphaSkiaNative : IDisposable
     }
 
     /// <summary>
-    /// Releases unmanaged resources and performs other cleanup operations before this instance is reclaimed by garbage collection.
-    /// </summary>
-    ~AlphaSkiaNative()
-    {
-        Dispose(false);
-    }
-
-    /// <summary>
     /// Checks whether the object has already been disposed and throws an exception if so.
     /// </summary>
     /// <exception cref="ObjectDisposedException">Thrown if this instance was already disposed.</exception>
     protected void CheckDisposed()
     {
-        if (Handle == IntPtr.Zero)
+        if (Handle.IsClosed || Handle.IsInvalid)
         {
-            throw new ObjectDisposedException("this");
+            throw new ObjectDisposedException(GetType().Name);
         }
     }
 }

@@ -84,6 +84,11 @@ public static class Program
             
             Console.WriteLine("Fonts loaded");
 
+            if (!RobustnessTest.Run())
+            {
+                return 1;
+            }
+
             // render full image
             Console.WriteLine("Rendering image");
             using var actualImage = RenderFullImage();

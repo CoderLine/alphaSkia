@@ -126,6 +126,11 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void DrawImage(AlphaSkiaImage image, float x, float y, float w, float h)
     {
         CheckDisposed();
+        if (image == null)
+        {
+            throw new ArgumentNullException(nameof(image));
+        }
+
         NativeMethods.alphaskia_canvas_draw_image(Handle, image.Handle, x, y, w, h);
     }
 
@@ -260,7 +265,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void StrokeCircle(float x, float y, float radius)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_circle(Handle, x, y, radius);
+        NativeMethods.alphaskia_canvas_stroke_circle(Handle, x, y, radius);
     }
 
     /// <summary>
@@ -296,6 +301,16 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
         AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
+        if (text == null)
+        {
+            throw new ArgumentNullException(nameof(text));
+        }
+
+        if (textStyle == null)
+        {
+            throw new ArgumentNullException(nameof(textStyle));
+        }
+
         NativeMethods.alphaskia_canvas_fill_text(Handle, text, text.Length, textStyle.Handle, fontSize, x, y, textAlign, baseline);
     }
 
@@ -308,10 +323,27 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// <param name="textAlign">How to align the text at the given position horizontally.</param>
     /// <param name="baseline">How to align the text at the given position vertically.</param>
     /// <returns>The text metrics.</returns>
+    /// <exception cref="ArgumentException">The font size is not finite.</exception>
     public AlphaSkiaTextMetrics MeasureText(string text, AlphaSkiaTextStyle textStyle, float fontSize, AlphaSkiaTextAlign textAlign, AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
-        return new AlphaSkiaTextMetrics(NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, textStyle.Handle, fontSize, textAlign, baseline));
+        if (text == null)
+        {
+            throw new ArgumentNullException(nameof(text));
+        }
+
+        if (textStyle == null)
+        {
+            throw new ArgumentNullException(nameof(textStyle));
+        }
+
+        var textMetrics = NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, textStyle.Handle, fontSize, textAlign, baseline);
+        if (textMetrics == IntPtr.Zero)
+        {
+            throw new ArgumentException("Cannot measure text with the given arguments");
+        }
+
+        return new AlphaSkiaTextMetrics(textMetrics);
     }
 
     /// <summary>

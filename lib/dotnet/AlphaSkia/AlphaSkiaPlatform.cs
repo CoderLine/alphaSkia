@@ -1,6 +1,9 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
+// The native library must not be resolved from the current or PATH directories.
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
+
 namespace AlphaSkia;
 
 /// <summary>
@@ -61,7 +64,8 @@ public static class AlphaSkiaPlatform
         // try to use it if available, otherwise fallback.
         var nativeLibraryTryLoadMethod = typeof(DllImportAttribute).Assembly
             .GetType("System.Runtime.InteropServices.NativeLibrary")
-            ?.GetMethod("TryLoad", BindingFlags.Static | BindingFlags.Public);
+            ?.GetMethod("TryLoad", BindingFlags.Static | BindingFlags.Public, null,
+                new[] { typeof(string), typeof(IntPtr).MakeByRefType() }, null);
         if (nativeLibraryTryLoadMethod != null)
         {
             return (bool)nativeLibraryTryLoadMethod.Invoke(null, new object[]
@@ -92,21 +96,28 @@ public static class AlphaSkiaPlatform
         var officialOs = officialRid.Substring(0, separator);
         var officialArch = officialRid.Substring(separator + 1);
 
-        libExtension = Environment.OSVersion.Platform switch
+        string os;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            PlatformID.Unix => ".so",
-            PlatformID.Win32NT => ".dll",
-            PlatformID.MacOSX => ".dylib",
-            _ => ""
-        };
-
-        var os = Environment.OSVersion.Platform switch
+            os = "win";
+            libExtension = ".dll";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            PlatformID.Unix => "linux",
-            PlatformID.Win32NT => "win",
-            PlatformID.MacOSX => "macos",
-            _ => officialOs
-        };
+            // matches the runtime folders of the AlphaSkia.Native.MacOs package
+            os = "osx";
+            libExtension = ".dylib";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            os = "linux";
+            libExtension = ".so";
+        }
+        else
+        {
+            os = officialOs;
+            libExtension = "";
+        }
         if (string.IsNullOrEmpty(os))
         {
             return FallbackRuntimeIdentifier;

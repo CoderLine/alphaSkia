@@ -64,7 +64,7 @@ public sealed class AlphaSkiaTextMetrics : AlphaSkiaNative
     /// <summary>
     /// Returns the distance from the horizontal line indicated by the textBaseline parameter to the alphabetic baseline of the line box, in pixels.
     /// </summary>
-    public float AlphabeticBaseline => NativeMethods.alphaskia_text_metrics_get_hanging_baseline(Handle);
+    public float AlphabeticBaseline => NativeMethods.alphaskia_text_metrics_get_alphabetic_baseline(Handle);
 
     /// <summary>
     /// Returns the distance from the horizontal line indicated by the textBaseline parameter to the ideographic baseline of the line box, in CSS pixels.
