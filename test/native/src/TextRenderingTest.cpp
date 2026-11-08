@@ -269,14 +269,12 @@ namespace
     }
 
     template <typename Draw>
-    Raster rasterize(float scale, Draw draw)
+    Raster rasterize_on(alphaskia_canvas_t canvas, float scale, Draw draw)
     {
-        auto canvas = alphaskia_canvas_new();
         alphaskia_canvas_begin_render(canvas, canvas_width, canvas_height, scale);
         alphaskia_canvas_set_color(canvas, alphaskia_rgba_to_color(0, 0, 0, 255));
         draw(canvas);
         auto image = alphaskia_canvas_end_render(canvas);
-        alphaskia_canvas_free(canvas);
 
         Raster raster;
         raster.width = alphaskia_image_get_width(image);
@@ -293,6 +291,15 @@ namespace
             // alpha is the 4th byte in both RGBA and BGRA
             raster.alpha[i] = pixels[i * 4 + 3];
         }
+        return raster;
+    }
+
+    template <typename Draw>
+    Raster rasterize(float scale, Draw draw)
+    {
+        auto canvas = alphaskia_canvas_new();
+        auto raster = rasterize_on(canvas, scale, draw);
+        alphaskia_canvas_free(canvas);
         return raster;
     }
 
@@ -556,6 +563,82 @@ namespace
         }
     }
 
+    // Fonts installed on the operating system are available in both font modes.
+    void test_system_font_is_available(const TextStyle &system_style)
+    {
+        auto typeface = alphaskia_typeface_make_from_name(system_font_family, 400, 0);
+        check(typeface != nullptr, std::string("typeface for ") + system_font_family);
+        auto family_name = alphaskia_typeface_get_family_name(typeface);
+        check(family_name && alphaskia_string_get_length(family_name) > 0, std::string("family name of the typeface for ") + system_font_family);
+        alphaskia_string_free(family_name);
+        alphaskia_typeface_free(typeface);
+
+        auto raster = rasterize_text(u"=E", system_style, 24, 1, 10, 40, alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);
+        check(!raster.ink().empty, "text in a system font is drawn");
+    }
+
+    // Registered fonts are found by their family name in both font modes, the operating system does not know them.
+    void test_registered_font_is_found_by_name()
+    {
+        struct Expected
+        {
+            const char *family;
+            uint16_t weight;
+            uint8_t italic;
+        };
+        for (const auto &expected : {Expected{"Bravura", 400, 0}, Expected{"Noto Serif", 700, 1}})
+        {
+            const std::string context = std::string(expected.family) + " " + std::to_string(expected.weight) +
+                                        (expected.italic ? " italic" : "");
+            auto typeface = alphaskia_typeface_make_from_name(expected.family, expected.weight, expected.italic);
+            auto family_name = alphaskia_typeface_get_family_name(typeface);
+            check(family_name && std::string(alphaskia_string_get_utf8(family_name)) == expected.family,
+                  "family of the typeface by name (" + context + ")");
+            check(alphaskia_typeface_get_weight(typeface) == expected.weight &&
+                      alphaskia_typeface_is_italic(typeface) == expected.italic,
+                  "style of the typeface by name (" + context + ")");
+            alphaskia_string_free(family_name);
+            alphaskia_typeface_free(typeface);
+        }
+    }
+
+    // Purging the font caches releases fonts which are still in use, they are loaded again with the same rendering.
+    void test_purge_font_caches(const std::vector<const TextStyle *> &styles)
+    {
+        const std::u16string text = u"=E ♭ \U0001F3B8";
+        auto typeface = alphaskia_typeface_make_from_name(system_font_family, 700, 1);
+        const uint16_t weight = alphaskia_typeface_get_weight(typeface);
+        const uint8_t italic = alphaskia_typeface_is_italic(typeface);
+
+        auto canvas = alphaskia_canvas_new();
+        for (const auto *style : styles)
+        {
+            auto draw = [&](alphaskia_canvas_t target)
+            {
+                alphaskia_canvas_fill_text(target, text.c_str(), static_cast<int>(text.length()), style->style, 24, 10, 40,
+                                           alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);
+            };
+
+            auto before = rasterize_on(canvas, 1, draw);
+            alphaskia_purge_font_caches();
+            auto same_canvas = rasterize_on(canvas, 1, draw);
+            alphaskia_purge_font_caches();
+            auto new_canvas = rasterize(1, draw);
+
+            check(!before.ink().empty, "text is drawn (style=" + style->name + ")");
+            check(same_canvas.max_alpha_difference(before) == 0, "rendering on the same canvas changed after purging the font caches (style=" + style->name + ")");
+            check(new_canvas.max_alpha_difference(before) == 0, "rendering on a new canvas changed after purging the font caches (style=" + style->name + ")");
+        }
+        alphaskia_canvas_free(canvas);
+
+        auto family_name = alphaskia_typeface_get_family_name(typeface);
+        check(family_name && alphaskia_string_get_length(family_name) > 0, "family name of a typeface after purging the font caches");
+        check(alphaskia_typeface_get_weight(typeface) == weight && alphaskia_typeface_is_italic(typeface) == italic,
+              "style of a typeface after purging the font caches");
+        alphaskia_string_free(family_name);
+        alphaskia_typeface_free(typeface);
+    }
+
     bool write_png(alphaskia_image_t image, const std::filesystem::path &file)
     {
         auto png = alphaskia_image_encode_png(image);
@@ -654,6 +737,7 @@ bool text_rendering_test(const std::filesystem::path &overview_output_file)
         make_style("serif-only", {"Noto Serif"}, 400, false, true),
     };
     auto missing_family = make_style("missing-family", {"Unavailable Family", "Noto Serif", "Noto Music", "Noto Color Emoji"}, 400, false);
+    auto system = make_style("system", {system_font_family}, 400, false, true);
     auto music = make_style("music", {"Bravura"}, 400, false);
 
     for (const auto &style : styles)
@@ -693,6 +777,15 @@ bool text_rendering_test(const std::filesystem::path &overview_output_file)
     std::cout << "  unavailable family" << std::endl;
     test_unavailable_family_is_skipped(styles[0], missing_family, 24);
 
+    std::cout << "  system fonts" << std::endl;
+    test_system_font_is_available(system);
+
+    std::cout << "  registered fonts by name" << std::endl;
+    test_registered_font_is_found_by_name();
+
+    std::cout << "  purge font caches" << std::endl;
+    test_purge_font_caches({&styles[0], &system});
+
     write_overview(styles[1], overview_output_file);
 
     for (auto &style : styles)
@@ -700,6 +793,7 @@ bool text_rendering_test(const std::filesystem::path &overview_output_file)
         alphaskia_text_style_free(style.style);
     }
     alphaskia_text_style_free(missing_family.style);
+    alphaskia_text_style_free(system.style);
     alphaskia_text_style_free(music.style);
 
     std::cout << "  " << (checks - failures) << "/" << checks << " checks passed" << std::endl;

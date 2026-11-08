@@ -198,11 +198,13 @@ namespace
         std::vector<uint8_t> font_bytes;
         read_file((test_data_path / "font" / "noto-sans" / "NotoSans-Regular.otf").generic_string(), font_bytes);
 
+        auto system_style = alphaskia_get_text_style({system_font_family}, 400, false);
+
         std::atomic<int> failed_measurements(0);
         std::vector<std::thread> threads;
         for (int t = 0; t < 4; t++)
         {
-            threads.emplace_back([&]()
+            threads.emplace_back([&, t]()
                                  {
                 auto canvas = alphaskia_canvas_new();
                 for (int i = 0; i < 20; i++)
@@ -211,15 +213,23 @@ namespace
                     alphaskia_typeface_free(alphaskia_typeface_register(data));
                     alphaskia_data_free(data);
                     alphaskia_typeface_free(alphaskia_typeface_make_from_name("Noto Sans", 400, 0));
+                    alphaskia_typeface_free(alphaskia_typeface_make_from_name(system_font_family, 400, 0));
+                    if (t == 0)
+                    {
+                        alphaskia_purge_font_caches();
+                    }
 
                     for (int j = 0; j < 5; j++)
                     {
-                        auto metrics = alphaskia_canvas_measure_text(canvas, u"Concurrent", 10, style, 12, alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);
-                        if (!metrics || alphaskia_text_metrics_get_width(metrics) <= 0)
+                        for (auto measured_style : {style, system_style})
                         {
-                            failed_measurements++;
+                            auto metrics = alphaskia_canvas_measure_text(canvas, u"Concurrent", 10, measured_style, 12, alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);
+                            if (!metrics || alphaskia_text_metrics_get_width(metrics) <= 0)
+                            {
+                                failed_measurements++;
+                            }
+                            alphaskia_text_metrics_free(metrics);
                         }
-                        alphaskia_text_metrics_free(metrics);
                     }
                 }
                 alphaskia_canvas_free(canvas); });
@@ -229,6 +239,7 @@ namespace
             thread.join();
         }
         check(failed_measurements == 0, std::to_string(failed_measurements) + " concurrent measurements failed");
+        alphaskia_text_style_free(system_style);
     }
 }
 

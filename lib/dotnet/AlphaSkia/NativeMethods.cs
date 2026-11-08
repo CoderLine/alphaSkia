@@ -35,6 +35,8 @@ internal static class NativeMethods
     public static extern void alphaskia_switch_to_freetype_fonts();
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void alphaskia_switch_to_operating_system_fonts();
+    [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void alphaskia_purge_font_caches();
 
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]

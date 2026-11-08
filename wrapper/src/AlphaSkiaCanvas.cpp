@@ -111,9 +111,22 @@ void normalized_typo_ascent_and_descent(const SkFont &font, int &ascent, int &de
 AlphaSkiaCanvas::AlphaSkiaCanvas()
     : color_(SK_ColorWHITE), line_width_(1.0f)
 {
+    auto font_mgr = SkFontMgr_AlphaSkia::instance();
+    font_generation_ = font_mgr->font_generation();
     font_collection_ = sk_make_sp<skia::textlayout::FontCollection>();
-    font_collection_->setDefaultFontManager(SkFontMgr_AlphaSkia::instance());
+    font_collection_->setDefaultFontManager(std::move(font_mgr));
     unicode_ = SkUnicodes::Libgrapheme::Make();
+}
+
+const sk_sp<skia::textlayout::FontCollection> &AlphaSkiaCanvas::font_collection()
+{
+    const uint64_t font_generation = SkFontMgr_AlphaSkia::instance()->font_generation();
+    if (font_generation != font_generation_)
+    {
+        font_collection_->clearCaches();
+        font_generation_ = font_generation;
+    }
+    return font_collection_;
 }
 
 SkPaint AlphaSkiaCanvas::create_paint()
@@ -556,7 +569,7 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
         return;
     }
 
-    auto layout(layout_text(font_collection_, unicode_, text, text_length, text_style, font_size));
+    auto layout(layout_text(font_collection(), unicode_, text, text_length, text_style, font_size));
     if (layout.runs.empty())
     {
         return;
@@ -582,7 +595,7 @@ void AlphaSkiaCanvas::fill_text(const char16_t *text, int text_length, const Alp
 
 AlphaSkiaTextMetrics *AlphaSkiaCanvas::measure_text(const char16_t *text, int text_length, const AlphaSkiaTextStyle &text_style, float font_size, alphaskia_text_align_t text_align, alphaskia_text_baseline_t baseline)
 {
-    auto layout(layout_text(font_collection_, unicode_, text, text_length, text_style, font_size));
+    auto layout(layout_text(font_collection(), unicode_, text, text_length, text_style, font_size));
 
     // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc
     // TextMetrics::InitFromShapedText and TextMetrics::PopulateVerticalMetrics

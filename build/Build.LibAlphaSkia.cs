@@ -92,10 +92,28 @@ partial class Build
                                             "../../wrapper/src/alphaskia_text_metrics.cpp",
                                             "../../wrapper/src/alphaskia_data.cpp",
                                             "../../wrapper/src/alphaskia_limits.cpp",
-                                            "../../wrapper/src/alphaskia_string.cpp"
+                                            "../../wrapper/src/alphaskia_string.cpp",
+                                            "../../wrapper/src/SkFontMgr_alphaskia.cpp"
                                         ]
                                         if (is_win) {
                                             alphaskia_wrapper_sources += [ "../../wrapper/src/alphaskia.rc" ]
+                                        }
+                                        config("alphaskia_fontmgr") {
+                                          if (is_win) {
+                                            defines = [ "ALPHASKIA_FONTMGR_WINDOWS" ]
+                                          }
+                                          if (is_linux) {
+                                            defines = [ "ALPHASKIA_FONTMGR_LINUX" ]
+                                          }
+                                          if (is_android) {
+                                            defines = [ "ALPHASKIA_FONTMGR_ANDROID" ]
+                                          }
+                                          if (is_mac) {
+                                            defines = [ "ALPHASKIA_FONTMGR_MAC" ]
+                                          }
+                                          if (is_ios) {
+                                            defines = [ "ALPHASKIA_FONTMGR_IOS" ]
+                                          }
                                         }
                                         config("alphaskia_public") {
                                           defines = [ "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING", "ALPHASKIA_IMPLEMENTATION=1" ]
@@ -151,13 +169,13 @@ partial class Build
                                     
                                         alphaskia_build("libalphaskia") {
                                           public_configs = [ ":alphaskia_public" ]
-                                          configs += [ ":alphaskia_public" ]
+                                          configs += [ ":alphaskia_public", ":alphaskia_fontmgr" ]
                                           ldflags = alphaskia_no_undefined_ldflags
                                           sources = alphaskia_wrapper_sources
                                         }
                                         alphaskia_build("libalphaskiajni") {
                                           public_configs = [ ":alphaskia_public" ]
-                                          configs += [ ":alphaskia_public" ]
+                                          configs += [ ":alphaskia_public", ":alphaskia_fontmgr" ]
                                           ldflags = alphaskia_no_undefined_ldflags
                                           sources = alphaskia_wrapper_sources
                                           sources += [
@@ -172,7 +190,7 @@ partial class Build
                                         }
                                         alphaskia_build("libalphaskianode") {
                                           public_configs = [ ":alphaskia_public" ]
-                                          configs += [ ":alphaskia_public" ]
+                                          configs += [ ":alphaskia_public", ":alphaskia_fontmgr" ]
                                           defines = [ "NODE_GYP_MODULE_NAME=libalphaskianode", "USING_UV_SHARED=1", "USING_V8_SHARED=1", "V8_DEPRECATION_WARNINGS=1", "BUILDING_NODE_EXTENSION" ]
                                           sources = alphaskia_wrapper_sources
                                           output_extension = "node"

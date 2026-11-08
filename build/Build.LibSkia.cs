@@ -233,27 +233,6 @@ partial class Build
                 newSources += "  sources += skparagraph_sources\n";
                 newSources += "  public += skparagraph_public\n";
 
-                newSources += "  sources += [\n";
-                newSources += "    \"../../wrapper/src/SkFontMgr_alphaskia.cpp\",\n";
-                newSources += "    \"../../wrapper/include/SkFontMgr_alphaskia.h\",\n";
-                newSources += "  ]\n";
-                newSources += "  public += [ \"../../wrapper/include/SkFontMgr_alphaskia.h\" ]";
-                newSources += "  if (is_win) {\n";
-                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_WINDOWS\" ]\n";
-                newSources += "  }\n";
-                newSources += "  if (is_linux) {\n";
-                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_LINUX\" ]\n";
-                newSources += "  }\n";
-                newSources += "  if (is_android) {\n";
-                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_ANDROID\" ]\n";
-                newSources += "  }\n";
-                newSources += "  if (is_mac) {\n";
-                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_MAC\" ]\n";
-                newSources += "  }\n";
-                newSources += "  if (is_ios) {\n";
-                newSources += "    defines += [ \"ALPHASKIA_FONTMGR_IOS\" ]\n";
-                newSources += "  }\n";
-
                 buildFileSource = buildFileSource[..sourcesEnd]
                                          + newSources
                                          + buildFileSource[sourcesEnd..];

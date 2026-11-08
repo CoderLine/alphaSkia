@@ -62,7 +62,7 @@ static class VersionInfo
         }
     }
 
-    static readonly Version FileVersionBase = new Version(3, 5, 0, 0);
+    static readonly Version FileVersionBase = new Version(4, 0, 0, 0);
 
     #endregion
 

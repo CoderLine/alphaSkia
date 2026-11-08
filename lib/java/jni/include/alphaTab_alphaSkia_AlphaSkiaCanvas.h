@@ -231,6 +231,14 @@ JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToFreeTypeF
 JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToOperatingSystemFonts
   (JNIEnv *, jclass);
 
+/*
+ * Class:     alphaTab_alphaSkia_AlphaSkiaCanvas
+ * Method:    purgeFontCaches
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_purgeFontCaches
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

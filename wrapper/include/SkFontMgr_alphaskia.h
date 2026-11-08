@@ -1,15 +1,21 @@
 #pragma once
 
 #include "../../externals/skia/include/core/SkFontMgr.h"
+#include "../../externals/skia/include/core/SkTypeface.h"
 #include "../../externals/skia/src/core/SkTHash.h"
 
+#include <atomic>
+#include <cstdint>
 #include <mutex>
 #include <set>
 #include <vector>
 
 class SkFontStyleSet_Custom;
+class SkFontStyleSet_AlphaSkiaSystem;
 
 // Thread-safe: font registration, lookups and switching the font manager may happen concurrently.
+// In FreeType mode, families which are not registered are looked up among the operating system fonts and
+// rendered with FreeType from the font files.
 class SK_API SkFontMgr_AlphaSkia : public SkFontMgr
 {
 public:
@@ -17,6 +23,11 @@ public:
 
     void switch_to_operating_system_fonts();
     void switch_to_freetype_fonts();
+
+    // Releases the operating system fonts loaded for FreeType mode and Skia's glyph cache. Registered fonts stay.
+    // Holders of a FontCollection must clear its caches when font_generation() changes.
+    void purge_font_caches();
+    uint64_t font_generation() const;
 
     static sk_sp<SkFontMgr_AlphaSkia> instance();
 
@@ -38,20 +49,32 @@ protected:
 
 
 private:
+    friend class SkFontStyleSet_AlphaSkiaSystem;
+
     using FontStyleSets = skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>>;
+    using SystemTypefaces = skia_private::THashMap<SkTypefaceID, sk_sp<SkTypeface>>;
 
     struct Current
     {
         sk_sp<SkFontMgr> fontMgr;
         FontStyleSets *styleSets;
+        // the operating system font manager in FreeType mode, otherwise null
+        sk_sp<SkFontMgr> systemFontMgr;
     };
 
     Current current() const;
     sk_sp<SkFontStyleSet_Custom> findRegisteredFamily(const Current &current, const char familyName[]) const;
     void registerTypeface(const Current &current, const sk_sp<SkTypeface> &typeface) const;
+    // nullptr if the font data of the typeface cannot be loaded by FreeType
+    sk_sp<SkTypeface> toFreeTypeTypeface(const sk_sp<SkTypeface> &systemTypeface) const;
+
+    std::atomic<uint64_t> fontGeneration_{0};
 
     // guards the members below and the registered style sets
     mutable std::mutex mutex_;
+
+    // FreeType typefaces by the ID of the operating system typeface they were loaded from
+    mutable SystemTypefaces systemTypefaces_;
 
     sk_sp<SkFontMgr> currentFontMgr_;
     FontStyleSets *currentFontMgrFontStyleSets_;

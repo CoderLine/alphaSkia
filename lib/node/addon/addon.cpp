@@ -280,6 +280,15 @@ static napi_value node_alphaskia_switch_to_operating_system_fonts(napi_env env, 
   RETURN_UNDEFINED();
 }
 
+static napi_value node_alphaskia_purge_font_caches(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  alphaskia_purge_font_caches();
+
+  RETURN_UNDEFINED();
+}
+
 static napi_value node_alphaskia_data_new_copy(napi_env env, napi_callback_info info)
 {
   napi_status status(napi_ok);
@@ -1171,6 +1180,7 @@ napi_value init(napi_env env, napi_value exports)
   EXPORT_NODE_FUNCTION(alphaskia_get_color_type);
   EXPORT_NODE_FUNCTION(alphaskia_switch_to_freetype_fonts);
   EXPORT_NODE_FUNCTION(alphaskia_switch_to_operating_system_fonts);
+  EXPORT_NODE_FUNCTION(alphaskia_purge_font_caches);
 
   EXPORT_NODE_FUNCTION(alphaskia_data_new_copy);
   EXPORT_NODE_FUNCTION(alphaskia_data_get_data);

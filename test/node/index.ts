@@ -94,6 +94,8 @@ function main(): number {
         TestBase.loadTypeface(path.join(testDataPath, "font", "noto-music", "NotoMusic-Regular.otf"));
         TestBase.loadTypeface(path.join(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
         console.log("Fonts loaded");
+        // registered fonts must survive a purge
+        AlphaSkiaCanvas.purgeFontCaches();
 
         if (!robustnessTest()) {
             return 1;

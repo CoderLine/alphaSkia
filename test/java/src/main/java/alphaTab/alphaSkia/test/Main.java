@@ -86,6 +86,8 @@ public class Main {
             AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-music/NotoMusic-Regular.otf"));
             AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-color-emoji/NotoColorEmoji_WindowsCompatible.ttf"));
             System.out.println("Fonts loaded");
+            // registered fonts must survive a purge
+            AlphaSkiaCanvas.purgeFontCaches();
 
             if (!RobustnessTest.run()) {
                 return 1;

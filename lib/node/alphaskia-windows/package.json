@@ -1,6 +1,6 @@
 {
   "name": "@coderline/alphaskia-windows",
-  "version": "3.5.157",
+  "version": "4.0.157",
   "description": "The node addon for alphaSkia enabling it to run on Windows",
   "engines": {
     "node": ">=18.0.0"

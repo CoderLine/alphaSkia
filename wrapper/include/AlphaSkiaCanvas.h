@@ -128,6 +128,7 @@ public:
 
 private:
     SkPaint create_paint();
+    const sk_sp<skia::textlayout::FontCollection> &font_collection();
 
     SkColor color_;
     float line_width_;
@@ -135,5 +136,7 @@ private:
     SkPathBuilder path_;
 
     sk_sp<skia::textlayout::FontCollection> font_collection_;
+    // SkFontMgr_AlphaSkia::font_generation() the font collection caches were filled with
+    uint64_t font_generation_;
     sk_sp<SkUnicode> unicode_;
 };
