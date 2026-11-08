@@ -1,6 +1,7 @@
 export { addSearchPaths, findAddonPath } from './AlphaSkiaPlatform';
 
-export { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaColorType } from './addon';
+export { AlphaSkiaTextBaseline, AlphaSkiaTextAlign, AlphaSkiaColorType, AlphaSkiaImageFormat } from './addon';
+export { AlphaSkiaLimits } from './AlphaSkiaLimits';
 
 export { AlphaSkiaCanvas } from './AlphaSkiaCanvas'
 export { AlphaSkiaTypeface } from './AlphaSkiaTypeface'

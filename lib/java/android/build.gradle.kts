@@ -51,6 +51,7 @@ android {
             abiFilters += listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
         }
         setProperty("archivesBaseName", "alphaSkia-android")
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {

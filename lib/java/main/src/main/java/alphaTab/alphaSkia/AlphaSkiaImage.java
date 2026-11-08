@@ -23,7 +23,11 @@ public class AlphaSkiaImage extends AlphaSkiaNative {
     }
 
     @Override
-    public native void close();
+    public void close() {
+        release(takeHandle());
+    }
+
+    private static native void release(long handle);
 
     /**
      * Reads the raw pixel data of this image as byte array.
@@ -57,7 +61,7 @@ public class AlphaSkiaImage extends AlphaSkiaNative {
      * Creates an image from the raw pixels assuming the default internal pixel format of alphaSkia.
      * @param width The width of the image in pixels.
      * @param height The height of the image in pixels.
-     * @param pixels The raw pixel bytes.
+     * @param pixels The raw pixel bytes, at least width * height * 4 bytes.
      * @return The decoded image or {@code null} if the creation of the image from the pixels failed.
      */
     public static AlphaSkiaImage fromPixels(int width, int height, byte[] pixels)

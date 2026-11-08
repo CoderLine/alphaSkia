@@ -104,7 +104,7 @@ public:
     float get_line_width() const;
     void set_line_width(float line_width);
 
-    void begin_render(int32_t width, int32_t height, float render_scale);
+    bool begin_render(int32_t width, int32_t height, float render_scale);
     sk_sp<SkImage> end_render();
 
     void fill_rect(float x, float y, float width, float height);

@@ -47,7 +47,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public get color(): number {
         this.checkDisposed();
-        return loadAddon().alphaskia_canvas_get_color(this.handle!);
+        return loadAddon().alphaskia_canvas_get_color(this.checkedHandle);
     }
 
     /**
@@ -57,7 +57,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public set color(color: number) {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_set_color(this.handle!, color);
+        loadAddon().alphaskia_canvas_set_color(this.checkedHandle, color);
     }
 
     /**
@@ -79,7 +79,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public get lineWidth(): number {
         this.checkDisposed();
-        return loadAddon().alphaskia_canvas_get_line_width(this.handle!);
+        return loadAddon().alphaskia_canvas_get_line_width(this.checkedHandle);
     }
 
     /**
@@ -88,7 +88,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public set lineWidth(lineWidth: number) {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_set_line_width(this.handle!, lineWidth);
+        loadAddon().alphaskia_canvas_set_line_width(this.checkedHandle, lineWidth);
     }
 
     /**
@@ -96,7 +96,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public constructor() {
         super(loadAddon().alphaskia_canvas_new()!, loadAddon().alphaskia_canvas_free);
-        loadAddon().alphaskia_canvas_begin_render(this.handle!, 100, 100, 1);
+        loadAddon().alphaskia_canvas_begin_render(this.checkedHandle, 100, 100, 1);
     }
 
     /**
@@ -105,10 +105,11 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      * @param width  The width of the image to produce.
      * @param height The height of the image to produce.
      * @param scaleFactor The scale factor for the image (e.g. for high DPI rendering with keeping coordinates).
+     * @throws RangeError if the render scale is not a positive finite number or the scaled size cannot be allocated.
      */
     public beginRender(width: number, height: number, renderScale: number = 1): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_begin_render(this.handle!, width, height, renderScale);
+        loadAddon().alphaskia_canvas_begin_render(this.checkedHandle, width, height, renderScale);
     }
 
     /**
@@ -122,7 +123,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public drawImage(image: AlphaSkiaImage, x: number, y: number, w: number, h: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_draw_image(this.handle!, image.handle!, x, y, w, h);
+        loadAddon().alphaskia_canvas_draw_image(this.checkedHandle, image.checkedHandle, x, y, w, h);
     }
 
     /**
@@ -132,7 +133,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public endRender(): AlphaSkiaImage | undefined {
         this.checkDisposed();
-        const image = loadAddon().alphaskia_canvas_end_render(this.handle!);
+        const image = loadAddon().alphaskia_canvas_end_render(this.checkedHandle);
         if (!image) {
             return undefined;
         }
@@ -149,7 +150,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public fillRect(x: number, y: number, width: number, height: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_fill_rect(this.handle!, x, y, width, height);
+        loadAddon().alphaskia_canvas_fill_rect(this.checkedHandle, x, y, width, height);
     }
 
     /**
@@ -162,7 +163,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public strokeRect(x: number, y: number, width: number, height: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_stroke_rect(this.handle!, x, y, width, height);
+        loadAddon().alphaskia_canvas_stroke_rect(this.checkedHandle, x, y, width, height);
     }
 
     /**
@@ -170,7 +171,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public beginPath(): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_begin_path(this.handle!);
+        loadAddon().alphaskia_canvas_begin_path(this.checkedHandle);
     }
 
     /**
@@ -178,7 +179,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public closePath(): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_close_path(this.handle!);
+        loadAddon().alphaskia_canvas_close_path(this.checkedHandle);
     }
 
     /**
@@ -189,7 +190,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public moveTo(x: number, y: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_move_to(this.handle!, x, y);
+        loadAddon().alphaskia_canvas_move_to(this.checkedHandle, x, y);
     }
 
     /**
@@ -200,7 +201,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public lineTo(x: number, y: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_line_to(this.handle!, x, y);
+        loadAddon().alphaskia_canvas_line_to(this.checkedHandle, x, y);
     }
 
     /**
@@ -213,7 +214,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_quadratic_curve_to(this.handle!, cpx, cpy, x, y);
+        loadAddon().alphaskia_canvas_quadratic_curve_to(this.checkedHandle, cpx, cpy, x, y);
     }
 
     /**
@@ -228,7 +229,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_bezier_curve_to(this.handle!, cp1x, cp1y, cp2x, cp2y, x, y);
+        loadAddon().alphaskia_canvas_bezier_curve_to(this.checkedHandle, cp1x, cp1y, cp2x, cp2y, x, y);
     }
 
     /**
@@ -240,7 +241,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public fillCircle(x: number, y: number, radius: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_fill_circle(this.handle!, x, y, radius);
+        loadAddon().alphaskia_canvas_fill_circle(this.checkedHandle, x, y, radius);
     }
 
     /**
@@ -252,7 +253,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public strokeCircle(x: number, y: number, radius: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_stroke_circle(this.handle!, x, y, radius);
+        loadAddon().alphaskia_canvas_stroke_circle(this.checkedHandle, x, y, radius);
     }
 
     /**
@@ -260,7 +261,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public fill(): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_fill(this.handle!);
+        loadAddon().alphaskia_canvas_fill(this.checkedHandle);
     }
 
     /**
@@ -268,7 +269,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public stroke(): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_stroke(this.handle!);
+        loadAddon().alphaskia_canvas_stroke(this.checkedHandle);
     }
 
     /**
@@ -284,7 +285,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public fillText(text: string, textStyle: AlphaSkiaTextStyle, fontSize: number, x: number, y: number, textAlign: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_fill_text(this.handle!, text, textStyle.handle!, fontSize, x, y, textAlign as number, baseline as number);
+        loadAddon().alphaskia_canvas_fill_text(this.checkedHandle, text, textStyle.checkedHandle, fontSize, x, y, textAlign as number, baseline as number);
     }
 
     /**
@@ -299,7 +300,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public measureText(text: string, textStyle: AlphaSkiaTextStyle, fontSize: number, textAlign: AlphaSkiaTextAlign, baseline: AlphaSkiaTextBaseline): AlphaSkiaTextMetrics {
         this.checkDisposed();
-        return new AlphaSkiaTextMetrics(loadAddon().alphaskia_canvas_measure_text(this.handle!, text, textStyle.handle!, fontSize, textAlign as number, baseline as number));
+        return new AlphaSkiaTextMetrics(loadAddon().alphaskia_canvas_measure_text(this.checkedHandle, text, textStyle.checkedHandle, fontSize, textAlign as number, baseline as number));
     }
 
     /**
@@ -311,7 +312,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public beginRotate(centerX: number, centerY: number, angle: number): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_begin_rotate(this.handle!, centerX, centerY, angle);
+        loadAddon().alphaskia_canvas_begin_rotate(this.checkedHandle, centerX, centerY, angle);
     }
 
     /**
@@ -319,6 +320,6 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      */
     public endRotate(): void {
         this.checkDisposed();
-        loadAddon().alphaskia_canvas_end_rotate(this.handle!);
+        loadAddon().alphaskia_canvas_end_rotate(this.checkedHandle);
     }
 }

@@ -68,9 +68,34 @@ export enum AlphaSkiaColorType {
 }
 
 /**
+ * Image formats which can be decoded, combined as flags.
+ */
+export enum AlphaSkiaImageFormat {
+    Png = 1,
+    Bmp = 2,
+    Gif = 4,
+    Ico = 8,
+    Wbmp = 16
+}
+
+/**
+ * @internal
+ */
+export enum AlphaSkiaLimit {
+    MaxImageDimension = 0,
+    MaxImagePixels = 1,
+    MaxFontDataLength = 2,
+    MaxFontSize = 3,
+    MaxTextLength = 4,
+    ImageFormats = 5
+}
+
+/**
  * @internal
  */
 export interface AlphaSkiaNodeAddon {
+    alphaskia_get_limit(limit: AlphaSkiaLimit): number;
+    alphaskia_set_limit(limit: AlphaSkiaLimit, value: number): void;
     alphaskia_get_color_type(): AlphaSkiaColorType;
     alphaskia_switch_to_freetype_fonts(): void;
     alphaskia_switch_to_operating_system_fonts(): void;
@@ -96,9 +121,9 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_image_get_width(image: AlphaSkiaImageHandle): number;
     alphaskia_image_get_height(image: AlphaSkiaImageHandle): number;
     alphaskia_image_read_pixels(image: AlphaSkiaImageHandle): ArrayBuffer | undefined;
-    alphaskia_image_encode_png(image: AlphaSkiaImageHandle): ArrayBuffer;
-    alphaskia_image_from_pixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImageHandle;
-    alphaskia_image_decode(pixels: ArrayBuffer): AlphaSkiaImageHandle;
+    alphaskia_image_encode_png(image: AlphaSkiaImageHandle): ArrayBuffer | undefined;
+    alphaskia_image_from_pixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImageHandle | undefined;
+    alphaskia_image_decode(pixels: ArrayBuffer): AlphaSkiaImageHandle | undefined;
     alphaskia_image_free(image: AlphaSkiaImageHandle): void;
 
     alphaskia_canvas_new(): AlphaSkiaCanvasHandle | undefined;

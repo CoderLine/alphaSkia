@@ -22,25 +22,33 @@ public abstract class AlphaSkiaJre extends AlphaSkiaPlatform {
     @SuppressWarnings("UnsafeDynamicallyLoadedCode")
     @Override
     public void initialize() throws IOException {
-        String[] libraries = getJavaResources();
-
-        Path tmpDir = Files.createTempDirectory("alphaskia");
-        Class<?> thisClass = getClass();
-
-        for (String library : libraries) {
-            File tmpLib = tmpDir.resolve(Paths.get(library).getFileName().toString()).toFile();
-            tmpLib.deleteOnExit();
-
-            URL resource = thisClass.getResource(library);
-            if (resource == null) {
-                throw new IOException("Resource " + library + " not found");
+        synchronized (AlphaSkiaPlatform.class) {
+            if (isNativeLibLoaded()) {
+                return;
             }
 
-            try (InputStream in = resource.openStream()) {
-                Files.copy(in, tmpLib.toPath());
+            String[] libraries = getJavaResources();
+
+            Path tmpDir = Files.createTempDirectory("alphaskia");
+            // registered before the files, deleteOnExit deletes in reverse order
+            tmpDir.toFile().deleteOnExit();
+            Class<?> thisClass = getClass();
+
+            for (String library : libraries) {
+                File tmpLib = tmpDir.resolve(Paths.get(library).getFileName().toString()).toFile();
+                tmpLib.deleteOnExit();
+
+                URL resource = thisClass.getResource(library);
+                if (resource == null) {
+                    throw new IOException("Resource " + library + " not found");
+                }
+
+                try (InputStream in = resource.openStream()) {
+                    Files.copy(in, tmpLib.toPath());
+                }
+                System.load(tmpLib.getAbsolutePath());
             }
-            System.load(tmpLib.getAbsolutePath());
+            setNativeLibLoaded();
         }
-        setNativeLibLoaded();
     }
 }

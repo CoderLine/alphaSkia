@@ -1,5 +1,6 @@
 #include "../include/AlphaTabGeneratedTest.h"
 #include "../include/PixelMatch.h"
+#include "../include/RobustnessTest.h"
 #include "../include/TextRenderingTest.h"
 
 #include <filesystem>
@@ -78,9 +79,9 @@ bool write_data_to_file_and_free(alphaskia_data_t data, std::string path)
         return false;
     }
 
-    uint8_t *data_raw = alphaskia_data_get_data(data);
+    const uint8_t *data_raw = alphaskia_data_get_data(data);
     uint64_t data_length = alphaskia_data_get_length(data);
-    stream.write(reinterpret_cast<char *>(data_raw), static_cast<std::streamsize>(data_length));
+    stream.write(reinterpret_cast<const char *>(data_raw), static_cast<std::streamsize>(data_length));
     stream.flush();
     stream.close();
 
@@ -164,8 +165,8 @@ bool reference_image_test(const std::filesystem::path &repository_root,
     expected_pixels.resize(pixel_bytes);
     diff_pixels.resize(pixel_bytes);
 
-    alphaskia_image_read_pixels(actual_image, actual_pixels.data(), row_bytes);
-    alphaskia_image_read_pixels(expected_image, expected_pixels.data(), row_bytes);
+    alphaskia_image_read_pixels(actual_image, actual_pixels.data(), row_bytes, actual_pixels.size());
+    alphaskia_image_read_pixels(expected_image, expected_pixels.data(), row_bytes, expected_pixels.size());
 
     auto compare_result = pixel_match(actual_pixels,
                                       expected_pixels,
@@ -183,7 +184,7 @@ bool reference_image_test(const std::filesystem::path &repository_root,
         std::cerr << "Difference between original and new image is too big: " << compare_result.different_pixels << "/" << totalPixels << "(" << percentDifference << "%)";
 
         // create diff image as PNG
-        alphaskia_image_t diff_image = alphaskia_image_from_pixels(actual_width, actual_height, diff_pixels.data());
+        alphaskia_image_t diff_image = alphaskia_image_from_pixels(actual_width, actual_height, diff_pixels.data(), diff_pixels.size());
         alphaskia_data_t diff_image_png_data = alphaskia_image_encode_png(diff_image);
         alphaskia_image_free(diff_image);
 
@@ -192,7 +193,7 @@ bool reference_image_test(const std::filesystem::path &repository_root,
         std::cout << "Error diff image saved to " << diff_output_path.generic_string() << std::endl;
 
         // for the sake of comparing directly, we also store the old image (we had cases where linux detected differences on the exact same file)
-        alphaskia_image_t old_image = alphaskia_image_from_pixels(actual_width, actual_height, expected_pixels.data());
+        alphaskia_image_t old_image = alphaskia_image_from_pixels(actual_width, actual_height, expected_pixels.data(), expected_pixels.size());
         alphaskia_data_t old_image_png_data = alphaskia_image_encode_png(old_image);
         alphaskia_image_free(old_image);
 
@@ -475,7 +476,6 @@ run();
 
     size_t index = 0;
 
-    std::cout << "FAILED: measure_test, empty text" << std::endl;
     auto empty_text = alphaskia_canvas_measure_text(
         canvas,
         u"",
@@ -572,6 +572,11 @@ int main(int argc, char **argv)
     }
 
     if (!measure_test(repository_root, test_data_path, isFreeType))
+    {
+        error = true;
+    }
+
+    if (!robustness_test(test_data_path))
     {
         error = true;
     }

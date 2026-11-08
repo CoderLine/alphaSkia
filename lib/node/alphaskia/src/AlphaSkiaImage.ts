@@ -12,7 +12,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public get width(): number {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_get_width(this.handle!);
+        return loadAddon().alphaskia_image_get_width(this.checkedHandle);
     }
 
     /**
@@ -22,7 +22,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public get height(): number {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_get_height(this.handle!);
+        return loadAddon().alphaskia_image_get_height(this.checkedHandle);
     }
 
     /**
@@ -39,7 +39,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public readPixels(): ArrayBuffer | undefined {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_read_pixels(this.handle!);
+        return loadAddon().alphaskia_image_read_pixels(this.checkedHandle);
     }
 
     /**
@@ -49,7 +49,7 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      */
     public toPng(): ArrayBuffer | undefined {
         this.checkDisposed();
-        return loadAddon().alphaskia_image_encode_png(this.handle!);
+        return loadAddon().alphaskia_image_encode_png(this.checkedHandle);
     }
 
     /**
@@ -67,11 +67,11 @@ export class AlphaSkiaImage extends AlphaSkiaNative<AlphaSkiaImageHandle> {
      * Creates an image from the raw pixels assuming the default internal pixel format of alphaSkia.
      * @param width The width of the image in pixels.
      * @param height The height of the image in pixels.
-     * @param pixels The raw pixel bytes.
+     * @param pixels The raw pixel bytes, at least width * height * 4 bytes.
      * @return The decoded image or {@code undefined} if the creation of the image from the pixels failed.
      */
     public static fromPixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImage | undefined {
         const handle = loadAddon().alphaskia_image_from_pixels(width, height, pixels);
-        return handle == 0 ? undefined : new AlphaSkiaImage(handle);
+        return !handle ? undefined : new AlphaSkiaImage(handle);
     }
 }

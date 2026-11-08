@@ -5,18 +5,33 @@ extern "C"
 {
     AS_API alphaskia_data_t alphaskia_data_new_copy(const uint8_t *data, uint64_t length)
     {
-        sk_sp<SkData> skData = SkData::MakeWithCopy(data, length);
+        if ((!data && length > 0) || length > SIZE_MAX)
+        {
+            return nullptr;
+        }
+
+        sk_sp<SkData> skData = SkData::MakeWithCopy(data, static_cast<size_t>(length));
         return reinterpret_cast<alphaskia_data_t>(new sk_sp<SkData>(skData));
     }
 
-    AS_API uint8_t * alphaskia_data_get_data(alphaskia_data_t data)
+    AS_API const uint8_t *alphaskia_data_get_data(alphaskia_data_t data)
     {
+        if (!data)
+        {
+            return nullptr;
+        }
+
         sk_sp<SkData> *internal = reinterpret_cast<sk_sp<SkData> *>(data);
-        return reinterpret_cast<uint8_t*>((*internal)->writable_data());
+        return (*internal)->bytes();
     }
 
     AS_API uint64_t alphaskia_data_get_length(alphaskia_data_t data)
     {
+        if (!data)
+        {
+            return 0;
+        }
+
         sk_sp<SkData> *internal = reinterpret_cast<sk_sp<SkData> *>(data);
         return static_cast<uint64_t>((*internal)->size());
     }

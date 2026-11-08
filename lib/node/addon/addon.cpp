@@ -2,6 +2,7 @@
 #include "../../../wrapper/include/alphaskia.h"
 
 #include <assert.h>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -10,11 +11,16 @@
 #define CONCAT(a, b) a##b
 #define STRINGIFY(s) _STRINGIFY(s)
 #define _STRINGIFY(s) #s
-#define ASSERT_STATUS()                                \
-  if (status != napi_ok)                               \
-  {                                                    \
-    napi_throw_error(env, "status", "Internal error"); \
-    return nullptr;                                    \
+#define ASSERT_STATUS()                                  \
+  if (status != napi_ok)                                 \
+  {                                                      \
+    bool exception_pending(false);                       \
+    napi_is_exception_pending(env, &exception_pending);  \
+    if (!exception_pending)                              \
+    {                                                    \
+      napi_throw_error(env, "status", "Internal error"); \
+    }                                                    \
+    return nullptr;                                      \
   }
 
 static const napi_type_tag alphaskia_data_t_tag = {0x6a960ece6a0c4caf, 0xad61688dc0a28531};
@@ -23,6 +29,20 @@ static const napi_type_tag alphaskia_image_t_tag = {0x9372c0f8e8de466f, 0x96a04b
 static const napi_type_tag alphaskia_canvas_t_tag = {0xaa77c76772a34052, 0x88ac80d4dc474395};
 static const napi_type_tag alphaskia_text_style_t_tag = {0x8f2bc41a57024cf4, 0x8b5e1cd26ded5245};
 static const napi_type_tag alphaskia_text_metrics_t_tag = {0x85fbe8d4da634b51, 0x970a89efa0ef13ff};
+
+// Frees the native object when the wrapping JS object is garbage collected without an explicit free.
+#define DEFINE_FINALIZER(type, free_function)                         \
+  static void CONCAT(type, _finalize)(napi_env, void *data, void *) \
+  {                                                                 \
+    free_function(reinterpret_cast<type>(data));                    \
+  }
+
+DEFINE_FINALIZER(alphaskia_data_t, alphaskia_data_free)
+DEFINE_FINALIZER(alphaskia_typeface_t, alphaskia_typeface_free)
+DEFINE_FINALIZER(alphaskia_image_t, alphaskia_image_free)
+DEFINE_FINALIZER(alphaskia_canvas_t, alphaskia_canvas_free)
+DEFINE_FINALIZER(alphaskia_text_style_t, alphaskia_text_style_free)
+DEFINE_FINALIZER(alphaskia_text_metrics_t, alphaskia_text_metrics_free)
 
 #define RETURN_UNDEFINED()                        \
   {                                               \
@@ -75,7 +95,7 @@ static const napi_type_tag alphaskia_text_metrics_t_tag = {0x85fbe8d4da634b51, 0
     ASSERT_STATUS();                                                                                                                \
     status = napi_type_tag_object(env, name, &CONCAT(type, _tag));                                                                  \
     ASSERT_STATUS();                                                                                                                \
-    status = napi_wrap(env, name, value, nullptr, nullptr, nullptr);                                                                \
+    status = napi_wrap(env, name, value, CONCAT(type, _finalize), nullptr, nullptr);                                                \
     ASSERT_STATUS();                                                                                                                \
     napi_value public_tag_value;                                                                                                    \
     status = napi_create_string_utf8(env, STRINGIFY(type), NAPI_AUTO_LENGTH, &public_tag_value);                                    \
@@ -97,8 +117,7 @@ static const napi_type_tag alphaskia_text_metrics_t_tag = {0x85fbe8d4da634b51, 0
     ASSERT_STATUS();                                                                                                                \
   }
 
-#define GET_ARGUMENT_HANDLE(index, type, name)                                                                                         \
-  type name;                                                                                                                           \
+#define CHECK_ARGUMENT_HANDLE_TYPE(index, type)                                                                                        \
   {                                                                                                                                    \
     bool is_handle(false);                                                                                                             \
     status = napi_check_object_type_tag(env,                                                                                           \
@@ -111,8 +130,22 @@ static const napi_type_tag alphaskia_text_metrics_t_tag = {0x85fbe8d4da634b51, 0
       napi_throw_type_error(env, NULL, "Wrong argument type at index " STRINGIFY(index) ", expected handle of type " STRINGIFY(type)); \
       return nullptr;                                                                                                                  \
     }                                                                                                                                  \
-    status = napi_unwrap(env, node_argv[index], &name);                                                                                \
-    ASSERT_STATUS();                                                                                                                   \
+  }
+
+#define GET_ARGUMENT_HANDLE(index, type, name)                                                                                         \
+  type name;                                                                                                                           \
+  CHECK_ARGUMENT_HANDLE_TYPE(index, type)                                                                                              \
+  status = napi_unwrap(env, node_argv[index], &name);                                                                                  \
+  ASSERT_STATUS();
+
+// Removing the wrap first cancels the finalizer, so explicit and garbage collected frees cannot both happen.
+#define FREE_ARGUMENT_HANDLE(index, type, free_function)       \
+  {                                                            \
+    CHECK_ARGUMENT_HANDLE_TYPE(index, type)                    \
+    void *_native(nullptr);                                    \
+    status = napi_remove_wrap(env, node_argv[index], &_native); \
+    ASSERT_STATUS();                                           \
+    free_function(reinterpret_cast<type>(_native));            \
   }
 
 #define GET_ARGUMENT_UTF8_STRING(index, name)                                                        \
@@ -139,11 +172,24 @@ static const napi_type_tag alphaskia_text_metrics_t_tag = {0x85fbe8d4da634b51, 0
     ASSERT_STATUS();                                                                                  \
   }
 
-#define GET_ARGUMENT_INT32(index, name)                        \
-  int32_t name;                                                \
-  CHECK_ARGUMENT_TYPE(index, napi_number);                     \
-  status = napi_get_value_int32(env, node_argv[index], &name); \
-  ASSERT_STATUS();
+// Fractions are truncated like ToInt32, values that are not finite or outside [min, max] throw a RangeError.
+#define GET_ARGUMENT_INT32_RANGE(index, name, min, max)                                               \
+  int32_t name;                                                                                       \
+  {                                                                                                   \
+    double _value(0);                                                                                 \
+    CHECK_ARGUMENT_TYPE(index, napi_number);                                                          \
+    status = napi_get_value_double(env, node_argv[index], &_value);                                   \
+    ASSERT_STATUS();                                                                                  \
+    _value = std::trunc(_value);                                                                      \
+    if (!(_value >= (min) && _value <= (max)))                                                        \
+    {                                                                                                 \
+      napi_throw_range_error(env, NULL, "Argument at index " STRINGIFY(index) " is out of range"); \
+      return nullptr;                                                                                 \
+    }                                                                                                 \
+    name = static_cast<int32_t>(_value);                                                              \
+  }
+
+#define GET_ARGUMENT_INT32(index, name) GET_ARGUMENT_INT32_RANGE(index, name, INT32_MIN, INT32_MAX)
 
 #define GET_ARGUMENT_UINT32(index, name)                        \
   uint32_t name;                                                \
@@ -171,6 +217,37 @@ static const napi_type_tag alphaskia_text_metrics_t_tag = {0x85fbe8d4da634b51, 0
   CHECK_ARGUMENT_TYPE(index, napi_boolean);                   \
   status = napi_get_value_bool(env, node_argv[index], &name); \
   ASSERT_STATUS();
+
+static napi_value node_alphaskia_get_limit(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(1);
+  GET_ARGUMENT_INT32_RANGE(0, limit, alphaskia_limit_max_image_dimension, alphaskia_limit_image_formats);
+
+  napi_value node_value;
+  status = napi_create_double(env, static_cast<double>(alphaskia_get_limit(static_cast<alphaskia_limit_t>(limit))), &node_value);
+  ASSERT_STATUS();
+  return node_value;
+}
+
+static napi_value node_alphaskia_set_limit(napi_env env, napi_callback_info info)
+{
+  napi_status status(napi_ok);
+
+  CHECK_ARGS(2);
+  GET_ARGUMENT_INT32_RANGE(0, limit, alphaskia_limit_max_image_dimension, alphaskia_limit_image_formats);
+  GET_ARGUMENT_DOUBLE(1, value);
+  // integers up to 2^53 are exact in a double
+  if (!(value >= 0 && value <= 9007199254740991.0 && value == std::trunc(value)))
+  {
+    napi_throw_range_error(env, NULL, "Limit must be an integer between 0 and Number.MAX_SAFE_INTEGER");
+    return nullptr;
+  }
+
+  alphaskia_set_limit(static_cast<alphaskia_limit_t>(limit), static_cast<uint64_t>(value));
+  RETURN_UNDEFINED();
+}
 
 static napi_value node_alphaskia_get_color_type(napi_env env, napi_callback_info info)
 {
@@ -230,12 +307,15 @@ static napi_value node_alphaskia_data_get_data(napi_env env, napi_callback_info 
   const uint8_t *data_content = alphaskia_data_get_data(data);
   uint64_t data_length = alphaskia_data_get_length(data);
 
-  void *node_data_content;
+  void *node_data_content(nullptr);
   napi_value node_data;
-  status = napi_create_arraybuffer(env, data_length, &data, &node_data);
+  status = napi_create_arraybuffer(env, static_cast<size_t>(data_length), &node_data_content, &node_data);
   ASSERT_STATUS();
 
-  memcpy(node_data_content, data_content, static_cast<size_t>(data_length));
+  if (data_length > 0)
+  {
+    memcpy(node_data_content, data_content, static_cast<size_t>(data_length));
+  }
 
   return node_data;
 }
@@ -245,12 +325,7 @@ static napi_value node_alphaskia_data_free(napi_env env, napi_callback_info info
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
-  GET_ARGUMENT_HANDLE(0, alphaskia_data_t, data);
-
-  alphaskia_data_free(data);
-  void *old;
-  status = napi_remove_wrap(env, node_argv[0], &old);
-  ASSERT_STATUS();
+  FREE_ARGUMENT_HANDLE(0, alphaskia_data_t, alphaskia_data_free);
 
   RETURN_UNDEFINED();
 }
@@ -272,12 +347,7 @@ static napi_value node_alphaskia_typeface_free(napi_env env, napi_callback_info 
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
-  GET_ARGUMENT_HANDLE(0, alphaskia_typeface_t, typeface);
-
-  alphaskia_typeface_free(typeface);
-  void *old;
-  status = napi_remove_wrap(env, node_argv[0], &old);
-  ASSERT_STATUS();
+  FREE_ARGUMENT_HANDLE(0, alphaskia_typeface_t, alphaskia_typeface_free);
 
   RETURN_UNDEFINED();
 }
@@ -288,7 +358,7 @@ static napi_value node_alphaskia_typeface_make_from_name(napi_env env, napi_call
 
   CHECK_ARGS(3);
   GET_ARGUMENT_UTF8_STRING(0, name);
-  GET_ARGUMENT_INT32(1, weight);
+  GET_ARGUMENT_INT32_RANGE(1, weight, 0, 1000);
   GET_ARGUMENT_BOOL(2, italic);
 
   alphaskia_typeface_t typeface = alphaskia_typeface_make_from_name(name.c_str(), static_cast<uint16_t>(weight), italic ? 1 : 0);
@@ -366,7 +436,11 @@ static napi_value node_alphaskia_text_style_new(napi_env env, napi_callback_info
   status = napi_get_array_length(env, node_argv[0], &familyNamesLength);
   ASSERT_STATUS();
 
-  familyNamesLength = static_cast<uint8_t>(familyNamesLength);
+  if (familyNamesLength > UINT8_MAX)
+  {
+    napi_throw_range_error(env, NULL, "At most 255 font families are supported");
+    return nullptr;
+  }
 
   std::vector<std::string> familyNames;
   familyNames.resize(familyNamesLength);
@@ -393,10 +467,10 @@ static napi_value node_alphaskia_text_style_new(napi_env env, napi_callback_info
   }
   // string[] end
 
-  GET_ARGUMENT_INT32(1, weight);
+  GET_ARGUMENT_INT32_RANGE(1, weight, 0, 1000);
   GET_ARGUMENT_BOOL(2, italic);
 
-  alphaskia_text_style_t text_style = alphaskia_text_style_new(static_cast<uint8_t>(familyNamesLength), &familyNamesRaw[0], static_cast<uint16_t>(weight), italic ? 1 : 0);
+  alphaskia_text_style_t text_style = alphaskia_text_style_new(static_cast<uint8_t>(familyNamesLength), familyNamesRaw.data(), static_cast<uint16_t>(weight), italic ? 1 : 0);
   WRAP_HANDLE(alphaskia_text_style_t, wrapped, text_style);
   return wrapped;
 }
@@ -406,12 +480,7 @@ static napi_value node_alphaskia_text_style_free(napi_env env, napi_callback_inf
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
-  GET_ARGUMENT_HANDLE(0, alphaskia_text_style_t, text_style);
-
-  alphaskia_text_style_free(text_style);
-  void *old;
-  status = napi_remove_wrap(env, node_argv[0], &old);
-  ASSERT_STATUS();
+  FREE_ARGUMENT_HANDLE(0, alphaskia_text_style_t, alphaskia_text_style_free);
 
   RETURN_UNDEFINED();
 }
@@ -589,13 +658,7 @@ static napi_value node_alphaskia_text_metrics_free(napi_env env, napi_callback_i
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
-  GET_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, text_metrics);
-
-  alphaskia_text_metrics_free(text_metrics);
-
-  void *old;
-  status = napi_remove_wrap(env, node_argv[0], &old);
-  ASSERT_STATUS();
+  FREE_ARGUMENT_HANDLE(0, alphaskia_text_metrics_t, alphaskia_text_metrics_free);
 
   RETURN_UNDEFINED();
 }
@@ -643,7 +706,7 @@ static napi_value node_alphaskia_image_read_pixels(napi_env env, napi_callback_i
   status = napi_create_arraybuffer(env, total_bytes, &node_data, &node_value);
   ASSERT_STATUS();
 
-  uint8_t success = alphaskia_image_read_pixels(image, static_cast<uint8_t *>(node_data), row_bytes);
+  uint8_t success = alphaskia_image_read_pixels(image, static_cast<uint8_t *>(node_data), row_bytes, total_bytes);
   if (success == 0)
   {
     RETURN_UNDEFINED();
@@ -661,14 +724,27 @@ static napi_value node_alphaskia_image_encode_png(napi_env env, napi_callback_in
   GET_ARGUMENT_HANDLE(0, alphaskia_image_t, image);
 
   alphaskia_data_t png = alphaskia_image_encode_png(image);
-  uint64_t png_size = alphaskia_data_get_length(png);
-  uint8_t *png_data = alphaskia_data_get_data(png);
+  if (!png)
+  {
+    RETURN_UNDEFINED();
+  }
 
-  void *node_data;
+  uint64_t png_size = alphaskia_data_get_length(png);
+  const uint8_t *png_data = alphaskia_data_get_data(png);
+
+  void *node_data(nullptr);
   napi_value node_value;
-  status = napi_create_arraybuffer(env, png_size, &node_data, &node_value);
+  status = napi_create_arraybuffer(env, static_cast<size_t>(png_size), &node_data, &node_value);
+  if (status != napi_ok)
+  {
+    alphaskia_data_free(png);
+  }
   ASSERT_STATUS();
-  memcpy(node_data, png_data, static_cast<size_t>(png_size));
+  if (png_size > 0)
+  {
+    memcpy(node_data, png_data, static_cast<size_t>(png_size));
+  }
+  alphaskia_data_free(png);
 
   return node_value;
 }
@@ -677,12 +753,7 @@ static napi_value node_alphaskia_image_free(napi_env env, napi_callback_info inf
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
-  GET_ARGUMENT_HANDLE(0, alphaskia_image_t, image);
-
-  alphaskia_image_free(image);
-  void *old;
-  status = napi_remove_wrap(env, node_argv[0], &old);
-  ASSERT_STATUS();
+  FREE_ARGUMENT_HANDLE(0, alphaskia_image_t, alphaskia_image_free);
 
   RETURN_UNDEFINED();
 }
@@ -702,12 +773,7 @@ static napi_value node_alphaskia_canvas_free(napi_env env, napi_callback_info in
   napi_status status(napi_ok);
 
   CHECK_ARGS(1);
-  GET_ARGUMENT_HANDLE(0, alphaskia_canvas_t, canvas);
-
-  alphaskia_canvas_free(canvas);
-  void *old;
-  status = napi_remove_wrap(env, node_argv[0], &old);
-  ASSERT_STATUS();
+  FREE_ARGUMENT_HANDLE(0, alphaskia_canvas_t, alphaskia_canvas_free);
 
   RETURN_UNDEFINED();
 }
@@ -780,7 +846,11 @@ static napi_value node_alphaskia_canvas_begin_render(napi_env env, napi_callback
   GET_ARGUMENT_INT32(2, height);
   GET_ARGUMENT_FLOAT(3, render_scale);
 
-  alphaskia_canvas_begin_render(canvas, width, height, render_scale);
+  if (!alphaskia_canvas_begin_render(canvas, width, height, render_scale))
+  {
+    napi_throw_range_error(env, nullptr, "Cannot create a render surface for the given size and render scale");
+    return nullptr;
+  }
 
   RETURN_UNDEFINED();
 }
@@ -999,7 +1069,7 @@ static napi_value node_alphaskia_image_from_pixels(napi_env env, napi_callback_i
   status = napi_get_arraybuffer_info(env, node_argv[2], &node_pixels, &node_pixels_length);
   ASSERT_STATUS();
 
-  alphaskia_image_t image = alphaskia_image_from_pixels(width, height, reinterpret_cast<const uint8_t *>(node_pixels));
+  alphaskia_image_t image = alphaskia_image_from_pixels(width, height, reinterpret_cast<const uint8_t *>(node_pixels), node_pixels_length);
   WRAP_HANDLE(alphaskia_image_t, wrapped, image);
   return wrapped;
 }
@@ -1032,8 +1102,8 @@ static napi_value node_alphaskia_canvas_fill_text(napi_env env, napi_callback_in
   GET_ARGUMENT_FLOAT(3, font_size);
   GET_ARGUMENT_FLOAT(4, x);
   GET_ARGUMENT_FLOAT(5, y);
-  GET_ARGUMENT_INT32(6, text_align);
-  GET_ARGUMENT_INT32(7, baseline);
+  GET_ARGUMENT_INT32_RANGE(6, text_align, alphaskia_text_align_left, alphaskia_text_align_right);
+  GET_ARGUMENT_INT32_RANGE(7, baseline, alphaskia_text_baseline_alphabetic, alphaskia_text_baseline_bottom);
 
   alphaskia_canvas_fill_text(canvas, text.c_str(), text.length(), text_style, font_size, x, y, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
 
@@ -1049,8 +1119,8 @@ static napi_value node_alphaskia_canvas_measure_text(napi_env env, napi_callback
   GET_ARGUMENT_UTF16_STRING(1, text);
   GET_ARGUMENT_HANDLE(2, alphaskia_text_style_t, text_style);
   GET_ARGUMENT_FLOAT(3, font_size);
-  GET_ARGUMENT_INT32(4, text_align);
-  GET_ARGUMENT_INT32(5, baseline);
+  GET_ARGUMENT_INT32_RANGE(4, text_align, alphaskia_text_align_left, alphaskia_text_align_right);
+  GET_ARGUMENT_INT32_RANGE(5, baseline, alphaskia_text_baseline_alphabetic, alphaskia_text_baseline_bottom);
 
   auto text_metrics = alphaskia_canvas_measure_text(canvas, text.c_str(), text.length(), text_style, font_size, static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
   WRAP_HANDLE(alphaskia_text_metrics_t, wrapped, text_metrics);
@@ -1096,6 +1166,8 @@ napi_value init(napi_env env, napi_value exports)
 {
   std::vector<napi_property_descriptor> methods;
 
+  EXPORT_NODE_FUNCTION(alphaskia_get_limit);
+  EXPORT_NODE_FUNCTION(alphaskia_set_limit);
   EXPORT_NODE_FUNCTION(alphaskia_get_color_type);
   EXPORT_NODE_FUNCTION(alphaskia_switch_to_freetype_fonts);
   EXPORT_NODE_FUNCTION(alphaskia_switch_to_operating_system_fonts);

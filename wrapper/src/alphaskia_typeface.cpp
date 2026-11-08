@@ -8,7 +8,18 @@ extern "C"
 {
     AS_API alphaskia_typeface_t alphaskia_typeface_register(alphaskia_data_t data)
     {
+        if (!data)
+        {
+            return nullptr;
+        }
+
         sk_sp<SkData> *skData = reinterpret_cast<sk_sp<SkData> *>(data);
+        const uint64_t max_length = alphaskia_get_limit(alphaskia_limit_max_font_data_length);
+        if (max_length != 0 && (*skData)->size() > max_length)
+        {
+            return nullptr;
+        }
+
         auto fontMgr = SkFontMgr_AlphaSkia::instance();
         sk_sp<SkTypeface> skTypeface = fontMgr->makeFromData(*skData, 0);
         if (!skTypeface)
@@ -48,6 +59,11 @@ extern "C"
 
     AS_API alphaskia_string_t alphaskia_typeface_get_family_name(alphaskia_typeface_t typeface)
     {
+        if (!typeface)
+        {
+            return nullptr;
+        }
+
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
 
         SkString *skFamilyName = new SkString();
@@ -58,12 +74,22 @@ extern "C"
 
     AS_API uint16_t alphaskia_typeface_get_weight(alphaskia_typeface_t typeface)
     {
+        if (!typeface)
+        {
+            return 0;
+        }
+
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
         return static_cast<uint16_t>((*skTypeface)->fontStyle().weight());
     }
 
     AS_API uint8_t alphaskia_typeface_is_italic(alphaskia_typeface_t typeface)
     {
+        if (!typeface)
+        {
+            return 0;
+        }
+
         sk_sp<SkTypeface> *skTypeface = reinterpret_cast<sk_sp<SkTypeface> *>(typeface);
         return (*skTypeface)->isItalic() ? 1 : 0;
     }

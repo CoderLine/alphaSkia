@@ -36,36 +36,28 @@ extern "C"
         alphaskia_canvas_set_line_width(canvas, static_cast<float>(line_width));
     }
 
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_close(JNIEnv *env, jobject instance)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_release(JNIEnv *, jclass, jlong handle)
     {
-        alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
-        CHECK_HANDLE(canvas)
-
-        alphaskia_canvas_free(canvas);
-        set_handle(env, instance, 0);
+        alphaskia_canvas_free(reinterpret_cast<alphaskia_canvas_t>(handle));
     }
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_beginRender(JNIEnv *env, jobject instance, jint width, jint height, jfloat renderScale)
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
-        alphaskia_canvas_begin_render(canvas, width, height, static_cast<float>(renderScale));
+        if (!alphaskia_canvas_begin_render(canvas, width, height, static_cast<float>(renderScale)))
+        {
+            env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), "Cannot create a render surface for the given size and render scale");
+        }
     }
 
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_drawImage(JNIEnv *env, jobject instance, jobject image, jfloat x, jfloat y, jfloat w, jfloat h)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_nativeDrawImage(JNIEnv *env, jobject instance, jobject image, jfloat x, jfloat y, jfloat w, jfloat h)
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
         alphaskia_image_t nativeImage = reinterpret_cast<alphaskia_image_t>(get_handle(env, image));
-        if (!canvas)
-        {
-            if (!env->ExceptionCheck())
-            {
-                env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), "Invalid object handle");
-            }
-            return;
-        }
+        CHECK_HANDLE(nativeImage)
 
         alphaskia_canvas_draw_image(canvas, nativeImage, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
     }
@@ -76,10 +68,19 @@ extern "C"
         CHECK_HANDLE_RETURN(canvas, nullptr)
 
         alphaskia_image_t image = alphaskia_canvas_end_render(canvas);
+        if (!image)
+        {
+            return nullptr;
+        }
 
         jclass cls = env->FindClass("alphaTab/alphaSkia/AlphaSkiaImage");
-        jmethodID ctor = env->GetMethodID(cls, "<init>", "(J)V");
-        return env->NewObject(cls, ctor, static_cast<jlong>(reinterpret_cast<std::uintptr_t>(image)));
+        jmethodID ctor = cls ? env->GetMethodID(cls, "<init>", "(J)V") : nullptr;
+        jobject result = ctor ? env->NewObject(cls, ctor, static_cast<jlong>(reinterpret_cast<std::uintptr_t>(image))) : nullptr;
+        if (!result)
+        {
+            alphaskia_image_free(image);
+        }
+        return result;
     }
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillRect(JNIEnv *env, jobject instance, jfloat x, jfloat y, jfloat w, jfloat h)
@@ -165,85 +166,61 @@ extern "C"
 
         alphaskia_canvas_stroke(canvas);
     }
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_fillText(JNIEnv *env, jobject instance, jstring str, jobject typeface, jfloat font_size, jfloat x, jfloat y, jobject text_align, jobject baseline)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_nativeFillText(JNIEnv *env, jobject instance, jstring str, jobject text_style, jfloat font_size, jfloat x, jfloat y, jint text_align, jint baseline)
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
 
-        const jchar *nativeStr = env->GetStringChars(str, nullptr);
-
-        alphaskia_text_style_t nativeTextStyle = reinterpret_cast<alphaskia_text_style_t>(get_handle(env, typeface));
+        alphaskia_text_style_t nativeTextStyle = reinterpret_cast<alphaskia_text_style_t>(get_handle(env, text_style));
         CHECK_HANDLE(nativeTextStyle)
 
-        jmethodID textAlignGetValue = env->GetMethodID(env->GetObjectClass(text_align), "getValue", "()I");
-        if (!textAlignGetValue)
+        const jsize length = env->GetStringLength(str);
+        const jchar *nativeStr = env->GetStringChars(str, nullptr);
+        if (!nativeStr)
         {
-            if (!env->ExceptionCheck())
-            {
-                env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Could not find 'int getValue' on text align");
-            }
             return;
         }
 
-        jmethodID baselineGetValue = env->GetMethodID(env->GetObjectClass(baseline), "getValue", "()I");
-        if (!baselineGetValue)
-        {
-            if (!env->ExceptionCheck())
-            {
-                env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Could not find 'int getValue' on text baseline");
-            }
-            return;
-        }
-
-        alphaskia_text_align_t nativeTextAlign = static_cast<alphaskia_text_align_t>(env->CallIntMethod(text_align, textAlignGetValue));
-        alphaskia_text_baseline_t nativeBaseline = static_cast<alphaskia_text_baseline_t>(env->CallIntMethod(baseline, baselineGetValue));
-
-        alphaskia_canvas_fill_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(env->GetStringLength(str)),
+        alphaskia_canvas_fill_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(length),
                                    nativeTextStyle, static_cast<float>(font_size), static_cast<float>(x), static_cast<float>(y),
-                                   nativeTextAlign, nativeBaseline);
+                                   static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
 
         env->ReleaseStringChars(str, nativeStr);
     }
 
-    JNIEXPORT jobject JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_measureText(JNIEnv *env, jobject instance, jstring str, jobject typeface, jfloat font_size, jobject text_align, jobject baseline)
+    JNIEXPORT jobject JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_nativeMeasureText(JNIEnv *env, jobject instance, jstring str, jobject text_style, jfloat font_size, jint text_align, jint baseline)
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE_RETURN(canvas, nullptr)
 
-        const jchar *nativeStr = env->GetStringChars(str, nullptr);
-        alphaskia_text_style_t nativeTextStyle = reinterpret_cast<alphaskia_text_style_t>(get_handle(env, typeface));
+        alphaskia_text_style_t nativeTextStyle = reinterpret_cast<alphaskia_text_style_t>(get_handle(env, text_style));
         CHECK_HANDLE_RETURN(nativeTextStyle, nullptr)
 
-        jmethodID textAlignGetValue = env->GetMethodID(env->GetObjectClass(text_align), "getValue", "()I");
-        if (!textAlignGetValue)
+        const jsize length = env->GetStringLength(str);
+        const jchar *nativeStr = env->GetStringChars(str, nullptr);
+        if (!nativeStr)
         {
-            if (!env->ExceptionCheck())
-            {
-                env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Could not find 'int getValue' on text align");
-            }
             return nullptr;
         }
 
-        jmethodID baselineGetValue = env->GetMethodID(env->GetObjectClass(baseline), "getValue", "()I");
-        if (!baselineGetValue)
-        {
-            if (!env->ExceptionCheck())
-            {
-                env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Could not find 'int getValue' on text baseline");
-            }
-            return nullptr;
-        }
-
-        alphaskia_text_align_t nativeTextAlign = static_cast<alphaskia_text_align_t>(env->CallIntMethod(text_align, textAlignGetValue));
-        alphaskia_text_baseline_t nativeBaseline = static_cast<alphaskia_text_baseline_t>(env->CallIntMethod(baseline, baselineGetValue));
-
-        auto text_metrics = alphaskia_canvas_measure_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(env->GetStringLength(str)), nativeTextStyle, static_cast<float>(font_size), nativeTextAlign, nativeBaseline);
-
+        auto text_metrics = alphaskia_canvas_measure_text(canvas, reinterpret_cast<const char16_t *>(nativeStr), static_cast<int>(length), nativeTextStyle, static_cast<float>(font_size),
+                                                          static_cast<alphaskia_text_align_t>(text_align), static_cast<alphaskia_text_baseline_t>(baseline));
         env->ReleaseStringChars(str, nativeStr);
 
+        if (!text_metrics)
+        {
+            env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), "Cannot measure text with the given arguments");
+            return nullptr;
+        }
+
         jclass cls = env->FindClass("alphaTab/alphaSkia/AlphaSkiaTextMetrics");
-        jmethodID ctor = env->GetMethodID(cls, "<init>", "(J)V");
-        return env->NewObject(cls, ctor, static_cast<jlong>(reinterpret_cast<std::uintptr_t>(text_metrics)));
+        jmethodID ctor = cls ? env->GetMethodID(cls, "<init>", "(J)V") : nullptr;
+        jobject result = ctor ? env->NewObject(cls, ctor, static_cast<jlong>(reinterpret_cast<std::uintptr_t>(text_metrics))) : nullptr;
+        if (!result)
+        {
+            alphaskia_text_metrics_free(text_metrics);
+        }
+        return result;
     }
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_beginRotate(JNIEnv *env, jobject instance, jfloat x, jfloat y, jfloat angle)

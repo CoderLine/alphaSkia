@@ -258,7 +258,7 @@ namespace
                 pixels[i * 4 + 2] = v;
                 pixels[i * 4 + 3] = 255;
             }
-            auto image = alphaskia_image_from_pixels(raster->width, raster->height, pixels.data());
+            auto image = alphaskia_image_from_pixels(raster->width, raster->height, pixels.data(), pixels.size());
             auto file = failure_output_path / ("text-rendering-failure-" + std::to_string(saved_failures) + "-" + name + suffix);
             if (write_png(image, file))
             {
@@ -284,7 +284,7 @@ namespace
         raster.scale = scale;
 
         std::vector<uint8_t> pixels(static_cast<size_t>(raster.width) * raster.height * 4);
-        alphaskia_image_read_pixels(image, pixels.data(), raster.width * 4);
+        alphaskia_image_read_pixels(image, pixels.data(), raster.width * 4, pixels.size());
         alphaskia_image_free(image);
 
         raster.alpha.resize(static_cast<size_t>(raster.width) * raster.height);

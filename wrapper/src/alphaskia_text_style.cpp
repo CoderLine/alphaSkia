@@ -5,6 +5,11 @@ extern "C"
 {
     AS_API alphaskia_text_style_t alphaskia_text_style_new(uint8_t family_name_count, const char **family_names, uint16_t weight, uint8_t italic)
     {
+        if (!family_names && family_name_count > 0)
+        {
+            return nullptr;
+        }
+
         SkFontStyle::Weight skWeight;
         switch (weight)
         {
@@ -41,12 +46,22 @@ extern "C"
 
     AS_API uint8_t alphaskia_text_style_get_family_name_count(alphaskia_text_style_t text_style)
     {
+        if (!text_style)
+        {
+            return 0;
+        }
+
         AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(text_style);
         return static_cast<uint8_t>(skTextstyle->get_family_names().size());
     }
 
     AS_API alphaskia_string_t alphaskia_text_style_get_family_name(alphaskia_text_style_t text_style, uint8_t index)
     {
+        if (!text_style)
+        {
+            return nullptr;
+        }
+
         AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(text_style);
 
         if (index >= skTextstyle->get_family_names().size())
@@ -60,12 +75,22 @@ extern "C"
 
     AS_API uint16_t alphaskia_text_style_get_weight(alphaskia_text_style_t text_style)
     {
+        if (!text_style)
+        {
+            return 0;
+        }
+
         AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(text_style);
         return static_cast<uint16_t>(skTextstyle->get_font_style().weight());
     }
 
     AS_API uint8_t alphaskia_text_style_is_italic(alphaskia_text_style_t text_style)
     {
+        if (!text_style)
+        {
+            return 0;
+        }
+
         AlphaSkiaTextStyle *skTextstyle = reinterpret_cast<AlphaSkiaTextStyle *>(text_style);
         return skTextstyle->get_font_style().slant() == SkFontStyle::Slant::kItalic_Slant ? 1 : 0;
     }

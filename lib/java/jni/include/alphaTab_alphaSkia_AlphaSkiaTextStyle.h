@@ -10,18 +10,18 @@ extern "C" {
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTextStyle
  * Method:    alphaskiaTextStyleNew
- * Signature: ([Ljava/lang/String;IZ)J
+ * Signature: ([[BIZ)J
  */
 JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextStyle_alphaskiaTextStyleNew
   (JNIEnv *, jclass, jobjectArray, jint, jboolean);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTextStyle
- * Method:    close
- * Signature: ()V
+ * Method:    release
+ * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextStyle_close
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextStyle_release
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }

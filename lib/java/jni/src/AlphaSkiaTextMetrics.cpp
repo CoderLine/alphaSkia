@@ -112,13 +112,8 @@ extern "C"
         return static_cast<jfloat>(value);
     }
 
-    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextMetrics_close(JNIEnv *env, jobject instance)
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTextMetrics_release(JNIEnv *, jclass, jlong handle)
     {
-        jlong handle = get_handle(env, instance);
-        CHECK_HANDLE(handle)
-
-        alphaskia_text_metrics_t data = reinterpret_cast<alphaskia_text_metrics_t>(handle);
-        alphaskia_text_metrics_free(data);
-        set_handle(env, instance, 0);
+        alphaskia_text_metrics_free(reinterpret_cast<alphaskia_text_metrics_t>(handle));
     }
 }

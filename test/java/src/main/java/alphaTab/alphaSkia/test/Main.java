@@ -87,6 +87,10 @@ public class Main {
             AlphaTabGeneratedRenderTest.loadTypeface(testDataPath.resolve("font/noto-color-emoji/NotoColorEmoji_WindowsCompatible.ttf"));
             System.out.println("Fonts loaded");
 
+            if (!RobustnessTest.run()) {
+                return 1;
+            }
+
             // render full image
             System.out.println("Rendering image");
             try (var actualImage = renderFullImage()) {

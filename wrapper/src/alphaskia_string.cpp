@@ -5,12 +5,22 @@ extern "C"
 {
     AS_API const char *alphaskia_string_get_utf8(alphaskia_string_t string)
     {
+        if (!string)
+        {
+            return nullptr;
+        }
+
         SkString *skString = reinterpret_cast<SkString *>(string);
         return skString->c_str();
     }
 
     AS_API uint64_t alphaskia_string_get_length(alphaskia_string_t string)
     {
+        if (!string)
+        {
+            return 0;
+        }
+
         SkString *skString = reinterpret_cast<SkString *>(string);
         return static_cast<uint64_t>(skString->size());
     }

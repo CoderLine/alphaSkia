@@ -11,6 +11,6 @@ export class AlphaSkiaData extends AlphaSkiaNative<AlphaSkiaDataHandle> {
 
     public toArray(): ArrayBuffer {
         this.checkDisposed();
-        return loadAddon().alphaskia_data_get_data(this.handle!);
+        return loadAddon().alphaskia_data_get_data(this.checkedHandle);
     }
 }

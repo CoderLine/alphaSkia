@@ -176,6 +176,8 @@ partial class Build
             // need to delete package-lock.json due to tgz hash mismatch
             Log.Information("Deleting package-lock.json to avoid integrity checks failing");
             (RootDirectory / "test" / "node" / "package-lock.json").DeleteFile();
+            // local builds reuse the version number, npm would keep the previously installed packages
+            (RootDirectory / "test" / "node" / "node_modules" / "@coderline").DeleteDirectory();
 
             NpmTasks.NpmInstall(t => t
                 .SetProcessWorkingDirectory(RootDirectory / "test" / "node")

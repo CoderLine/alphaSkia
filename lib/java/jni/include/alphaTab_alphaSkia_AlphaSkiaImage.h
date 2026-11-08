@@ -25,11 +25,11 @@ JNIEXPORT jint JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_getHeight
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaImage
- * Method:    close
- * Signature: ()V
+ * Method:    release
+ * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_close
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_release
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaImage

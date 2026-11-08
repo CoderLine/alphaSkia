@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace AlphaSkia;
 
 /// <summary>
@@ -32,11 +34,49 @@ public sealed class AlphaSkiaTextStyle : AlphaSkiaNative
     /// <param name="fontFamilies">The list of font family names.</param>
     /// <param name="weight">The font weight typefaces should have.</param>
     /// <param name="isItalic">Whether typefaces should be italic.</param>
+    /// <exception cref="ArgumentNullException">The font families or one of them are null.</exception>
+    /// <exception cref="ArgumentException">More than 255 font families are given.</exception>
     public AlphaSkiaTextStyle(string[] fontFamilies, ushort weight, bool isItalic)
-        : base(NativeMethods.alphaskia_text_style_new((byte)fontFamilies.Length, fontFamilies, weight, isItalic ? (byte)1 : (byte)0), NativeMethods.alphaskia_text_style_free)
+        : base(CreateTextStyle(fontFamilies, weight, isItalic), NativeMethods.alphaskia_text_style_free)
     {
         FontFamilies = fontFamilies;
         Weight = weight;
         IsItalic = isItalic;
+    }
+
+    private static IntPtr CreateTextStyle(string[] fontFamilies, ushort weight, bool isItalic)
+    {
+        if (fontFamilies == null)
+        {
+            throw new ArgumentNullException(nameof(fontFamilies));
+        }
+
+        if (fontFamilies.Length > byte.MaxValue)
+        {
+            throw new ArgumentException("At most 255 font families are supported", nameof(fontFamilies));
+        }
+
+        var utf8FamilyNames = new IntPtr[fontFamilies.Length];
+        try
+        {
+            for (var i = 0; i < fontFamilies.Length; i++)
+            {
+                var familyName = fontFamilies[i] ?? throw new ArgumentNullException(nameof(fontFamilies));
+                utf8FamilyNames[i] = NativeMethods.AllocUtf8(familyName);
+            }
+
+            return NativeMethods.alphaskia_text_style_new((byte)fontFamilies.Length, utf8FamilyNames, weight,
+                isItalic ? (byte)1 : (byte)0);
+        }
+        finally
+        {
+            foreach (var utf8FamilyName in utf8FamilyNames)
+            {
+                if (utf8FamilyName != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(utf8FamilyName);
+                }
+            }
+        }
     }
 }

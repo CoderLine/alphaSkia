@@ -26,9 +26,9 @@ JNIEXPORT jboolean JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_isItalic
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTypeface
  * Method:    loadFamilyName
- * Signature: (J)Ljava/lang/String;
+ * Signature: (J)[B
  */
-JNIEXPORT jstring JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_loadFamilyName
+JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_loadFamilyName
   (JNIEnv *, jclass, jlong);
 
 /*
@@ -37,7 +37,7 @@ JNIEXPORT jstring JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_loadFamilyNa
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_release
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTypeface
@@ -50,10 +50,10 @@ JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_register
 /*
  * Class:     alphaTab_alphaSkia_AlphaSkiaTypeface
  * Method:    makeFromName
- * Signature: (Ljava/lang/String;IZ)J
+ * Signature: ([BIZ)J
  */
 JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaTypeface_makeFromName
-  (JNIEnv *, jclass, jstring, jint, jboolean);
+  (JNIEnv *, jclass, jbyteArray, jint, jboolean);
 
 #ifdef __cplusplus
 }

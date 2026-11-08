@@ -105,10 +105,14 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// <param name="width">The width of the image to produce.</param>
     /// <param name="height">The height of the image to produce.</param>
     /// <param name="renderScale">The scale factor for the image (e.g. for high DPI rendering with keeping coordinates).</param>
+    /// <exception cref="ArgumentException">The render scale is not a positive finite number or the scaled size cannot be allocated.</exception>
     public void BeginRender(int width, int height, float renderScale = 1)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_begin_render(Handle, width, height, renderScale);
+        if (NativeMethods.alphaskia_canvas_begin_render(Handle, width, height, renderScale) == 0)
+        {
+            throw new ArgumentException("Cannot create a render surface for the given size and render scale");
+        }
     }
 
     /// <summary>
@@ -122,6 +126,11 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void DrawImage(AlphaSkiaImage image, float x, float y, float w, float h)
     {
         CheckDisposed();
+        if (image == null)
+        {
+            throw new ArgumentNullException(nameof(image));
+        }
+
         NativeMethods.alphaskia_canvas_draw_image(Handle, image.Handle, x, y, w, h);
     }
 
@@ -256,7 +265,7 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     public void StrokeCircle(float x, float y, float radius)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_fill_circle(Handle, x, y, radius);
+        NativeMethods.alphaskia_canvas_stroke_circle(Handle, x, y, radius);
     }
 
     /// <summary>
@@ -292,6 +301,16 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
         AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
+        if (text == null)
+        {
+            throw new ArgumentNullException(nameof(text));
+        }
+
+        if (textStyle == null)
+        {
+            throw new ArgumentNullException(nameof(textStyle));
+        }
+
         NativeMethods.alphaskia_canvas_fill_text(Handle, text, text.Length, textStyle.Handle, fontSize, x, y, textAlign, baseline);
     }
 
@@ -304,10 +323,27 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// <param name="textAlign">How to align the text at the given position horizontally.</param>
     /// <param name="baseline">How to align the text at the given position vertically.</param>
     /// <returns>The text metrics.</returns>
+    /// <exception cref="ArgumentException">The font size is not finite.</exception>
     public AlphaSkiaTextMetrics MeasureText(string text, AlphaSkiaTextStyle textStyle, float fontSize, AlphaSkiaTextAlign textAlign, AlphaSkiaTextBaseline baseline)
     {
         CheckDisposed();
-        return new AlphaSkiaTextMetrics(NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, textStyle.Handle, fontSize, textAlign, baseline));
+        if (text == null)
+        {
+            throw new ArgumentNullException(nameof(text));
+        }
+
+        if (textStyle == null)
+        {
+            throw new ArgumentNullException(nameof(textStyle));
+        }
+
+        var textMetrics = NativeMethods.alphaskia_canvas_measure_text(Handle, text, text.Length, textStyle.Handle, fontSize, textAlign, baseline);
+        if (textMetrics == IntPtr.Zero)
+        {
+            throw new ArgumentException("Cannot measure text with the given arguments");
+        }
+
+        return new AlphaSkiaTextMetrics(textMetrics);
     }
 
     /// <summary>

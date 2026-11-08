@@ -152,6 +152,19 @@ partial class Build
         // alphaSkia API (and the JNI / N-API entry points) leave the library, the rest is subject to --gc-sections.
         AppendToFlagList(gnArgs, "extra_ldflags", "'-static-libstdc++', '-static-libgcc', '-Wl,--exclude-libs,ALL', '-Wl,--strip-debug'");
 
+        // exploit mitigations for Skia, its third party libraries and alphaSkia (used for Android builds too)
+        var fortifyLevel = TargetOs == TargetOperatingSystem.Android ? 2 : 3;
+        AppendToFlagList(gnArgs, "extra_cflags", $"'-fstack-protector-strong', '-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE={fortifyLevel}'");
+        if (Architecture == Architecture.X64 || Architecture == Architecture.X86)
+        {
+            AppendToFlagList(gnArgs, "extra_cflags", "'-fstack-clash-protection', '-fcf-protection=full'");
+        }
+        else if (Architecture == Architecture.Arm64)
+        {
+            AppendToFlagList(gnArgs, "extra_cflags", "'-fstack-clash-protection', '-mbranch-protection=standard'");
+        }
+        AppendToFlagList(gnArgs, "extra_ldflags", "'-Wl,-z,relro', '-Wl,-z,now', '-Wl,-z,noexecstack'");
+
         var crossCompileToolchainArch = Architecture.LinuxCrossToolchain;
         var crossCompileTargetArch = Architecture.LinuxCrossTargetArch;
 
