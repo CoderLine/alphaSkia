@@ -577,7 +577,7 @@ int main(int argc, char **argv)
         error = true;
     }
 
-    if (!robustness_test())
+    if (!robustness_test(test_data_path))
     {
         error = true;
     }

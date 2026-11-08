@@ -3,11 +3,13 @@
 #include "../../externals/skia/include/core/SkFontMgr.h"
 #include "../../externals/skia/src/core/SkTHash.h"
 
+#include <mutex>
 #include <set>
 #include <vector>
 
 class SkFontStyleSet_Custom;
 
+// Thread-safe: font registration, lookups and switching the font manager may happen concurrently.
 class SK_API SkFontMgr_AlphaSkia : public SkFontMgr
 {
 public:
@@ -36,14 +38,27 @@ protected:
 
 
 private:
-    void registerTypeface(const sk_sp<SkTypeface> &typeface) const;
+    using FontStyleSets = skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>>;
+
+    struct Current
+    {
+        sk_sp<SkFontMgr> fontMgr;
+        FontStyleSets *styleSets;
+    };
+
+    Current current() const;
+    sk_sp<SkFontStyleSet_Custom> findRegisteredFamily(const Current &current, const char familyName[]) const;
+    void registerTypeface(const Current &current, const sk_sp<SkTypeface> &typeface) const;
+
+    // guards the members below and the registered style sets
+    mutable std::mutex mutex_;
 
     sk_sp<SkFontMgr> currentFontMgr_;
-    skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>> *currentFontMgrFontStyleSets_;
+    FontStyleSets *currentFontMgrFontStyleSets_;
 
     sk_sp<SkFontMgr> freeTypeFontMgr_;
-    skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>> freeTypeFontStyleSets_;
+    FontStyleSets freeTypeFontStyleSets_;
 
     sk_sp<SkFontMgr> operatingSystemTypeFontMgr_;
-    skia_private::THashMap<SkString, sk_sp<SkFontStyleSet_Custom>> operatingSystemFontStyleSets_;
+    FontStyleSets operatingSystemFontStyleSets_;
 };

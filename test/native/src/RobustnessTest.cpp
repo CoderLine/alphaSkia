@@ -1,10 +1,12 @@
 #include "../include/RobustnessTest.h"
 #include "../include/AlphaSkiaTestBridge.h"
 
+#include <atomic>
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace
@@ -186,7 +188,48 @@ namespace
     }
 }
 
-bool robustness_test()
+namespace
+{
+    void test_concurrent_font_use(const std::filesystem::path &test_data_path)
+    {
+        std::vector<uint8_t> font_bytes;
+        read_file((test_data_path / "font" / "noto-sans" / "NotoSans-Regular.otf").generic_string(), font_bytes);
+
+        std::atomic<int> failed_measurements(0);
+        std::vector<std::thread> threads;
+        for (int t = 0; t < 4; t++)
+        {
+            threads.emplace_back([&]()
+                                 {
+                auto canvas = alphaskia_canvas_new();
+                for (int i = 0; i < 20; i++)
+                {
+                    auto data = alphaskia_data_new_copy(font_bytes.data(), font_bytes.size());
+                    alphaskia_typeface_free(alphaskia_typeface_register(data));
+                    alphaskia_data_free(data);
+                    alphaskia_typeface_free(alphaskia_typeface_make_from_name("Noto Sans", 400, 0));
+
+                    for (int j = 0; j < 5; j++)
+                    {
+                        auto metrics = alphaskia_canvas_measure_text(canvas, u"Concurrent", 10, style, 12, alphaskia_text_align_left, alphaskia_text_baseline_alphabetic);
+                        if (!metrics || alphaskia_text_metrics_get_width(metrics) <= 0)
+                        {
+                            failed_measurements++;
+                        }
+                        alphaskia_text_metrics_free(metrics);
+                    }
+                }
+                alphaskia_canvas_free(canvas); });
+        }
+        for (auto &thread : threads)
+        {
+            thread.join();
+        }
+        check(failed_measurements == 0, std::to_string(failed_measurements) + " concurrent measurements failed");
+    }
+}
+
+bool robustness_test(const std::filesystem::path &test_data_path)
 {
     std::cout << "BEGIN: robustness_test" << std::endl;
     style = alphaskia_get_text_style({"Noto Sans", "Noto Music"}, 400, false);
@@ -196,6 +239,7 @@ bool robustness_test()
     test_null_handles();
     test_canvas_without_surface();
     test_invalid_text();
+    test_concurrent_font_use(test_data_path);
 
     alphaskia_text_style_free(style);
 
