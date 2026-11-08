@@ -49,7 +49,10 @@ extern "C"
     {
         alphaskia_canvas_t canvas = reinterpret_cast<alphaskia_canvas_t>(get_handle(env, instance));
         CHECK_HANDLE(canvas)
-        alphaskia_canvas_begin_render(canvas, width, height, static_cast<float>(renderScale));
+        if (!alphaskia_canvas_begin_render(canvas, width, height, static_cast<float>(renderScale)))
+        {
+            env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), "Cannot create a render surface for the given size and render scale");
+        }
     }
 
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_drawImage(JNIEnv *env, jobject instance, jobject image, jfloat x, jfloat y, jfloat w, jfloat h)
@@ -76,6 +79,10 @@ extern "C"
         CHECK_HANDLE_RETURN(canvas, nullptr)
 
         alphaskia_image_t image = alphaskia_canvas_end_render(canvas);
+        if (!image)
+        {
+            return nullptr;
+        }
 
         jclass cls = env->FindClass("alphaTab/alphaSkia/AlphaSkiaImage");
         jmethodID ctor = env->GetMethodID(cls, "<init>", "(J)V");

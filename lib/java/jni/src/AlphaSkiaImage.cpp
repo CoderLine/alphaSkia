@@ -2,7 +2,7 @@
 #include "../include/JniHelper.h"
 #include "../../../../wrapper/include/alphaskia.h"
 
-#include <cstring>
+#include <cstdint>
 
 extern "C"
 {
@@ -36,19 +36,29 @@ extern "C"
         CHECK_HANDLE_RETURN(handle, nullptr)
 
         alphaskia_image_t image = reinterpret_cast<alphaskia_image_t>(handle);
-        jsize rowBytes = alphaskia_image_get_width(image) * sizeof(int32_t);
-        jbyteArray pixels = env->NewByteArray(
-            rowBytes * alphaskia_image_get_height(image));
-        jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
-
-        if (alphaskia_image_read_pixels(image, reinterpret_cast<uint8_t *>(bytes), rowBytes) == 0)
+        const uint64_t rowBytes = static_cast<uint64_t>(alphaskia_image_get_width(image)) * sizeof(int32_t);
+        const uint64_t byteCount = rowBytes * static_cast<uint64_t>(alphaskia_image_get_height(image));
+        if (byteCount > INT32_MAX)
         {
-            env->ReleaseByteArrayElements(pixels, bytes, 0);
+            env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "Image too large for a Java byte array");
             return nullptr;
         }
 
-        env->ReleaseByteArrayElements(pixels, bytes, 0);
-        return pixels;
+        jbyteArray pixels = env->NewByteArray(static_cast<jsize>(byteCount));
+        if (!pixels)
+        {
+            return nullptr;
+        }
+
+        jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
+        if (!bytes)
+        {
+            return nullptr;
+        }
+
+        const uint8_t success = alphaskia_image_read_pixels(image, reinterpret_cast<uint8_t *>(bytes), rowBytes, byteCount);
+        env->ReleaseByteArrayElements(pixels, bytes, success ? 0 : JNI_ABORT);
+        return success ? pixels : nullptr;
     }
 
     JNIEXPORT jbyteArray JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_toPng(JNIEnv *env, jobject instance)
@@ -58,15 +68,24 @@ extern "C"
 
         alphaskia_image_t image = reinterpret_cast<alphaskia_image_t>(handle);
         alphaskia_data_t data = alphaskia_image_encode_png(image);
-        uint8_t *raw = alphaskia_data_get_data(data);
+        if (!data)
+        {
+            return nullptr;
+        }
 
-        uint64_t byteCount = alphaskia_data_get_length(data);
-        jbyteArray png = env->NewByteArray(byteCount);
-        jbyte *bytes = env->GetByteArrayElements(png, nullptr);
+        const uint64_t byteCount = alphaskia_data_get_length(data);
+        if (byteCount > INT32_MAX)
+        {
+            alphaskia_data_free(data);
+            env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), "PNG too large for a Java byte array");
+            return nullptr;
+        }
 
-        memcpy(bytes, raw, byteCount);
-
-        env->ReleaseByteArrayElements(png, bytes, 0);
+        jbyteArray png = env->NewByteArray(static_cast<jsize>(byteCount));
+        if (png)
+        {
+            env->SetByteArrayRegion(png, 0, static_cast<jsize>(byteCount), reinterpret_cast<const jbyte *>(alphaskia_data_get_data(data)));
+        }
         alphaskia_data_free(data);
 
         return png;
@@ -74,17 +93,39 @@ extern "C"
 
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_createFromPixels(JNIEnv *env, jclass clz, jint width, jint height, jbyteArray pixels)
     {
+        if (!pixels)
+        {
+            env->ThrowNew(env->FindClass("java/lang/NullPointerException"), "pixels");
+            return 0;
+        }
+
         jbyte *bytes = env->GetByteArrayElements(pixels, nullptr);
-        alphaskia_image_t nativeImage = alphaskia_image_from_pixels(static_cast<int32_t>(width), static_cast<int32_t>(height), reinterpret_cast<const uint8_t *>(bytes));
-        env->ReleaseByteArrayElements(pixels, bytes, 0);
+        if (!bytes)
+        {
+            return 0;
+        }
+
+        alphaskia_image_t nativeImage = alphaskia_image_from_pixels(static_cast<int32_t>(width), static_cast<int32_t>(height), reinterpret_cast<const uint8_t *>(bytes), static_cast<uint64_t>(env->GetArrayLength(pixels)));
+        env->ReleaseByteArrayElements(pixels, bytes, JNI_ABORT);
         return reinterpret_cast<jlong>(nativeImage);
     }
 
     JNIEXPORT jlong JNICALL Java_alphaTab_alphaSkia_AlphaSkiaImage_allocateDecoded(JNIEnv *env, jclass clz, jbyteArray bytes)
     {
+        if (!bytes)
+        {
+            env->ThrowNew(env->FindClass("java/lang/NullPointerException"), "bytes");
+            return 0;
+        }
+
         jbyte *raw = env->GetByteArrayElements(bytes, nullptr);
-        alphaskia_image_t nativeImage = alphaskia_image_decode(reinterpret_cast<const uint8_t *>(raw), env->GetArrayLength(bytes));
-        env->ReleaseByteArrayElements(bytes, raw, 0);
+        if (!raw)
+        {
+            return 0;
+        }
+
+        alphaskia_image_t nativeImage = alphaskia_image_decode(reinterpret_cast<const uint8_t *>(raw), static_cast<uint64_t>(env->GetArrayLength(bytes)));
+        env->ReleaseByteArrayElements(bytes, raw, JNI_ABORT);
         return reinterpret_cast<jlong>(nativeImage);
     }
 }

@@ -44,15 +44,28 @@ extern "C"
         return internal ? internal->height() : 0;
     }
 
-    AS_API uint8_t alphaskia_image_read_pixels(alphaskia_image_t image, uint8_t *pixels, uint64_t rowBytes)
+    AS_API uint8_t alphaskia_image_read_pixels(alphaskia_image_t image, uint8_t *pixels, uint64_t row_bytes, uint64_t pixels_length)
     {
         SkImage *internal = get_image(image);
-        if (!internal || !pixels || rowBytes > SIZE_MAX)
+        if (!internal || !pixels || row_bytes > SIZE_MAX)
         {
             return 0;
         }
 
-        SkPixmap pixmap(internal->imageInfo(), pixels, static_cast<size_t>(rowBytes));
+        const SkImageInfo info = internal->imageInfo().makeColorType(kN32_SkColorType);
+        const size_t row_bytes_size = static_cast<size_t>(row_bytes);
+        if (!info.validRowBytes(row_bytes_size))
+        {
+            return 0;
+        }
+
+        const size_t required_length = info.computeByteSize(row_bytes_size);
+        if (SkImageInfo::ByteSizeOverflowed(required_length) || required_length > pixels_length)
+        {
+            return 0;
+        }
+
+        SkPixmap pixmap(info, pixels, row_bytes_size);
         return internal->readPixels(pixmap, 0, 0) ? 1 : 0;
     }
 
@@ -99,15 +112,21 @@ extern "C"
         return wrap_image(std::get<0>(codec->getImage(info)));
     }
 
-    AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels)
+    AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels, uint64_t pixels_length)
     {
         if (!pixels || width <= 0 || height <= 0)
         {
             return nullptr;
         }
 
+        const uint64_t row_bytes = sizeof(uint32_t) * static_cast<uint64_t>(width);
+        if (row_bytes * static_cast<uint64_t>(height) > pixels_length)
+        {
+            return nullptr;
+        }
+
         SkPixmap pixmap(SkImageInfo::Make(width, height, kN32_SkColorType, kPremul_SkAlphaType),
-                        pixels, sizeof(uint32_t) * static_cast<size_t>(width));
+                        pixels, static_cast<size_t>(row_bytes));
         return wrap_image(SkImages::RasterFromPixmapCopy(pixmap));
     }
 }

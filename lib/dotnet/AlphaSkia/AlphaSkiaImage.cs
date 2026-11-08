@@ -40,22 +40,44 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
     /// <param name="pixels">The target pointer to which to copy the pixel data.</param>
     /// <param name="rowBytes">The number of bytes per image row.</param>
     /// <returns><code>true</code> if the reading was successful, otherwise <code>false</code></returns>
+    /// <remarks>The target must hold at least <paramref name="rowBytes"/> * <see cref="Height"/> bytes.</remarks>
     public bool ReadPixels(IntPtr pixels, ulong rowBytes)
     {
-        CheckDisposed();
-        return NativeMethods.alphaskia_image_read_pixels(Handle, pixels, rowBytes) != 0;
+        return ReadPixels(pixels, rowBytes, rowBytes * (ulong)Math.Max(Height, 0));
     }
-    
+
+    /// <summary>
+    /// Reads the raw pixel data of this image into the given target.
+    /// </summary>
+    /// <param name="pixels">The target pointer to which to copy the pixel data.</param>
+    /// <param name="rowBytes">The number of bytes per image row.</param>
+    /// <param name="pixelsLength">The number of bytes available at <paramref name="pixels"/>.</param>
+    /// <returns><code>true</code> if the reading was successful, otherwise <code>false</code></returns>
+    public bool ReadPixels(IntPtr pixels, ulong rowBytes, ulong pixelsLength)
+    {
+        CheckDisposed();
+        return NativeMethods.alphaskia_image_read_pixels(Handle, pixels, rowBytes, pixelsLength) != 0;
+    }
+
     /// <summary>
     /// Reads the raw pixel data of this image into the given target.
     /// </summary>
     /// <returns>The pixels from the image.</returns>
+    /// <exception cref="InvalidOperationException">The image is too large for a byte array.</exception>
     public byte[]? ReadPixels()
     {
         CheckDisposed();
-        var rowBytes = Width * sizeof(int);
-        var pixels = new byte[rowBytes * Height];
-        return NativeMethods.alphaskia_image_read_pixels_bytes(Handle, pixels, (ulong)rowBytes) == 0 ? null : pixels;
+        var rowBytes = (long)Width * sizeof(int);
+        var byteCount = rowBytes * Height;
+        if (byteCount > int.MaxValue)
+        {
+            throw new InvalidOperationException("Image too large for a byte array");
+        }
+
+        var pixels = new byte[byteCount];
+        return NativeMethods.alphaskia_image_read_pixels_bytes(Handle, pixels, (ulong)rowBytes, (ulong)pixels.LongLength) == 0
+            ? null
+            : pixels;
     }
 
     /// <summary>
@@ -66,6 +88,11 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
     {
         CheckDisposed();
         var data = NativeMethods.alphaskia_image_encode_png(Handle);
+        if (data == IntPtr.Zero)
+        {
+            return null;
+        }
+
         using var wrapper = new AlphaSkiaData(data);
         return wrapper.ToArray();
     }
@@ -86,11 +113,16 @@ public sealed class AlphaSkiaImage : AlphaSkiaNative
     /// </summary>
     /// <param name="width">The width of the image in pixels.</param>
     /// <param name="height">The height of the image in pixels.</param>
-    /// <param name="pixels">The raw pixel bytes.</param>
+    /// <param name="pixels">The raw pixel bytes, at least width * height * 4 bytes.</param>
     /// <returns>The decoded image or <code>null</code> if the creation of the image from the pixels failed.</returns>
     public static AlphaSkiaImage? FromPixels(int width, int height, byte[] pixels)
     {
-        var image = NativeMethods.alphaskia_image_from_pixels(width, height, pixels);
+        if (pixels == null)
+        {
+            throw new ArgumentNullException(nameof(pixels));
+        }
+
+        var image = NativeMethods.alphaskia_image_from_pixels(width, height, pixels, (ulong)pixels.LongLength);
         return image == IntPtr.Zero ? null : new AlphaSkiaImage(image);
     }
 }

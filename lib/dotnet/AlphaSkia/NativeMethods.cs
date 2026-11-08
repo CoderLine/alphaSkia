@@ -79,7 +79,7 @@ internal static class NativeMethods
     public static extern alphaskia_image_t alphaskia_image_decode(byte[] data, ulong length);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern alphaskia_image_t alphaskia_image_from_pixels(int width, int height, byte[] pixels);
+    public static extern alphaskia_image_t alphaskia_image_from_pixels(int width, int height, byte[] pixels, ulong pixelsLength);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern int alphaskia_image_get_width(alphaskia_image_t image);
@@ -88,11 +88,10 @@ internal static class NativeMethods
     public static extern int alphaskia_image_get_height(alphaskia_image_t image);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int alphaskia_image_read_pixels(alphaskia_image_t image, IntPtr pixels, ulong rowBytes);
+    public static extern byte alphaskia_image_read_pixels(alphaskia_image_t image, IntPtr pixels, ulong rowBytes, ulong pixelsLength);
 
-
-    [DllImport(AlphaSkiaNativeLibName, EntryPoint = nameof(alphaskia_image_read_pixels))]
-    public static extern int alphaskia_image_read_pixels_bytes(alphaskia_image_t image, byte[] pixels, ulong rowBytes);
+    [DllImport(AlphaSkiaNativeLibName, EntryPoint = nameof(alphaskia_image_read_pixels), CallingConvention = CallingConvention.Cdecl)]
+    public static extern byte alphaskia_image_read_pixels_bytes(alphaskia_image_t image, byte[] pixels, ulong rowBytes, ulong pixelsLength);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern alphaskia_data_t alphaskia_image_encode_png(alphaskia_image_t image);
@@ -116,7 +115,7 @@ internal static class NativeMethods
     public static extern float alphaskia_canvas_get_line_width(alphaskia_canvas_t canvas);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int width, int height,
+    public static extern byte alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int width, int height,
         float render_scale);
 
     [DllImport(AlphaSkiaNativeLibName, CallingConvention = CallingConvention.Cdecl)]

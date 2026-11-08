@@ -18,9 +18,16 @@ internal sealed class AlphaSkiaData : AlphaSkiaNative
     {
         CheckDisposed();
         var dataLength = NativeMethods.alphaskia_data_get_length(Handle);
+        if (dataLength > int.MaxValue)
+        {
+            throw new InvalidOperationException("Data too large for a byte array");
+        }
+
         var data = new byte[dataLength];
-        var dataPtr = NativeMethods.alphaskia_data_get_data(Handle);
-        Marshal.Copy(dataPtr, data, 0, data.Length);
+        if (data.Length > 0)
+        {
+            Marshal.Copy(NativeMethods.alphaskia_data_get_data(Handle), data, 0, data.Length);
+        }
         return data;
     }
 }

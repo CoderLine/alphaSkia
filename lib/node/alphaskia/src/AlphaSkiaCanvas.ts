@@ -105,6 +105,7 @@ export class AlphaSkiaCanvas extends AlphaSkiaNative<AlphaSkiaCanvasHandle> {
      * @param width  The width of the image to produce.
      * @param height The height of the image to produce.
      * @param scaleFactor The scale factor for the image (e.g. for high DPI rendering with keeping coordinates).
+     * @throws RangeError if the render scale is not a positive finite number or the scaled size cannot be allocated.
      */
     public beginRender(width: number, height: number, renderScale: number = 1): void {
         this.checkDisposed();

@@ -14,7 +14,7 @@ extern "C"
         return reinterpret_cast<alphaskia_data_t>(new sk_sp<SkData>(skData));
     }
 
-    AS_API uint8_t * alphaskia_data_get_data(alphaskia_data_t data)
+    AS_API const uint8_t *alphaskia_data_get_data(alphaskia_data_t data)
     {
         if (!data)
         {
@@ -22,7 +22,7 @@ extern "C"
         }
 
         sk_sp<SkData> *internal = reinterpret_cast<sk_sp<SkData> *>(data);
-        return reinterpret_cast<uint8_t*>((*internal)->writable_data());
+        return (*internal)->bytes();
     }
 
     AS_API uint64_t alphaskia_data_get_length(alphaskia_data_t data)

@@ -96,9 +96,9 @@ export interface AlphaSkiaNodeAddon {
     alphaskia_image_get_width(image: AlphaSkiaImageHandle): number;
     alphaskia_image_get_height(image: AlphaSkiaImageHandle): number;
     alphaskia_image_read_pixels(image: AlphaSkiaImageHandle): ArrayBuffer | undefined;
-    alphaskia_image_encode_png(image: AlphaSkiaImageHandle): ArrayBuffer;
-    alphaskia_image_from_pixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImageHandle;
-    alphaskia_image_decode(pixels: ArrayBuffer): AlphaSkiaImageHandle;
+    alphaskia_image_encode_png(image: AlphaSkiaImageHandle): ArrayBuffer | undefined;
+    alphaskia_image_from_pixels(width: number, height: number, pixels: ArrayBuffer): AlphaSkiaImageHandle | undefined;
+    alphaskia_image_decode(pixels: ArrayBuffer): AlphaSkiaImageHandle | undefined;
     alphaskia_image_free(image: AlphaSkiaImageHandle): void;
 
     alphaskia_canvas_new(): AlphaSkiaCanvasHandle | undefined;

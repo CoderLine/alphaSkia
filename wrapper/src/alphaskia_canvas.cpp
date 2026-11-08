@@ -83,13 +83,13 @@ extern "C"
         return get_canvas(canvas)->get_line_width();
     }
 
-    AS_API void alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int32_t width, int32_t height, float render_scale)
+    AS_API uint8_t alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int32_t width, int32_t height, float render_scale)
     {
         if (!canvas)
         {
-            return;
+            return 0;
         }
-        get_canvas(canvas)->begin_render(width, height, render_scale);
+        return get_canvas(canvas)->begin_render(width, height, render_scale) ? 1 : 0;
     }
 
     AS_API alphaskia_image_t alphaskia_canvas_end_render(alphaskia_canvas_t canvas)

@@ -26,7 +26,7 @@ extern "C"
 
     typedef AS_API void *alphaskia_data_t;
     AS_API alphaskia_data_t alphaskia_data_new_copy(const uint8_t *data, uint64_t length);
-    AS_API uint8_t *alphaskia_data_get_data(alphaskia_data_t data);
+    AS_API const uint8_t *alphaskia_data_get_data(alphaskia_data_t data);
     AS_API uint64_t alphaskia_data_get_length(alphaskia_data_t data);
     AS_API void alphaskia_data_free(alphaskia_data_t data);
 
@@ -54,10 +54,10 @@ extern "C"
     typedef AS_API void *alphaskia_image_t;
     AS_API int32_t alphaskia_image_get_width(alphaskia_image_t image);
     AS_API int32_t alphaskia_image_get_height(alphaskia_image_t image);
-    AS_API uint8_t alphaskia_image_read_pixels(alphaskia_image_t image, uint8_t *pixels, uint64_t row_bytes);
+    AS_API uint8_t alphaskia_image_read_pixels(alphaskia_image_t image, uint8_t *pixels, uint64_t row_bytes, uint64_t pixels_length);
     AS_API alphaskia_data_t alphaskia_image_encode_png(alphaskia_image_t image);
     AS_API alphaskia_image_t alphaskia_image_decode(const uint8_t *data, uint64_t length);
-    AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels);
+    AS_API alphaskia_image_t alphaskia_image_from_pixels(int32_t width, int32_t height, const uint8_t *pixels, uint64_t pixels_length);
     AS_API void alphaskia_image_free(alphaskia_image_t image);
 
     typedef AS_API void *alphaskia_text_metrics_t;
@@ -85,7 +85,7 @@ extern "C"
     AS_API void alphaskia_canvas_set_line_width(alphaskia_canvas_t canvas, float line_width);
     AS_API float alphaskia_canvas_get_line_width(alphaskia_canvas_t canvas);
 
-    AS_API void alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int32_t width, int32_t height, float render_scale);
+    AS_API uint8_t alphaskia_canvas_begin_render(alphaskia_canvas_t canvas, int32_t width, int32_t height, float render_scale);
     AS_API alphaskia_image_t alphaskia_canvas_end_render(alphaskia_canvas_t canvas);
     AS_API void alphaskia_canvas_fill_rect(alphaskia_canvas_t canvas, float x, float y, float width, float height);
     AS_API void alphaskia_canvas_stroke_rect(alphaskia_canvas_t canvas, float x, float y, float width, float height);

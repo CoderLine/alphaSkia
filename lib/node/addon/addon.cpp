@@ -230,12 +230,15 @@ static napi_value node_alphaskia_data_get_data(napi_env env, napi_callback_info 
   const uint8_t *data_content = alphaskia_data_get_data(data);
   uint64_t data_length = alphaskia_data_get_length(data);
 
-  void *node_data_content;
+  void *node_data_content(nullptr);
   napi_value node_data;
-  status = napi_create_arraybuffer(env, data_length, &data, &node_data);
+  status = napi_create_arraybuffer(env, static_cast<size_t>(data_length), &node_data_content, &node_data);
   ASSERT_STATUS();
 
-  memcpy(node_data_content, data_content, static_cast<size_t>(data_length));
+  if (data_length > 0)
+  {
+    memcpy(node_data_content, data_content, static_cast<size_t>(data_length));
+  }
 
   return node_data;
 }
@@ -643,7 +646,7 @@ static napi_value node_alphaskia_image_read_pixels(napi_env env, napi_callback_i
   status = napi_create_arraybuffer(env, total_bytes, &node_data, &node_value);
   ASSERT_STATUS();
 
-  uint8_t success = alphaskia_image_read_pixels(image, static_cast<uint8_t *>(node_data), row_bytes);
+  uint8_t success = alphaskia_image_read_pixels(image, static_cast<uint8_t *>(node_data), row_bytes, total_bytes);
   if (success == 0)
   {
     RETURN_UNDEFINED();
@@ -661,14 +664,27 @@ static napi_value node_alphaskia_image_encode_png(napi_env env, napi_callback_in
   GET_ARGUMENT_HANDLE(0, alphaskia_image_t, image);
 
   alphaskia_data_t png = alphaskia_image_encode_png(image);
-  uint64_t png_size = alphaskia_data_get_length(png);
-  uint8_t *png_data = alphaskia_data_get_data(png);
+  if (!png)
+  {
+    RETURN_UNDEFINED();
+  }
 
-  void *node_data;
+  uint64_t png_size = alphaskia_data_get_length(png);
+  const uint8_t *png_data = alphaskia_data_get_data(png);
+
+  void *node_data(nullptr);
   napi_value node_value;
-  status = napi_create_arraybuffer(env, png_size, &node_data, &node_value);
+  status = napi_create_arraybuffer(env, static_cast<size_t>(png_size), &node_data, &node_value);
+  if (status != napi_ok)
+  {
+    alphaskia_data_free(png);
+  }
   ASSERT_STATUS();
-  memcpy(node_data, png_data, static_cast<size_t>(png_size));
+  if (png_size > 0)
+  {
+    memcpy(node_data, png_data, static_cast<size_t>(png_size));
+  }
+  alphaskia_data_free(png);
 
   return node_value;
 }
@@ -780,7 +796,11 @@ static napi_value node_alphaskia_canvas_begin_render(napi_env env, napi_callback
   GET_ARGUMENT_INT32(2, height);
   GET_ARGUMENT_FLOAT(3, render_scale);
 
-  alphaskia_canvas_begin_render(canvas, width, height, render_scale);
+  if (!alphaskia_canvas_begin_render(canvas, width, height, render_scale))
+  {
+    napi_throw_range_error(env, nullptr, "Cannot create a render surface for the given size and render scale");
+    return nullptr;
+  }
 
   RETURN_UNDEFINED();
 }
@@ -999,7 +1019,7 @@ static napi_value node_alphaskia_image_from_pixels(napi_env env, napi_callback_i
   status = napi_get_arraybuffer_info(env, node_argv[2], &node_pixels, &node_pixels_length);
   ASSERT_STATUS();
 
-  alphaskia_image_t image = alphaskia_image_from_pixels(width, height, reinterpret_cast<const uint8_t *>(node_pixels));
+  alphaskia_image_t image = alphaskia_image_from_pixels(width, height, reinterpret_cast<const uint8_t *>(node_pixels), node_pixels_length);
   WRAP_HANDLE(alphaskia_image_t, wrapped, image);
   return wrapped;
 }

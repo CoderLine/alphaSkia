@@ -47,13 +47,20 @@ namespace
         check(alphaskia_image_decode(nullptr, 5) == nullptr, "decode NULL with length");
 
         std::vector<uint8_t> pixels(16);
-        check(alphaskia_image_from_pixels(-1, 1, pixels.data()) == nullptr, "pixels with negative width");
-        check(alphaskia_image_from_pixels(1, 0, pixels.data()) == nullptr, "pixels with zero height");
-        check(alphaskia_image_from_pixels(1, 1, nullptr) == nullptr, "pixels from NULL");
+        check(alphaskia_image_from_pixels(-1, 1, pixels.data(), pixels.size()) == nullptr, "pixels with negative width");
+        check(alphaskia_image_from_pixels(1, 0, pixels.data(), pixels.size()) == nullptr, "pixels with zero height");
+        check(alphaskia_image_from_pixels(1, 1, nullptr, 4) == nullptr, "pixels from NULL");
+        check(alphaskia_image_from_pixels(1000, 1000, pixels.data(), pixels.size()) == nullptr, "pixels larger than the buffer");
+        check(alphaskia_image_from_pixels(65536, 65536, pixels.data(), pixels.size()) == nullptr, "pixels with overflowing 32-bit size");
 
-        auto image = alphaskia_image_from_pixels(2, 2, pixels.data());
+        auto image = alphaskia_image_from_pixels(2, 2, pixels.data(), pixels.size());
         check(image != nullptr, "pixels 2x2");
-        check(alphaskia_image_read_pixels(image, nullptr, 8) == 0, "read pixels into NULL");
+        check(alphaskia_image_read_pixels(image, nullptr, 8, 16) == 0, "read pixels into NULL");
+        check(alphaskia_image_read_pixels(image, pixels.data(), 8, 15) == 0, "read pixels into a too small buffer");
+        check(alphaskia_image_read_pixels(image, pixels.data(), 4, 16) == 0, "read pixels with too small row bytes");
+        check(alphaskia_image_read_pixels(image, pixels.data(), 8, 16) == 1, "read pixels into an exact buffer");
+        std::vector<uint8_t> padded(20);
+        check(alphaskia_image_read_pixels(image, padded.data(), 12, padded.size()) == 1, "read pixels with padded rows");
         alphaskia_image_free(image);
     }
 
@@ -62,7 +69,7 @@ namespace
         check(alphaskia_image_get_width(nullptr) == 0, "image width of NULL");
         check(alphaskia_image_get_height(nullptr) == 0, "image height of NULL");
         uint8_t pixel[4];
-        check(alphaskia_image_read_pixels(nullptr, pixel, 4) == 0, "read pixels of NULL");
+        check(alphaskia_image_read_pixels(nullptr, pixel, 4, sizeof(pixel)) == 0, "read pixels of NULL");
         check(alphaskia_image_encode_png(nullptr) == nullptr, "encode NULL");
 
         check(alphaskia_data_get_data(nullptr) == nullptr, "data of NULL");
@@ -119,15 +126,15 @@ namespace
         const float invalid_scales[] = {0.0f, -1.0f, std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::infinity()};
         for (float scale : invalid_scales)
         {
-            alphaskia_canvas_begin_render(canvas, 10, 10, scale);
+            check(alphaskia_canvas_begin_render(canvas, 10, 10, scale) == 0, "begin render with scale " + std::to_string(scale));
             draw_everything(canvas);
             check(alphaskia_canvas_end_render(canvas) == nullptr, "end render after begin render with scale " + std::to_string(scale));
         }
 
-        alphaskia_canvas_begin_render(canvas, std::numeric_limits<int32_t>::max(), 10, 2.0f);
+        check(alphaskia_canvas_begin_render(canvas, std::numeric_limits<int32_t>::max(), 10, 2.0f) == 0, "begin render with overflowing width");
         check(alphaskia_canvas_end_render(canvas) == nullptr, "end render after begin render with overflowing width");
 
-        alphaskia_canvas_begin_render(canvas, 10, 10, 1.0f);
+        check(alphaskia_canvas_begin_render(canvas, 10, 10, 1.0f) == 1, "begin render with valid size");
         draw_everything(canvas);
         auto image = alphaskia_canvas_end_render(canvas);
         check(image != nullptr && alphaskia_image_get_width(image) == 10, "end render after valid begin render");

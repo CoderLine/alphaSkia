@@ -105,10 +105,14 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
     /// <param name="width">The width of the image to produce.</param>
     /// <param name="height">The height of the image to produce.</param>
     /// <param name="renderScale">The scale factor for the image (e.g. for high DPI rendering with keeping coordinates).</param>
+    /// <exception cref="ArgumentException">The render scale is not a positive finite number or the scaled size cannot be allocated.</exception>
     public void BeginRender(int width, int height, float renderScale = 1)
     {
         CheckDisposed();
-        NativeMethods.alphaskia_canvas_begin_render(Handle, width, height, renderScale);
+        if (NativeMethods.alphaskia_canvas_begin_render(Handle, width, height, renderScale) == 0)
+        {
+            throw new ArgumentException("Cannot create a render surface for the given size and render scale");
+        }
     }
 
     /// <summary>

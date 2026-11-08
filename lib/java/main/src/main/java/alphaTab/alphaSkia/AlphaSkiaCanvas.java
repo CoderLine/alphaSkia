@@ -85,6 +85,7 @@ public class AlphaSkiaCanvas extends AlphaSkiaNative {
      * @param width  The width of the image to produce.
      * @param height The height of the image to produce.
      * @param scaleFactor The scale factor for the image (e.g. for high DPI rendering with keeping coordinates).
+     * @throws IllegalArgumentException if the scale factor is not a positive finite number or the scaled size cannot be allocated.
      */
     public native void beginRender(int width, int height, float scaleFactor);
 
