@@ -13,7 +13,7 @@ partial class Build
         .Unlisted()
         .OnlyWhenStatic(() => OperatingSystem.IsLinux() && IsGitHubActions)
         .After(PrepareGitHubArtifacts,
-            LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPatchSkiaBuildFiles,
+            LibAlphaSkiaGitSyncDeps, LibAlphaSkiaPrepareBuildFiles,
             LibSkiaGitSyncDeps, LibSkiaPatchSkiaBuildFiles)
         .Before(LibSkia, LibAlphaSkia, LibAlphaSkiaTest)
         .Executes(() =>
@@ -26,6 +26,10 @@ partial class Build
             {
                 "build-essential"
             };
+            if (CcWrapper == "ccache")
+            {
+                packages.Add("ccache");
+            }
 
             // Cross compilation build tools if needed
             var linuxArch = Architecture.LinuxArch;

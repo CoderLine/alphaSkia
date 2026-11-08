@@ -1,0 +1,179 @@
+# alphaSkia targets on top of the Skia build configuration (toolchains, compiler flags, platform support).
+# The build copies this file to externals/skia/alphaskia/BUILD.gn and generates it with
+# --root-target=//alphaskia, so Skia's own BUILD.gn is not loaded. Relative paths start at that location.
+# libskia is not built here, the targets link the static libskia from alphaskia_skia_lib_dir.
+
+declare_args() {
+  # directory of the static libskia to link
+  alphaskia_skia_lib_dir = ""
+
+  # JNI headers of the JDK, empty on Android where the NDK provides them
+  alphaskia_jni_include_dirs = []
+
+  # how the Node addon resolves the N-API symbols of the hosting node binary
+  alphaskia_node_ldflags = []
+
+  # Windows: directory of the compiled version resources (<target>.rc.obj)
+  alphaskia_rc_obj_dir = ""
+
+  # runtime identifier the native tests select their reference images by
+  alphaskia_test_rid = ""
+}
+
+_repo = "../../.."
+
+config("alphaskia_wrapper_config") {
+  defines = [
+    "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING",
+    "ALPHASKIA_IMPLEMENTATION=1",
+    "ALPHASKIA_DLL",
+  ]
+  include_dirs = [ "//" ]
+
+  if (is_win) {
+    defines += [ "ALPHASKIA_FONTMGR_WINDOWS" ]
+  }
+  if (is_linux) {
+    defines += [ "ALPHASKIA_FONTMGR_LINUX" ]
+  }
+  if (is_android) {
+    defines += [ "ALPHASKIA_FONTMGR_ANDROID" ]
+  }
+  if (is_mac) {
+    defines += [ "ALPHASKIA_FONTMGR_MAC" ]
+  }
+  if (is_ios) {
+    defines += [ "ALPHASKIA_FONTMGR_IOS" ]
+  }
+}
+
+config("alphaskia_link_config") {
+  lib_dirs = [ alphaskia_skia_lib_dir ]
+
+  if (is_win) {
+    libs = [
+      "skia.lib",
+      "user32.lib",
+    ]
+  }
+  if (is_linux) {
+    libs = [
+      "skia",
+      "fontconfig",
+    ]
+  }
+  if (is_android) {
+    libs = [ "skia" ]
+  }
+  if (is_mac) {
+    libs = [ "skia" ]
+    frameworks = [
+      "AppKit.framework",
+      "ApplicationServices.framework",
+      "Foundation.framework",
+    ]
+  }
+  if (is_ios) {
+    libs = [ "skia" ]
+    frameworks = [
+      "Foundation.framework",
+      "CoreFoundation.framework",
+      "CoreGraphics.framework",
+      "CoreText.framework",
+      "ImageIO.framework",
+      "MobileCoreServices.framework",
+      "UIKit.framework",
+    ]
+  }
+}
+
+# libraries without host-provided symbols must resolve everything at link time
+config("alphaskia_no_undefined") {
+  if (is_linux || is_android) {
+    ldflags = [ "-Wl,-z,defs" ]
+  }
+}
+
+# compiled once, linked into every library flavour
+source_set("alphaskia_wrapper") {
+  configs += [ ":alphaskia_wrapper_config" ]
+  sources = [
+    "$_repo/wrapper/src/AlphaSkiaCanvas.cpp",
+    "$_repo/wrapper/src/SkFontMgr_alphaskia.cpp",
+    "$_repo/wrapper/src/alphaskia_canvas.cpp",
+    "$_repo/wrapper/src/alphaskia_data.cpp",
+    "$_repo/wrapper/src/alphaskia_image.cpp",
+    "$_repo/wrapper/src/alphaskia_limits.cpp",
+    "$_repo/wrapper/src/alphaskia_string.cpp",
+    "$_repo/wrapper/src/alphaskia_text_metrics.cpp",
+    "$_repo/wrapper/src/alphaskia_text_style.cpp",
+    "$_repo/wrapper/src/alphaskia_typeface.cpp",
+  ]
+}
+
+template("alphaskia_library") {
+  shared_library(target_name) {
+    # configs extend Skia's default configs instead of replacing them
+    forward_variables_from(invoker, "*", [ "configs" ])
+    configs += [ ":alphaskia_link_config" ]
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+    deps = [ ":alphaskia_wrapper" ]
+    if (is_win) {
+      lib_dirs = [ alphaskia_rc_obj_dir ]
+      libs = [ "$target_name.rc.obj" ]
+    }
+  }
+}
+
+alphaskia_library("libalphaskia") {
+  configs = [ ":alphaskia_no_undefined" ]
+}
+
+alphaskia_library("libalphaskiajni") {
+  configs = [
+    ":alphaskia_wrapper_config",
+    ":alphaskia_no_undefined",
+  ]
+  include_dirs = alphaskia_jni_include_dirs
+  sources = [
+    "$_repo/lib/java/jni/src/AlphaSkiaCanvas.cpp",
+    "$_repo/lib/java/jni/src/AlphaSkiaData.cpp",
+    "$_repo/lib/java/jni/src/AlphaSkiaImage.cpp",
+    "$_repo/lib/java/jni/src/AlphaSkiaLimits.cpp",
+    "$_repo/lib/java/jni/src/AlphaSkiaTextMetrics.cpp",
+    "$_repo/lib/java/jni/src/AlphaSkiaTextStyle.cpp",
+    "$_repo/lib/java/jni/src/AlphaSkiaTypeface.cpp",
+  ]
+}
+
+alphaskia_library("libalphaskianode") {
+  configs = [ ":alphaskia_wrapper_config" ]
+  defines = [
+    "NODE_GYP_MODULE_NAME=libalphaskianode",
+    "USING_UV_SHARED=1",
+    "USING_V8_SHARED=1",
+    "V8_DEPRECATION_WARNINGS=1",
+    "BUILDING_NODE_EXTENSION",
+  ]
+  ldflags = alphaskia_node_ldflags
+  output_extension = "node"
+  sources = [ "$_repo/lib/node/addon/addon.cpp" ]
+  if (is_win) {
+    sources += [ "$_repo/lib/node/addon/win_delay_load_hook.cpp" ]
+  }
+}
+
+executable("libalphaskiatest") {
+  defines = [ "ALPHASKIA_TEST_RID=$alphaskia_test_rid" ]
+  sources = [
+    "$_repo/test/native/src/AlphaSkiaTestBridge.cpp",
+    "$_repo/test/native/src/AlphaTabGeneratedTest.cpp",
+    "$_repo/test/native/src/PixelMatch.cpp",
+    "$_repo/test/native/src/RobustnessTest.cpp",
+    "$_repo/test/native/src/TextRenderingTest.cpp",
+    "$_repo/test/native/src/main.cpp",
+  ]
+  deps = [ ":libalphaskia" ]
+}

@@ -17,6 +17,7 @@ public class TargetOperatingSystem : Enumeration
             ["skia_enable_fontmgr_empty"] = "false",
             ["skia_use_system_freetype2"] = "false"
         },
+        AlphaSkiaVariants = [Variant.Shared, Variant.Jni, Variant.Node],
         RuntimeIdentifier = "win",
         DotNetRid = "win"
     };
@@ -37,6 +38,7 @@ public class TargetOperatingSystem : Enumeration
             ["skia_enable_fontmgr_custom_embedded"] = "false",
             ["skia_enable_fontmgr_custom_empty"] = "false",
         },
+        AlphaSkiaVariants = [Variant.Shared, Variant.Jni, Variant.Node],
         RuntimeIdentifier = "linux",
         DotNetRid = "linux"
     };
@@ -57,6 +59,7 @@ public class TargetOperatingSystem : Enumeration
             ["skia_enable_fontmgr_custom_empty"] = "false",
             ["skia_use_fontconfig"] = "false"
         },
+        AlphaSkiaVariants = [Variant.Shared, Variant.Jni],
         RuntimeIdentifier = "android",
         DotNetRid = "android"
     };
@@ -71,6 +74,7 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_fonthost_mac"] = "false",
             ["skia_enable_fontmgr_empty"] = "false",
         },
+        AlphaSkiaVariants = [Variant.Shared, Variant.Jni, Variant.Node],
         RuntimeIdentifier = "macos",
         DotNetRid = "osx"
     };
@@ -86,6 +90,7 @@ public class TargetOperatingSystem : Enumeration
             ["skia_use_fonthost_mac"] = "false",
             ["skia_enable_fontmgr_empty"] = "false"
         },
+        AlphaSkiaVariants = [Variant.Shared],
         RuntimeIdentifier = "ios"
     };
 
@@ -98,9 +103,13 @@ public class TargetOperatingSystem : Enumeration
         {
             ["skia_use_system_freetype2"] = "false",
             ["skia_use_fonthost_mac"] = "false",
-            ["skia_enable_fontmgr_empty"] = "false",
+            ["skia_enable_fontmgr_empty"] = "false"
+        },
+        ToolchainGnArgs =
+        {
             ["ios_use_simulator"] = "true"
         },
+        AlphaSkiaVariants = [Variant.Shared],
         RuntimeIdentifier = "iossimulator"
     };
 
@@ -127,7 +136,21 @@ public class TargetOperatingSystem : Enumeration
     }
     
     public string SkiaTargetOs { get; private init; }
+
+    /// <summary>
+    /// GN args of the libskia build only.
+    /// </summary>
     public Dictionary<string, string> SkiaGnArgs { get; } = new();
+
+    /// <summary>
+    /// GN args of the toolchain, used by the libskia and the alphaSkia builds.
+    /// </summary>
+    public Dictionary<string, string> ToolchainGnArgs { get; } = new();
+
+    /// <summary>
+    /// The alphaSkia library variants built for this operating system.
+    /// </summary>
+    public Variant[] AlphaSkiaVariants { get; private init; }
 
     public string RuntimeIdentifier { get; private init; }
     public object DotNetRid { get; private init; }
