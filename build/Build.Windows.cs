@@ -61,6 +61,14 @@ partial class Build
 
             AppendToFlagList(gnArgs, "extra_cflags", "'/MT', '/EHsc', '/Z7', '-D_HAS_AUTO_PTR_ETC=1'");
             AppendToFlagList(gnArgs, "extra_ldflags", "'/DEBUG:FULL'");
+
+            // exploit mitigations: Control Flow Guard, and CET shadow stack compatibility where available
+            AppendToFlagList(gnArgs, "extra_cflags", "'/guard:cf'");
+            AppendToFlagList(gnArgs, "extra_ldflags", "'/guard:cf'");
+            if (Architecture == Architecture.X64 || Architecture == Architecture.X86)
+            {
+                AppendToFlagList(gnArgs, "extra_ldflags", "'/CETCOMPAT'");
+            }
         }
     }
 }
