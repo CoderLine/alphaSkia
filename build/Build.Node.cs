@@ -226,8 +226,6 @@ partial class Build
         }
     }
 
-    [Parameter] [Secret] readonly string NpmjsAuthToken = GetVariable<string>("NPMJS_AUTH_TOKEN");
-
     public Target NodePublish => t => t
         .DependsOn(PrepareGitHubArtifacts)
         .Requires(() => IsGitHubActions)
@@ -236,12 +234,7 @@ partial class Build
             foreach (var tar in (DistBasePath / "nodetars").GlobFiles("*.tgz"))
             {
                 var tag = (IsReleaseBuild) ? "latest" : "alpha";
-                NpmTasks.Npm($"publish {tar} --access public --tag {tag}",
-                    environmentVariables: Variables
-                        .ToDictionary(x => x.Key, x => x.Value)
-                        .SetKeyValue("NODE_AUTH_TOKEN", NpmjsAuthToken)
-                        .AsReadOnly()
-                );
+                NpmTasks.Npm($"publish {tar} --access public --tag {tag}");
             }
         });
 }
