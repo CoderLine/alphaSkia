@@ -44,6 +44,11 @@ extern "C"
         SkFontMgr_AlphaSkia::instance()->switch_to_operating_system_fonts();
     }
 
+    AS_API void alphaskia_purge_font_caches()
+    {
+        SkFontMgr_AlphaSkia::instance()->purge_font_caches();
+    }
+
     AS_API int32_t alphaskia_get_color_type()
     {
         return kN32_SkColorType;

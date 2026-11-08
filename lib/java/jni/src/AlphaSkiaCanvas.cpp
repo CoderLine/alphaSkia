@@ -253,4 +253,8 @@ extern "C"
     JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_switchToOperatingSystemFonts(JNIEnv *, jclass) {
         alphaskia_switch_to_operating_system_fonts();
     }
+
+    JNIEXPORT void JNICALL Java_alphaTab_alphaSkia_AlphaSkiaCanvas_purgeFontCaches(JNIEnv *, jclass) {
+        alphaskia_purge_font_caches();
+    }
 }

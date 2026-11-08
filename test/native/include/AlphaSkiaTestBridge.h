@@ -23,6 +23,16 @@ extern float render_scale;
 extern int32_t total_width;
 extern int32_t total_height;
 
+// A family of the operating system, not registered by the tests: Arial and Helvetica ship with Windows and macOS,
+// fontconfig resolves the generic family to any installed font. Checks must not depend on which font it is.
+#if defined(_WIN32)
+constexpr const char *system_font_family = "Arial";
+#elif defined(__APPLE__)
+constexpr const char *system_font_family = "Helvetica";
+#else
+constexpr const char *system_font_family = "sans-serif";
+#endif
+
 alphaskia_text_style_t alphaskia_get_text_style(const std::vector<const char*>& family_names, uint16_t weight, bool is_italic);
 alphaskia_typeface_t alphaskia_load_typeface(std::string file_path);
 void read_file(std::string file_path, std::vector<uint8_t> &data);

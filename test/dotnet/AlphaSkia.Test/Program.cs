@@ -83,6 +83,8 @@ public static class Program
             AlphaTabGeneratedRenderTest.LoadTypeface(Path.Combine(testDataPath, "font", "noto-color-emoji", "NotoColorEmoji_WindowsCompatible.ttf"));
             
             Console.WriteLine("Fonts loaded");
+            // registered fonts must survive a purge
+            AlphaSkiaCanvas.PurgeFontCaches();
 
             if (!RobustnessTest.Run())
             {

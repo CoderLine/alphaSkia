@@ -64,8 +64,14 @@ extern "C"
     AS_API void alphaskia_set_limit(alphaskia_limit_t limit, uint64_t value);
 
     AS_API int32_t alphaskia_get_color_type();
+    // FreeType mode renders all text with FreeType. Registered fonts take precedence, other families are looked up
+    // among the fonts installed on the operating system. Switching the mode purges the font caches.
     AS_API void alphaskia_switch_to_freetype_fonts();
     AS_API void alphaskia_switch_to_operating_system_fonts();
+    // Releases cached fonts and glyphs, including the operating system fonts loaded for FreeType mode. Typefaces in
+    // use stay valid and fonts are loaded again when needed, registered fonts stay registered. Canvases release their
+    // cached fonts on their next text operation.
+    AS_API void alphaskia_purge_font_caches();
 
     typedef AS_API void *alphaskia_data_t;
     // Copies the given bytes.

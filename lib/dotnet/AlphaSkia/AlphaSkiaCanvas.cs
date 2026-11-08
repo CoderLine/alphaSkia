@@ -32,12 +32,23 @@ public sealed class AlphaSkiaCanvas : AlphaSkiaNative
 
     /// <summary>
     /// Switches the rendering to use the FreeType font manager and font rendering. 
-    /// This results in a platform independent display of any rendered texts achieving consistent rendering. 
-    /// Operating system fonts cannot be used in this mode.
+    /// This results in a platform independent display of any rendered texts achieving consistent rendering.
+    /// Registered fonts take precedence, other families are looked up among the fonts installed on the
+    /// operating system and therefore depend on the system.
     /// </summary>
     public static void SwitchToFreeTypeFonts()
     {
         NativeMethods.alphaskia_switch_to_freetype_fonts();
+    }
+
+    /// <summary>
+    /// Releases cached fonts and glyphs, including the operating system fonts loaded in FreeType mode.
+    /// Typefaces in use stay valid and fonts are loaded again when needed, registered fonts stay registered.
+    /// Canvases release their cached fonts on their next text operation.
+    /// </summary>
+    public static void PurgeFontCaches()
+    {
+        NativeMethods.alphaskia_purge_font_caches();
     }
 
     /// <summary>
