@@ -162,7 +162,7 @@ function main(): number {
             console.error(`Difference between original and new image is too big: ${compareResult.differentPixels}/${totalPixels}(${percentDifference}%)`);
 
             // create diff image as PNG
-            using diffImage = AlphaSkiaImage.fromPixels(actualWidth, actualHeight, diffPixels)!;
+            using diffImage = AlphaSkiaImage.fromPixels(actualWidth, actualHeight, diffPixels.buffer)!;
             let diffImagePngData = diffImage.toPng()!;
 
             let diffOutputPath = path.join(testOutputPath, testOutputFileBase + ".diff.png");

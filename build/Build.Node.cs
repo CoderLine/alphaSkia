@@ -64,12 +64,19 @@ partial class Build
     {
         Log.Information("Preparing TGZ files for test by creating copy without version");
         var files = new List<string>();
-        foreach (var tgz in (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz"))
+        // materialized as the loop adds the copies to the same directory
+        var tgzFiles = (RootDirectory / "dist" / "nodetars").GetFiles("*.tgz").ToList();
+        foreach (var tgz in tgzFiles)
         {
             // coderline-alphaskia-0.0.0-local.0.tgz
             var nameWithoutVersion = string.Join("-",
                                          tgz.NameWithoutExtension.Split('-').TakeWhile(p => !char.IsDigit(p[0])))
                                      + tgz.Extension;
+            if (nameWithoutVersion == tgz.Name)
+            {
+                // copy of a previous run
+                continue;
+            }
 
             tgz.Copy(RootDirectory / "dist" / "nodetars" / nameWithoutVersion,
                 ExistsPolicy.MergeAndOverwrite);

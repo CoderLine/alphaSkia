@@ -1,5 +1,6 @@
 #include "../include/AlphaTabGeneratedTest.h"
 #include "../include/PixelMatch.h"
+#include "../include/TextRenderingTest.h"
 
 #include <filesystem>
 #include <iostream>
@@ -571,6 +572,12 @@ int main(int argc, char **argv)
     }
 
     if (!measure_test(repository_root, test_data_path, isFreeType))
+    {
+        error = true;
+    }
+
+    std::string text_rendering_overview_file = std::string("text-rendering-") + (isFreeType ? "freetype" : STRINGIFY(ALPHASKIA_TEST_RID)) + ".png";
+    if (!text_rendering_test(repository_root / "test" / "test-outputs" / "native" / text_rendering_overview_file))
     {
         error = true;
     }
