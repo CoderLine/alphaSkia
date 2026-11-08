@@ -19,14 +19,16 @@ jobs:
       ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{secrets.SONATYPE_SIGNING_PASSWORD}}
       ORG_GRADLE_PROJECT_signingInMemoryKey: ${{secrets.SONATYPE_SIGNING_KEY}}
     steps:
+    # before setup-java, the Gradle cache key is computed from the Gradle files
+    - uses: actions/checkout@v6
     - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
+        cache: gradle
     - uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '10'
-    - uses: actions/checkout@v6
     - uses: actions/download-artifact@v8
       with:
         name: nuke
@@ -52,14 +54,15 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     needs: [java]
     steps:
+    - uses: actions/checkout@v6
     - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
+        cache: gradle
     - uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '10'        
-    - uses: actions/checkout@v6
     - uses: actions/download-artifact@v8
       with:
         name: nuke
