@@ -288,6 +288,34 @@ OpenTypeBaselines read_open_type_baselines(const SkFont &font)
     return baselines;
 }
 
+void get_glyph_path_bounds(const SkFont &font, const std::vector<SkGlyphID> &glyphs, std::vector<SkRect> &bounds)
+{
+    for (size_t i = 0; i < glyphs.size(); i++)
+    {
+        SkPath path;
+        if (font.getPath(glyphs[i], &path))
+        {
+            bounds[i] = path.getBounds();
+        }
+        else
+        {
+            // glyphs without outline like color emoji
+            font.getBounds(&glyphs[i], 1, &bounds[i], nullptr);
+        }
+    }
+}
+
+void get_glyph_bounds(const SkFont &font, const std::vector<SkGlyphID> &glyphs, std::vector<SkRect> &bounds)
+{
+    // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/platform/fonts/skia/skia_text_metrics.cc
+    // SkFontGetBoundsForGlyphs: on Apple platforms the glyph bounds from CoreText are too loose, the outlines are used.
+#if defined(SK_BUILD_FOR_MAC) || defined(SK_BUILD_FOR_IOS)
+    get_glyph_path_bounds(font, glyphs, bounds);
+#else
+    font.getBounds(glyphs.data(), static_cast<int>(glyphs.size()), bounds.data(), nullptr);
+#endif
+}
+
 // Text shaped into a single line, positioned relative to the alphabetic baseline at the start of the text.
 struct TextLayout
 {
@@ -383,7 +411,7 @@ TextLayout layout_text(const sk_sp<skia::textlayout::FontCollection> &font_colle
             }
 
             std::vector<SkRect> bounds(info->count);
-            run.font.getBounds(run.glyphs.data(), info->count, bounds.data(), nullptr);
+            get_glyph_bounds(run.font, run.glyphs, bounds);
             for (int i = 0; i < info->count; i++)
             {
                 if (!bounds[i].isEmpty())
