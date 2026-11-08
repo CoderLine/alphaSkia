@@ -5,7 +5,7 @@ plugins {
 }
 
 // do not inline (updated dynamically via Nuke)
-var libVersion = "3.5.157"
+var libVersion = "4.0.157"
 
 group = "alphaTab.alphaSkia"
 version = libVersion
